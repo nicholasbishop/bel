@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import pybliz
-from pybliz import gl
 
 
 def main():
-    scene = pybliz.Scene()
+    scene = pybliz.SceneNode()
+    geom = pybliz.MeshNode()
+    scene.add(geom)
 
     window = pybliz.Window(scene)
     window.run()
