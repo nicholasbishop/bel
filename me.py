@@ -4,11 +4,10 @@ import pybliz
 
 
 def main():
-    scene = pybliz.SceneNode()
-    geom = pybliz.MeshNode()
-    scene.add(geom)
-
-    window = pybliz.Window(scene)
+    window = pybliz.Window()
+    scene = window.scene()
+    mesh = pybliz.MeshNode.load_obj('examples/cube.obj')
+    scene.add(mesh)
     window.run()
 
 if __name__ == '__main__':
