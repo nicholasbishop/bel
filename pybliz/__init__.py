@@ -21,11 +21,26 @@ class Mat4x4:
         self._array = array
 
     @staticmethod
-    def Identity():
+    def identity():
         return Mat4x4(1, 0, 0, 0,
                       0, 1, 0, 0,
                       0, 0, 1, 0,
                       0, 0, 0, 1)
+
+    def frustum(right, left, top, bottom, near, far):
+        rml = right - left
+        rpl = right + left
+        tmb = top - bottom
+        tpb = top + bottom
+        fmn = far - near
+        fpn = far + near
+        n2 = near * 2
+        n2f = n2 * far
+        
+        return Mat4x4(n2 / rml, 0,         rpl / rml,  0,
+                      0,        n2 / tmb,  tpb / tmb,  0,
+                      0,        0,        -fpn / fmn, -n2f / fmn,
+                      0,        0,        -1,          0)
 
 
 class Quat:
@@ -54,12 +69,12 @@ class SceneNode:
         child._parent = None
         self._children.append(child)
 
-    def draw(self):
+    def draw(self, draw_data):
         for child in self._children:
-            child.draw()
-        self.draw_self()
+            child.draw(draw_data)
+        self.draw_self(draw_data)
 
-    def draw_self(self):
+    def draw_self(self, draw_data):
         pass
 
 
@@ -134,6 +149,12 @@ class ShaderManager:
         pass
 
 
+class DrawData:
+    def __init__(self):
+        self.projection = Mat4x4.identity()
+        self.model_view = Mat4x4.identity()
+
+
 class MeshNode(SceneNode):
     class Vert:
         def __init__(self, loc):
@@ -179,10 +200,10 @@ class MeshNode(SceneNode):
             mesh.faces = faces
             return mesh
 
-    def draw(self):
+    def draw_self(self, draw_data):
         self._program.bind()
-        self._program.set_uniform('model_view', Mat4x4.Identity())
-        self._program.set_uniform('projection', Mat4x4.Identity())
+        self._program.set_uniform('model_view', draw_data.model_view)
+        self._program.set_uniform('projection', draw_data.projection)
 
         gl.glBegin(gl.GL_TRIANGLES)
 
@@ -208,6 +229,7 @@ class Window:
             self._root = SceneNode()
             self._camera = SceneNode()
             self._root.add(self._camera)
+            self._draw_data = DrawData()
         else:
             glfw.Terminate()
             raise RuntimeError('failed to create glfw window')
@@ -216,9 +238,13 @@ class Window:
         return self._root
 
     def render(self):
+        self._draw_data.projection = Mat4x4.frustum(-1,    1,
+                                                     1,   -1,
+                                                     0.1,  10.0)
+
         gl.glClearColor(0.0, 0.0, 0.0, 1.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT , gl.GL_DEPTH_BUFFER_BIT)
-        self._root.draw()
+        self._root.draw(self._draw_data)
 
     def glfw_window(self):
         return glfw_window
