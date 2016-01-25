@@ -11,6 +11,13 @@ glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 if not glfw.Init():
     exit()
 
+
+class DrawData:
+    def __init__(self):
+        self.projection = Mat4x4.identity()
+        self.model_view = Mat4x4.identity()
+
+
 class SceneNode:
     def __init__(self):
         self._parent = None
@@ -39,12 +46,6 @@ def obj_remove_comment(line):
     if ind != -1:
         line = line[:ind].rstrip()
     return line
-
-
-class DrawData:
-    def __init__(self):
-        self.projection = Mat4x4.identity()
-        self.model_view = Mat4x4.identity()
 
 
 class MeshNode(SceneNode):
