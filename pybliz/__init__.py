@@ -16,6 +16,18 @@ class Vec3:
         self.z = z
 
 
+class Mat4x4:
+    def __init__(self, *array):
+        self._array = array
+
+    @staticmethod
+    def Identity():
+        return Mat4x4(1, 0, 0, 0,
+                      0, 1, 0, 0,
+                      0, 0, 1, 0,
+                      0, 0, 0, 1)
+
+
 class Quat:
     def __init__(self):
         pass
@@ -62,7 +74,7 @@ def extract_uniforms(source):
     for line in source.splitlines():
         parts = line.split()
         if len(parts) > 0 and parts[0] == 'uniform':
-            yield parts[2]
+            yield parts[2].rstrip(';')
 
 
 class Shader:
@@ -78,7 +90,10 @@ class Shader:
             log = gl.glGetShaderInfoLog(self._hnd)
             gl.glDeleteShader(self._hnd)
             raise RuntimeError('shader failed to compile', log)
-        self._uniforms = list(extract_uniforms(source))
+        self._uniforms = set(extract_uniforms(source))
+
+    def uniforms(self):
+        return self._uniforms
 
 
 class VertexShader(Shader):
@@ -101,12 +116,17 @@ class Program:
         gl.glAttachShader(self._hnd, self._vs._hnd)
         gl.glAttachShader(self._hnd, self._fs._hnd)
         gl.glLinkProgram(self._hnd)
+        self._uniforms = {}
+        for name in self._vs.uniforms() | self._fs.uniforms():
+            self._uniforms[name] = gl.glGetUniformLocation(self._hnd, name)
 
     def bind(self):
         gl.glUseProgram(self._hnd)
 
-    def set_uniform(self):
-        pass
+    def set_uniform(self, key, val):
+        loc = self._uniforms[key]
+        if isinstance(val, Mat4x4):
+            gl.glUniformMatrix4fv(loc, 1, False, val._array)
 
 
 class ShaderManager:
@@ -161,6 +181,9 @@ class MeshNode(SceneNode):
 
     def draw(self):
         self._program.bind()
+        self._program.set_uniform('model_view', Mat4x4.Identity())
+        self._program.set_uniform('projection', Mat4x4.Identity())
+
         gl.glBegin(gl.GL_TRIANGLES)
 
         for face in self.faces:
