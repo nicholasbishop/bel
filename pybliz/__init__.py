@@ -33,9 +33,14 @@ class SceneNode:
         self._children.append(child)
 
     def draw(self, draw_data):
+        subdraw = DrawData()
+        subdraw.projection = draw_data.projection
+        subdraw.model_view = subdraw.model_view * self._transform.matrix()
+
         for child in self._children:
-            child.draw(draw_data)
-        self.draw_self(draw_data)
+            child.draw(subdraw)
+
+        self.draw_self(subdraw)
 
     def draw_self(self, draw_data):
         pass
@@ -127,13 +132,19 @@ class Window:
             glfw.Terminate()
             raise RuntimeError('failed to create glfw window')
 
+    def viewport_size(self):
+        # TODO
+        return Vec2(640, 480)
+
     def scene(self):
         return self._root
 
     def render(self):
-        self._draw_data.projection = Mat4x4.frustum(-1,    1,
-                                                     1,   -1,
-                                                     0.1,  10.0)
+        near = 0.1
+        far = 10.0
+        self._draw_data.projection = Mat4x4.perspective(90,
+                                                        self.viewport_size(),
+                                                        near, far)
 
         gl.glClearColor(0.0, 0.0, 0.0, 1.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT , gl.GL_DEPTH_BUFFER_BIT)
