@@ -161,7 +161,7 @@ class MeshNode(SceneNode):
                     vec = self.verts[vi].loc
                     verts += [vec.x, vec.y, vec.z, 1]
 
-        attrib = 0
+        attrib = self._program.get_attribute_location('vert_loc')
         attrib_size = 4  # xyzw
 
         gl.glEnableVertexAttribArray(attrib)

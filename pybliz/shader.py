@@ -1,11 +1,18 @@
 from OpenGL import GL as gl
 from pybliz.math3d import *
 
-def extract_uniforms(source):
+KEYWORD_ATTRIBUTE = 'attribute'
+KEYWORD_UNIFORM = 'uniform'
+
+def extract_links(source):
     for line in source.splitlines():
         parts = line.split()
-        if len(parts) > 0 and parts[0] == 'uniform':
-            yield parts[2].rstrip(';')
+        if len(parts) == 3:
+            keyword = parts[0]
+            name = parts[2].rstrip(';')
+
+            if keyword in (KEYWORD_ATTRIBUTE, KEYWORD_UNIFORM):
+                yield keyword, name
 
 
 class Shader:
@@ -21,10 +28,15 @@ class Shader:
             log = gl.glGetShaderInfoLog(self._hnd)
             gl.glDeleteShader(self._hnd)
             raise RuntimeError('shader failed to compile', log)
-        self._uniforms = set(extract_uniforms(source))
+        links = list(extract_links(source))
+        self._attributes = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_ATTRIBUTE)
+        self._uniforms = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_UNIFORM)
 
     def uniforms(self):
         return self._uniforms
+
+    def attributes(self):
+        return self._attributes
 
 
 class VertexShader(Shader):
@@ -48,8 +60,11 @@ class Program:
         gl.glAttachShader(self._hnd, self._fs._hnd)
         gl.glLinkProgram(self._hnd)
         self._uniforms = {}
+        self._attributes = {}
         for name in self._vs.uniforms() | self._fs.uniforms():
             self._uniforms[name] = gl.glGetUniformLocation(self._hnd, name)
+        for name in self._vs.attributes() | self._fs.attributes():
+            self._attributes[name] = gl.glGetAttribLocation(self._hnd, name)
 
     def bind(self):
         gl.glUseProgram(self._hnd)
@@ -58,3 +73,6 @@ class Program:
         loc = self._uniforms[key]
         if isinstance(val, Mat4x4):
             gl.glUniformMatrix4fv(loc, 1, False, val._dat.flatten(order='F'))
+
+    def get_attribute_location(self, key):
+        return self._attributes[key]
