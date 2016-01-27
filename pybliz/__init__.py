@@ -157,9 +157,9 @@ class MeshNode(SceneNode):
                 vi1 = face.indices[i]
                 vi2 = face.indices[i + 1]
 
-                for vi in (vi0, vi1, vi2):
+                for index, vi in enumerate((vi0, vi1, vi2)):
                     vec = self.verts[vi].loc
-                    verts += [vec.x, vec.y, vec.z, 1]
+                    verts += [vec.x, vec.y, vec.z, index]
 
         attrib = self._program.get_attribute_location('vert_loc')
         attrib_size = 4  # xyzw
@@ -177,6 +177,7 @@ class MeshNode(SceneNode):
                                  verts)
 
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, len(verts) // 3)
+
         gl.glDisableVertexAttribArray(attrib);
 
 
@@ -204,6 +205,8 @@ class Window(Scene):
         return glfw_window
 
     def run(self):
+        #gl.glEnable(gl.GL_DEPTH_TEST)
+        x = 0
         while not glfw.WindowShouldClose(self._glfw_window):
             self.draw()
 
@@ -212,4 +215,7 @@ class Window(Scene):
 
             # Poll for and process events
             glfw.PollEvents()
+
+            self._root._children[1].transform.set_translation(x, 0, -5)
+            x += 0.01
         glfw.Terminate()
