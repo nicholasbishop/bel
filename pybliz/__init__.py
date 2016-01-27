@@ -146,12 +146,10 @@ class MeshNode(SceneNode):
 
     def draw(self, scene):
         self._program.bind()
-        #exit()
-        print(self._baked_transform)
         self._program.set_uniform('model_view', self._baked_transform)
         self._program.set_uniform('projection', scene.projection_matrix)
 
-        gl.glBegin(gl.GL_TRIANGLES)
+        verts = []
 
         for face in self.faces:
             vi0 = face.indices[-1]
@@ -161,9 +159,25 @@ class MeshNode(SceneNode):
 
                 for vi in (vi0, vi1, vi2):
                     vec = self.verts[vi].loc
-                    gl.glVertex3f(vec.x, vec.y, vec.z)
+                    verts += [vec.x, vec.y, vec.z, 1]
 
-        gl.glEnd()
+        attrib = 0
+        attrib_size = 4  # xyzw
+
+        gl.glEnableVertexAttribArray(attrib)
+
+        normalized = False
+        stride = 0
+        
+        gl.glVertexAttribPointer(attrib,
+                                 attrib_size,
+ 	                         gl.GL_FLOAT,
+                                 normalized,
+                                 stride,
+                                 verts)
+
+        gl.glDrawArrays(gl.GL_TRIANGLES, 0, len(verts) // 3)
+        gl.glDisableVertexAttribArray(attrib);
 
 
 class Window(Scene):
