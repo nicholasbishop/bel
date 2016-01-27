@@ -5,9 +5,11 @@ import pybliz
 
 def main():
     window = pybliz.Window()
-    scene = window.scene()
     mesh = pybliz.MeshNode.load_obj('examples/cube.obj')
-    scene.add(mesh)
+    s = 0.5
+    mesh.transform.set_scale(s, s, s)
+    mesh.transform.set_translation(0, 0, -5)
+    window.root.add(mesh)
     window.run()
 
 if __name__ == '__main__':

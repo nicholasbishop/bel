@@ -57,4 +57,4 @@ class Program:
     def set_uniform(self, key, val):
         loc = self._uniforms[key]
         if isinstance(val, Mat4x4):
-            gl.glUniformMatrix4fv(loc, 1, False, val._array)
+            gl.glUniformMatrix4fv(loc, 1, False, val._dat.flatten(order='F'))

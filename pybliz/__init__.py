@@ -12,10 +12,40 @@ if not glfw.Init():
     exit()
 
 
-class DrawData:
+class Scene:
     def __init__(self):
-        self.projection = Mat4x4.identity()
-        self.model_view = Mat4x4.identity()
+        self._projection_matrix = Mat4x4.identity()
+        self._root = SceneNode()
+        self._camera = SceneNode()
+        self._root.add(self._camera)
+
+    @property
+    def projection_matrix(self):
+        return self._projection_matrix
+
+    @property
+    def root(self):
+        return self._root
+
+    def iter_nodes(self, func):
+        stack = [self._root]
+        while len(stack) != 0:
+            node = stack.pop()
+            stack += node.children
+            func(node)
+
+    def draw(self, viewport_size):
+        near = 0.01
+        far = 100.0
+        self._projection_matrix = Mat4x4.perspective(90,
+                                                     viewport_size,
+                                                     near, far)
+
+        gl.glClearColor(0.0, 0.0, 0.0, 1.0)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT , gl.GL_DEPTH_BUFFER_BIT)
+
+        self.iter_nodes(SceneNode._bake_transform)
+        self.iter_nodes(lambda node: node.draw(self))
 
 
 class SceneNode:
@@ -23,6 +53,22 @@ class SceneNode:
         self._parent = None
         self._children = []
         self._transform = Transform()
+        self._baked_transform = Mat4x4()
+
+    def _bake_transform(self):
+        mat = self._transform.matrix()
+        if self._parent is None:
+            self._baked_transform = mat
+        else:
+            self._baked_transform = self._parent._baked_transform * mat
+
+    @property
+    def transform(self):
+        return self._transform
+
+    @property
+    def children(self):
+        return self._children
 
     def add(self, child):
         child._parent = self
@@ -32,17 +78,17 @@ class SceneNode:
         child._parent = None
         self._children.append(child)
 
-    def draw(self, draw_data):
-        subdraw = DrawData()
-        subdraw.projection = draw_data.projection
-        subdraw.model_view = subdraw.model_view * self._transform.matrix()
+    def draw(self, scene):
+    #     subdraw = DrawData()
+    #     subdraw.projection = draw_data.projection
+    #     subdraw.model_view = subdraw.model_view * self._transform.matrix()
 
-        for child in self._children:
-            child.draw(subdraw)
+    #     for child in self._children:
+    #         child.draw(subdraw)
 
-        self.draw_self(subdraw)
+    #     self.draw_self(subdraw)
 
-    def draw_self(self, draw_data):
+    # def draw_self(self, draw_data):
         pass
 
 
@@ -98,10 +144,12 @@ class MeshNode(SceneNode):
             mesh.faces = faces
             return mesh
 
-    def draw_self(self, draw_data):
+    def draw(self, scene):
         self._program.bind()
-        self._program.set_uniform('model_view', draw_data.model_view)
-        self._program.set_uniform('projection', draw_data.projection)
+        #exit()
+        print(self._baked_transform)
+        self._program.set_uniform('model_view', self._baked_transform)
+        self._program.set_uniform('projection', scene.projection_matrix)
 
         gl.glBegin(gl.GL_TRIANGLES)
 
@@ -118,44 +166,32 @@ class MeshNode(SceneNode):
         gl.glEnd()
 
 
-class Window:
+class Window(Scene):
     def __init__(self):
+        super().__init__()
+
         window = glfw.CreateWindow(640, 480, 'pybliz')
         if window:
             glfw.MakeContextCurrent(window)
             self._glfw_window = window
-            self._root = SceneNode()
-            self._camera = SceneNode()
-            self._root.add(self._camera)
-            self._draw_data = DrawData()
+            self._scene = Scene()
         else:
             glfw.Terminate()
             raise RuntimeError('failed to create glfw window')
 
+    def draw(self):
+        super().draw(self.viewport_size())
+
     def viewport_size(self):
         # TODO
         return Vec2(640, 480)
-
-    def scene(self):
-        return self._root
-
-    def render(self):
-        near = 0.1
-        far = 10.0
-        self._draw_data.projection = Mat4x4.perspective(90,
-                                                        self.viewport_size(),
-                                                        near, far)
-
-        gl.glClearColor(0.0, 0.0, 0.0, 1.0)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT , gl.GL_DEPTH_BUFFER_BIT)
-        self._root.draw(self._draw_data)
 
     def glfw_window(self):
         return glfw_window
 
     def run(self):
         while not glfw.WindowShouldClose(self._glfw_window):
-            self.render()
+            self.draw()
 
             # Swap front and back buffers
             glfw.SwapBuffers(self._glfw_window)

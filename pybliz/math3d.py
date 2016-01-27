@@ -1,4 +1,7 @@
+import inspect
 import math
+
+import numpy
 
 class Vec2:
     def __init__(self, x=0, y=0):
@@ -6,22 +9,63 @@ class Vec2:
         self.y = y
 
 
+def flatten(src):
+    while hasattr(src, '__len__') and len(src) > 0:
+        first = src[0]
+        if isinstance(first, tuple) or isinstance(first, list):
+            src = first
+        else:
+            return src
+    return src
+
+
 class Vec3:
-    def __init__(self, x=0, y=0, z=0):
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(self, *args):
+        args = flatten(args)
+        if len(args) > 0 and isinstance(args[0], Vec3):
+                args = [args[0].x,
+                        args[0].y,
+                        args[0].z]
+        num = len(args)
+        self.x = args[0] if num > 0 else 0
+        self.y = args[1] if num > 1 else 0
+        self.z = args[2] if num > 2 else 0
+
+    def __repr__(self):
+        return 'vec({}, {}, {})'.format(
+            self.x, self.y, self.z)
 
 
 class Mat4x4:
     def __init__(self, *array):
-        self._array = array
+        if len(array) == 0:
+            array = [0] * 16
+
+        self._dat = numpy.matrix((array[0:4],
+                                  array[4:8],
+                                  array[8:12],
+                                  array[12:16]))
+
+    def __mul__(self, other):
+        mat = Mat4x4()
+        mat._dat = self._dat * other._dat
+        return mat
+
+    def __str__(self):
+        return str(self._dat)
 
     @staticmethod
     def identity():
         return Mat4x4(1, 0, 0, 0,
                       0, 1, 0, 0,
                       0, 0, 1, 0,
+                      0, 0, 0, 1)
+
+    @staticmethod
+    def scale(x, y, z):
+        return Mat4x4(x, 0, 0, 0,
+                      0, y, 0, 0,
+                      0, 0, z, 0,
                       0, 0, 0, 1)
 
     @staticmethod
@@ -62,6 +106,15 @@ class Mat4x4:
         fw = fh * aspect
         return Mat4x4.frustum(-fw, fw, -fh, fh, near, far)
 
+    @staticmethod
+    def translate(*vec):
+        vec = Vec3(vec)
+        #print(vec)
+        return Mat4x4(1, 0, 0, vec.x,
+                      0, 1, 0, vec.y,
+                      0, 0, 1, vec.z,
+                      0, 0, 0, 1)
+
 
 class Quat:
     def __init__(self):
@@ -74,5 +127,15 @@ class Transform:
         self._scale = Vec3(1, 1, 1)
         self._rotation = Quat()
 
+    def set_scale(self, x, y, z):
+        self._scale = Vec3(x, y, z)
+
+    def set_translation(self, *vec):
+        self._translation = Vec3(vec)
+
     def matrix(self):
-        return Mat4x4.identity()
+        return (Mat4x4.translate(self._translation) *
+                Mat4x4.scale(self._scale.x,
+                             self._scale.y,
+                             self._scale.z))
+    
