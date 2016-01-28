@@ -178,7 +178,7 @@ class MeshNode(SceneNode):
 
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, len(verts) // 3)
 
-        gl.glDisableVertexAttribArray(attrib);
+        gl.glDisableVertexAttribArray(attrib)
 
 
 class Window(Scene):
