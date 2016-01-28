@@ -138,7 +138,7 @@ class MeshNode(SceneNode):
                 elif tok == 'f':
                     indices = [int(ind) - 1 for ind in parts[1:]]
                     faces.append(MeshNode.Face(indices))
-                
+
             mesh = MeshNode()
             mesh.verts = verts
             mesh.faces = faces
@@ -168,10 +168,10 @@ class MeshNode(SceneNode):
 
         normalized = False
         stride = 0
-        
+
         gl.glVertexAttribPointer(attrib,
                                  attrib_size,
- 	                         gl.GL_FLOAT,
+                                 gl.GL_FLOAT,
                                  normalized,
                                  stride,
                                  verts)

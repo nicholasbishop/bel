@@ -1,4 +1,3 @@
-import inspect
 import math
 
 import numpy
@@ -23,9 +22,9 @@ class Vec3:
     def __init__(self, *args):
         args = flatten(args)
         if len(args) > 0 and isinstance(args[0], Vec3):
-                args = [args[0].x,
-                        args[0].y,
-                        args[0].z]
+            args = [args[0].x,
+                    args[0].y,
+                    args[0].z]
         num = len(args)
         self.x = args[0] if num > 0 else 0
         self.y = args[1] if num > 1 else 0
@@ -78,7 +77,7 @@ class Mat4x4:
         fpn = far + near
         n2 = near * 2
         n2f = n2 * far
-        
+
         return Mat4x4(n2 / rml, 0,         rpl / rml,  0,
                       0,        n2 / tmb,  tpb / tmb,  0,
                       0,        0,        -fpn / fmn, -n2f / fmn,
@@ -138,4 +137,3 @@ class Transform:
                 Mat4x4.scale(self._scale.x,
                              self._scale.y,
                              self._scale.z))
-    
