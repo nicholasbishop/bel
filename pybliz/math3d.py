@@ -116,8 +116,20 @@ class Mat4x4:
 
 
 class Quat:
-    def __init__(self):
-        pass
+    def __init__(self, x=0, y=0, z=0, w=0):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.w = w
+
+    @staticmethod
+    def from_axis_angle(axis, angle):
+        half_angle = angle * 0.5
+        fac = math.sin(half_angle)
+        self.x = axis.x * fac;
+        self.y = axis.y * fac;
+        self.z = axis.z * fac;
+        self.w = math.cos(half_angle);
 
 
 class Transform:
