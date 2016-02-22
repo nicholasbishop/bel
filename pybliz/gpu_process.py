@@ -2,6 +2,8 @@
 
 """Process for all glfw/OpenGL operations."""
 
+import sys
+
 import capnp
 import pybliz_capnp
 glfw = None
@@ -26,38 +28,33 @@ def init_glfw():
         raise FatalInitializationError()
 
 
-def main(pipe):
+def main():
     """GPU process entry point."""
-    width, height, title = pipe.recv()
-    # width = 640
-    # height = 480
-    # title = 'asdf'
+    address = sys.argv[1]
+    client = capnp.TwoPartyClient(address)
+    cap = client.ez_restore('gpu').cast_as(pylint_capnp.Gpu)
+
+    # width, height, title = pipe.recv()
+    width = 640
+    height = 480
+    title = 'asdf'
     try:
-        print('b')
         init_glfw()
-        print('c')
         print(width, height, title)
         window = glfw.CreateWindow(width, height, title)
-        print('d')
         if not window:
-            print('e')
             glfw.Terminate()
             pipe.send(('fatal', 'window'))
-            print('f')
 
         glfw.MakeContextCurrent(window)
-        print('g')
         while not glfw.WindowShouldClose(window):
-            print('h')
             glfw.SwapBuffers(window)
             glfw.PollEvents()
-            print('i')
 
         glfw.Terminate()
             
     except FatalInitializationError as err:
         pipe.send(('fatal', 'init'))
-    print('x')
 
 
 if __name__ == '__main__':
