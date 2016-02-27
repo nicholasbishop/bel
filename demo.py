@@ -8,6 +8,8 @@ class Demo:
         self.color2 = 0, 1, 0
         self.color3 = 0, 0, 1
 
+        # As soon as you create the Scene it starts running in a
+        # separate process
         self.scene = Scene()
 
         # Load an object and set its color
@@ -26,7 +28,4 @@ class Demo:
         else:
             self.obj.color = self.color1
 
-    def run(self):
-        self.scene.run()
-
-Demo().run()
+Demo()
