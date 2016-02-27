@@ -59,7 +59,8 @@ class WindowClient:
         self.sendall('hello there')
 
     def sendall(self, msg):
-        len_field = ('{:' + str(MSG_LEN_FIELD_LEN) + '}').format(len(msg))
+        len_fmt = '{:' + str(MSG_LEN_FIELD_LEN) + '}'
+        len_field = len_fmt.format(len(msg))
 
         self.conn.sendall(len_field.encode())
         self.conn.sendall(msg.encode())
