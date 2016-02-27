@@ -1,9 +1,11 @@
 from OpenGL import GL as gl
 from bel.math3d import (Mat4x4, Transform, Vec3)
 from bel.shader import (FragmentShader, Program, VertexShader)
+from bel.window import WindowClient
 
 class Scene:
     def __init__(self):
+        self._window = WindowClient()
         self._projection_matrix = Mat4x4.identity()
         self._root = SceneNode()
         self._camera = SceneNode()
