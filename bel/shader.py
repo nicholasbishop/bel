@@ -1,5 +1,5 @@
 from OpenGL import GL as gl
-from pybliz.math3d import *
+from bel.math3d import *
 
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'

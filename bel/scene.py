@@ -1,6 +1,6 @@
 from OpenGL import GL as gl
-from pybliz.math3d import (Mat4x4, Transform, Vec3)
-from pybliz.shader import (FragmentShader, Program, VertexShader)
+from bel.math3d import (Mat4x4, Transform, Vec3)
+from bel.shader import (FragmentShader, Program, VertexShader)
 
 class Scene:
     def __init__(self):
@@ -36,6 +36,12 @@ class Scene:
 
         self.iter_nodes(SceneNode._bake_transform)
         self.iter_nodes(lambda node: node.draw(self))
+
+    def load_path(self, path):
+        return MeshNode.load_obj(path)
+
+    def run(self):
+        pass
 
 
 class SceneNode:
@@ -102,8 +108,8 @@ class MeshNode(SceneNode):
         super().__init__()
         self.verts = []
         self.faces = []
-        self._program = Program(VertexShader('shaders/vert.glsl'),
-                                FragmentShader('shaders/frag.glsl'))
+        # self._program = Program(VertexShader('shaders/vert.glsl'),
+        #                         FragmentShader('shaders/frag.glsl'))
 
     @staticmethod
     def load_obj(path):

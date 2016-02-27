@@ -8,10 +8,10 @@ class Demo:
         self.color2 = 0, 1, 0
         self.color3 = 0, 0, 1
 
-        self.scene = Scene('hello world!')
+        self.scene = Scene()
 
         # Load an object and set its color
-        self.obj = self.scene.load_path('path/to/my.obj')
+        self.obj = self.scene.load_path('examples/cube.obj')
         self.obj.color = self.color1
 
         # Add an event handler
@@ -19,12 +19,12 @@ class Demo:
 
     def handle_click(self, event):
         """Cycle the object between three colors."""
-        if self.obj.color == color1:
-            self.obj.color = color2
-        elif self.obj.color == color2:
-            self.obj.color = color3
+        if self.obj.color == self.color1:
+            self.obj.color = self.color2
+        elif self.obj.color == self.color2:
+            self.obj.color = self.color3
         else:
-            self.obj.color = color1
+            self.obj.color = self.color1
 
     def run(self):
         self.scene.run()

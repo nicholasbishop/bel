@@ -4,6 +4,6 @@
 # import pybliz.window
 
 # Window = window.Window
-from pybliz import window
+from bel.scene import Scene
 
-Window = window.Window
+#Scene = scene.Scene
