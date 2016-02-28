@@ -8,11 +8,14 @@ import dill
 
 class CommandBuffer:
     def __init__(self):
-        pass
+        self.geoms = []
 
     def draw(self):
         gl.glClearColor(0.3, 0.3, 0.4, 0.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+        for geom in self.geoms:
+            pass
 
 
 class Scene:
@@ -25,7 +28,7 @@ class Scene:
         self._root.add(self._camera)
 
     def _send_draw_func(self):
-        self._window.sendall(dill.dumps(self._command_buffer))
+        self._window.send_msg(self._command_buffer)
 
     @property
     def projection_matrix(self):
@@ -58,11 +61,24 @@ class Scene:
     def load_path(self, path):
         node = MeshNode.load_obj(path)
         self.root.add(node)
+        node.update_buffers(self._window)
         self._send_draw_func()
         return node
 
     def run(self):
         pass
+
+
+class Uid:
+    _NEXT = 0
+
+    def __init__(self):
+        self._value = Uid._NEXT
+        Uid._NEXT += 1
+
+    @property
+    def value(self):
+        return _value
 
 
 class SceneNode:
@@ -71,6 +87,7 @@ class SceneNode:
         self._children = []
         self._transform = Transform()
         self._baked_transform = Mat4x4()
+        self._uid = Uid()
 
     def _bake_transform(self):
         mat = self._transform.matrix()
@@ -129,6 +146,7 @@ class MeshNode(SceneNode):
         super().__init__()
         self.verts = []
         self.faces = []
+        self._vert_buffer_handle = None
         # self._program = Program(VertexShader('shaders/vert.glsl'),
         #                         FragmentShader('shaders/frag.glsl'))
 
@@ -160,6 +178,13 @@ class MeshNode(SceneNode):
             mesh.verts = verts
             mesh.faces = faces
             return mesh
+
+    def update_buffers(self, window_client):
+        def gen_buffer():
+            return gl.glGenBuffers(1)
+
+        window_client.send_msg(gen_buffer)
+        print(window_client.read_msg_blocking())
 
     def draw(self, scene):
         self._program.bind()

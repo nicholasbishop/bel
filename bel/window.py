@@ -3,39 +3,11 @@ from socket import MSG_DONTWAIT, socketpair
 
 import dill
 
-
-MSG_LEN_FIELD_LEN = 8
-RECV_CHUNK_SIZE = 1
-
-
-class Receiver:
-    def __init__(self, sock):
-        self._sock = sock
-        self._buf = bytearray()
-
-    def recvall(self):
-        try:
-            self._ensure_min_buf_size(MSG_LEN_FIELD_LEN)
-            len_field = self._take(MSG_LEN_FIELD_LEN)
-            msg_len = int(len_field)
-            self._ensure_min_buf_size(msg_len)
-            return self._take(msg_len)
-        except BlockingIOError:
-            return None
-
-    def _take(self, size):
-        data = self._buf[:size]
-        self._buf = self._buf[size:]
-        return data
-
-    def _ensure_min_buf_size(self, size):
-        while len(self._buf) < size:
-            self._buf += self._sock.recv(RECV_CHUNK_SIZE, MSG_DONTWAIT)
-
+from bel import ipc
 
 class WindowServer:
     def __init__(self, sock):
-        self.conn = Receiver(sock)
+        self.conn = ipc.Conn(sock)
         self.command_buffer = None
 
         import cyglfw3 as glfw
@@ -49,9 +21,14 @@ class WindowServer:
 
             glfw.SwapBuffers(window)
             glfw.PollEvents()
-            msg = self.conn.recvall()
+            msg = self.conn.read_msg_nonblocking()
             if msg is not None:
-                self.command_buffer = dill.loads(msg)
+                if hasattr(msg, 'draw'):
+                    self.command_buffer = msg
+                else:
+                    ret = msg()
+                    self.conn.send_msg(ret)
+                    
 
     def draw(self):
         if self.command_buffer is not None:
@@ -61,13 +38,16 @@ class WindowServer:
 
 class WindowClient:
     def __init__(self):
-        self.conn, server_conn = socketpair()
-        self.proc = Process(target=WindowServer, args=(server_conn,))
+        # TODO(nicholasbishop): verify that the defaults for
+        # socketpair guarantee message ordering
+        sock, server_sock = socketpair()
+        self.conn = ipc.Conn(sock)
+        self.proc = Process(target=WindowServer, args=(server_sock,))
         self.proc.start()
 
-    def sendall(self, msg):
-        len_fmt = '{:' + str(MSG_LEN_FIELD_LEN) + '}'
-        len_field = len_fmt.format(len(msg))
+    def send_msg(self, msg):
+        self.conn.send_msg(msg)
 
-        self.conn.sendall(len_field.encode())
-        self.conn.sendall(msg)
+    def read_msg_blocking(self):
+        return self.conn.read_msg_blocking()
+        
