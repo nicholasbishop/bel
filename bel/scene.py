@@ -3,13 +3,29 @@ from bel.math3d import (Mat4x4, Transform, Vec3)
 from bel.shader import (FragmentShader, Program, VertexShader)
 from bel.window import WindowClient
 
+import dill
+
+
+class CommandBuffer:
+    def __init__(self):
+        pass
+
+    def draw(self):
+        gl.glClearColor(0.3, 0.3, 0.4, 0.0)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+
 class Scene:
     def __init__(self):
+        self._command_buffer = CommandBuffer()
         self._window = WindowClient()
         self._projection_matrix = Mat4x4.identity()
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
+
+    def _send_draw_func(self):
+        self._window.sendall(dill.dumps(self._command_buffer))
 
     @property
     def projection_matrix(self):
@@ -40,7 +56,10 @@ class Scene:
         self.iter_nodes(lambda node: node.draw(self))
 
     def load_path(self, path):
-        return MeshNode.load_obj(path)
+        node = MeshNode.load_obj(path)
+        self.root.add(node)
+        self._send_draw_func()
+        return node
 
     def run(self):
         pass

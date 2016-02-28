@@ -1,6 +1,8 @@
 from multiprocessing import Process
 from socket import MSG_DONTWAIT, socketpair
 
+import dill
+
 
 MSG_LEN_FIELD_LEN = 8
 RECV_CHUNK_SIZE = 1
@@ -34,6 +36,7 @@ class Receiver:
 class WindowServer:
     def __init__(self, sock):
         self.conn = Receiver(sock)
+        self.command_buffer = None
 
         import cyglfw3 as glfw
 
@@ -42,11 +45,17 @@ class WindowServer:
         glfw.MakeContextCurrent(window)
 
         while not glfw.WindowShouldClose(window):
+            self.draw()
+
             glfw.SwapBuffers(window)
             glfw.PollEvents()
             msg = self.conn.recvall()
-            if msg:
-                print('received:', msg)
+            if msg is not None:
+                self.command_buffer = dill.loads(msg)
+
+    def draw(self):
+        if self.command_buffer is not None:
+            self.command_buffer.draw()
 
 
 
@@ -56,11 +65,9 @@ class WindowClient:
         self.proc = Process(target=WindowServer, args=(server_conn,))
         self.proc.start()
 
-        self.sendall('hello there')
-
     def sendall(self, msg):
         len_fmt = '{:' + str(MSG_LEN_FIELD_LEN) + '}'
         len_field = len_fmt.format(len(msg))
 
         self.conn.sendall(len_field.encode())
-        self.conn.sendall(msg.encode())
+        self.conn.sendall(msg)
