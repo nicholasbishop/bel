@@ -2,6 +2,7 @@ from multiprocessing import Process
 from socket import MSG_DONTWAIT, socketpair
 
 import dill
+from OpenGL import GL as gl
 
 from bel import ipc
 
@@ -51,3 +52,9 @@ class WindowClient:
     def read_msg_blocking(self):
         return self.conn.read_msg_blocking()
         
+    def gen_buffers(self, count):
+        self.send_msg(lambda: gl.glGenBuffers(1))
+        return self.read_msg_blocking()
+
+    def delete_buffers(self, buffers):
+        self.send_msg(lambda: gl.glDeleteBuffers(len(buffers), buffers))

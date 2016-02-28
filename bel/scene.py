@@ -61,7 +61,8 @@ class Scene:
     def load_path(self, path):
         node = MeshNode.load_obj(path)
         self.root.add(node)
-        node.update_buffers(self._window)
+        node.alloc_graphics_resources(self._window)
+        node.free_graphics_resources(self._window)
         self._send_draw_func()
         return node
 
@@ -179,12 +180,12 @@ class MeshNode(SceneNode):
             mesh.faces = faces
             return mesh
 
-    def update_buffers(self, window_client):
-        def gen_buffer():
-            return gl.glGenBuffers(1)
+    def alloc_graphics_resources(self, window_client):
+        self._vert_buffer_handle = window_client.gen_buffers(1)
 
-        window_client.send_msg(gen_buffer)
-        print(window_client.read_msg_blocking())
+    def free_graphics_resources(self, window_client):
+        if self._vert_buffer_handle is not None:
+            window_client.delete_buffers((self._vert_buffer_handle,))
 
     def draw(self, scene):
         self._program.bind()
