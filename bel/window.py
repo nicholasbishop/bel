@@ -1,24 +1,24 @@
 import logging
 from multiprocessing import Process
-from socket import MSG_DONTWAIT, socketpair
+from socket import socketpair
 
-import dill
 from OpenGL import GL as gl
 
 from bel import ipc
-from bel import shader
 
 class WindowServer:
     def __init__(self, sock):
-        logging.basicConfig(level=logging.DEBUG,
-                            format='%(levelname)s: window process [%(filename)s:%(lineno)d] %(message)s')
+        logging.basicConfig(level=logging.DEBUG, format=
+                            '%(levelname)s: window process '
+                            '[%(filename)s:%(lineno)d] %(message)s')
 
         self.conn = ipc.Conn(sock)
         self.command_buffer = None
 
         import cyglfw3 as glfw
 
-        glfw.Init()
+        if not glfw.Init():
+            raise RuntimeError('glfw.Init failed')
 
         window = glfw.CreateWindow(640, 480, 'bel.WindowServer')
         glfw.MakeContextCurrent(window)
@@ -36,7 +36,7 @@ class WindowServer:
                     gl.glCreateProgram()
                     ret = msg()
                     self.conn.send_msg(ret)
-                    
+
 
     def draw(self):
         if self.command_buffer is not None:
@@ -57,10 +57,3 @@ class WindowClient:
 
     def read_msg_blocking(self):
         return self.conn.read_msg_blocking()
-        
-    def gen_buffers(self, count):
-        self.send_msg(lambda: gl.glGenBuffers(1))
-        return self.read_msg_blocking()
-
-    def delete_buffers(self, buffers):
-        self.send_msg(lambda: gl.glDeleteBuffers(len(buffers), buffers))
