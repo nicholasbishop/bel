@@ -1,4 +1,5 @@
 from OpenGL import GL as gl
+from OpenGL.GL import glUseProgram
 import numpy
 
 from bel.math3d import (Mat4x4, Transform, Vec3)
@@ -15,7 +16,7 @@ class CommandBuffer:
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         for geom in self.geoms:
-            pass
+            geom()
 
 
 class Scene:
@@ -63,6 +64,7 @@ class Scene:
         self.root.add(node)
         node.alloc_graphics_resources(self._window.conn)
         node.update_graphics_resources(self._window.conn)
+        self._command_buffer.geoms.append(node.create_draw_func())
         self._send_draw_func()
         return node
 
@@ -197,10 +199,18 @@ class MeshNode(SceneNode):
         self._vert_buffer.release(conn)
         self._shader_program.release(conn)
 
+    def create_draw_func(self):
+        shader_program = self._shader_program.handle
+        def draw():
+            glUseProgram(shader_program)
+            
+        return draw
+
     def draw(self, scene):
-        self._program.bind()
-        self._program.set_uniform('model_view', self._baked_transform)
-        self._program.set_uniform('projection', scene.projection_matrix)
+        def async():
+            glUseProgram(self._shader_program.handle)
+            self._program.set_uniform('model_view', self._baked_transform)
+            self._program.set_uniform('projection', scene.projection_matrix)
 
         verts = []
 

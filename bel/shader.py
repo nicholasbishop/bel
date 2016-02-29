@@ -141,6 +141,10 @@ class Program:
 
         conn.send_msg(async)
 
+    @property
+    def handle(self):
+        return self._hnd
+
     # TODO!
     # def bind(self):
     #     glUseProgram(self._hnd)
