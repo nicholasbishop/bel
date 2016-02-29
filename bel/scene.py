@@ -1,10 +1,12 @@
 from OpenGL import GL as gl
 import dill
+import numpy
 
 from bel.math3d import (Mat4x4, Transform, Vec3)
 from bel.shader import (FragmentShader, Program, VertexShader)
 from bel.window import WindowClient
 from bel import shader
+from bel.buffer_object import ArrayBufferObject
 
 class CommandBuffer:
     def __init__(self):
@@ -61,8 +63,8 @@ class Scene:
     def load_path(self, path):
         node = MeshNode.load_obj(path)
         self.root.add(node)
-        node.alloc_graphics_resources(self._window)
-        node.update_graphics_resources(self._window)
+        node.alloc_graphics_resources(self._window.conn)
+        node.update_graphics_resources(self._window.conn)
         self._send_draw_func()
         return node
 
@@ -147,9 +149,10 @@ class MeshNode(SceneNode):
         super().__init__()
         self.verts = []
         self.faces = []
-        self._vert_buffer_handle = None
-        self._shader_program = None
-        
+        self._vert_buffer = ArrayBufferObject()
+        self._shader_program = shader.Program(
+            vert_source_path='shaders/vert.glsl',
+            frag_source_path='shaders/frag.glsl')
 
     @staticmethod
     def load_obj(path):
@@ -180,16 +183,26 @@ class MeshNode(SceneNode):
             mesh.faces = faces
             return mesh
 
-    def alloc_graphics_resources(self, window_client):
-        self._vert_buffer_handle = window_client.gen_buffers(1)
-        self._shader_program = shader.Program(
-            vert_source_path='shaders/vert.glsl',
-            frag_source_path='shaders/frag.glsl')
-        self._shader_program.alloc(window_client.conn)
+    def alloc_graphics_resources(self, conn):
+        self._vert_buffer.alloc(conn)
+        self._shader_program.alloc(conn)
 
-    def update_graphics_resources(self, window_client):
-        self._vert_buffer_handle = window_client.gen_buffers(1)
-        self._shader_program.compile_and_link(window_client.conn)
+    def update_graphics_resources(self, conn):
+        verts = numpy.empty(1)
+
+        for face in self.faces:
+            vi0 = face.indices[-1]
+            for i in range(len(face.indices) - 2):
+                vi1 = face.indices[i]
+                vi2 = face.indices[i + 1]
+
+                for index, vi in enumerate((vi0, vi1, vi2)):
+                    vec = self.verts[vi].loc
+                    verts += vec.x
+                    #verts += (vec.x, vec.y, vec.z, index)
+        self._vert_buffer.set_data(conn, verts)
+
+        self._shader_program.compile_and_link(conn)
 
     def free_graphics_resources(self, window_client):
         if self._vert_buffer_handle is not None:
