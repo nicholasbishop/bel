@@ -24,7 +24,7 @@ class BufferObject:
 
     def release(self, conn):
         if self._hnd is not None:
-            conn.send_msg(lambda: glDeleteBuffer(self._hnd))
+            conn.send_msg(lambda: glDeleteBuffers(self._hnd))
 
     def set_data(self, conn, data, usage=None):
         if self._hnd is None:
