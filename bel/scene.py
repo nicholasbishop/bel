@@ -189,6 +189,7 @@ class MeshNode(SceneNode):
 
     def update_graphics_resources(self, window_client):
         self._vert_buffer_handle = window_client.gen_buffers(1)
+        self._shader_program.compile_and_link(window_client.conn)
 
     def free_graphics_resources(self, window_client):
         if self._vert_buffer_handle is not None:

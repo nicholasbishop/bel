@@ -1,3 +1,5 @@
+import logging
+
 from OpenGL.GL import (GL_COMPILE_STATUS, GL_FRAGMENT_SHADER,
                        GL_VERTEX_SHADER, glAttachShader,
                        glCompileShader, glCreateProgram,
@@ -41,7 +43,12 @@ class Shader:
         if self._hnd is not None:
             raise ValueError('shader already has handle')
 
-        conn.send_msg(lambda: glCreateShader(self._kind))
+        def async():
+            hnd = glCreateShader(self._kind)
+            logging.info('created shader %d', hnd)
+            return hnd
+
+        conn.send_msg(async)
         self._hnd = conn.read_msg_blocking()
         if self._hnd == 0:
             raise ValueError('glCreateShader failed')
@@ -64,6 +71,7 @@ class Shader:
                 log = glGetShaderInfoLog(self._hnd)
                 glDeleteShader(self._hnd)
                 raise RuntimeError('shader failed to compile', log)
+            logging.info('compiled shader %d', self._hnd)
 
         conn.send_msg(async)
 
@@ -102,7 +110,12 @@ class Program:
         if self._hnd is not None:
             raise ValueError('shader program already has handle')
 
-        conn.send_msg(lambda: glCreateProgram())
+        def async():
+            hnd = glCreateProgram()
+            logging.info('created program %d', hnd)
+            return hnd
+
+        conn.send_msg(async)
         self._hnd = conn.read_msg_blocking()
         if self._hnd == 0:
             raise ValueError('glCreateProgram failed')
@@ -124,6 +137,7 @@ class Program:
             glAttachShader(self._hnd, self._vert_shader.handle)
             glAttachShader(self._hnd, self._frag_shader.handle)
             glLinkProgram(self._hnd)
+            logging.info('linked shader program %d', self._hnd)
 
         conn.send_msg(async)
 

@@ -1,3 +1,4 @@
+import logging
 from multiprocessing import Process
 from socket import MSG_DONTWAIT, socketpair
 
@@ -9,6 +10,9 @@ from bel import shader
 
 class WindowServer:
     def __init__(self, sock):
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(levelname)s: window process [%(filename)s:%(lineno)d] %(message)s')
+
         self.conn = ipc.Conn(sock)
         self.command_buffer = None
 
