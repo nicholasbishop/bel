@@ -1,9 +1,7 @@
 from OpenGL import GL as gl
-import dill
 import numpy
 
 from bel.math3d import (Mat4x4, Transform, Vec3)
-from bel.shader import (FragmentShader, Program, VertexShader)
 from bel.window import WindowClient
 from bel import shader
 from bel.buffer_object import ArrayBufferObject
@@ -72,25 +70,12 @@ class Scene:
         pass
 
 
-class Uid:
-    _NEXT = 0
-
-    def __init__(self):
-        self._value = Uid._NEXT
-        Uid._NEXT += 1
-
-    @property
-    def value(self):
-        return _value
-
-
 class SceneNode:
     def __init__(self):
         self._parent = None
         self._children = []
         self._transform = Transform()
         self._baked_transform = Mat4x4()
-        self._uid = Uid()
 
     def _bake_transform(self):
         mat = self._transform.matrix()
@@ -196,17 +181,21 @@ class MeshNode(SceneNode):
                 vi1 = face.indices[i]
                 vi2 = face.indices[i + 1]
 
-                for index, vi in enumerate((vi0, vi1, vi2)):
-                    vec = self.verts[vi].loc
+                for index, vit in enumerate((vi0, vi1, vi2)):
+                    vec = self.verts[vit].loc
                     verts += vec.x
-                    #verts += (vec.x, vec.y, vec.z, index)
+                    verts += vec.y
+                    verts += vec.z
+                    # TODO
+                    verts += index
+
         self._vert_buffer.set_data(conn, verts)
 
         self._shader_program.compile_and_link(conn)
 
-    def free_graphics_resources(self, window_client):
-        if self._vert_buffer_handle is not None:
-            window_client.delete_buffers((self._vert_buffer_handle,))
+    def free_graphics_resources(self, conn):
+        self._vert_buffer.release(conn)
+        self._shader_program.release(conn)
 
     def draw(self, scene):
         self._program.bind()
@@ -214,16 +203,6 @@ class MeshNode(SceneNode):
         self._program.set_uniform('projection', scene.projection_matrix)
 
         verts = []
-
-        for face in self.faces:
-            vi0 = face.indices[-1]
-            for i in range(len(face.indices) - 2):
-                vi1 = face.indices[i]
-                vi2 = face.indices[i + 1]
-
-                for index, vi in enumerate((vi0, vi1, vi2)):
-                    vec = self.verts[vi].loc
-                    verts += [vec.x, vec.y, vec.z, index]
 
         attrib = self._program.get_attribute_location('vert_loc')
         attrib_size = 4  # xyzw
