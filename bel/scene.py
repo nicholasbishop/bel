@@ -1,10 +1,10 @@
 from OpenGL import GL as gl
+import dill
+
 from bel.math3d import (Mat4x4, Transform, Vec3)
 from bel.shader import (FragmentShader, Program, VertexShader)
 from bel.window import WindowClient
-
-import dill
-
+from bel import shader
 
 class CommandBuffer:
     def __init__(self):
@@ -62,7 +62,7 @@ class Scene:
         node = MeshNode.load_obj(path)
         self.root.add(node)
         node.alloc_graphics_resources(self._window)
-        node.free_graphics_resources(self._window)
+        node.update_graphics_resources(self._window)
         self._send_draw_func()
         return node
 
@@ -148,8 +148,8 @@ class MeshNode(SceneNode):
         self.verts = []
         self.faces = []
         self._vert_buffer_handle = None
-        # self._program = Program(VertexShader('shaders/vert.glsl'),
-        #                         FragmentShader('shaders/frag.glsl'))
+        self._shader_program = None
+        
 
     @staticmethod
     def load_obj(path):
@@ -181,6 +181,13 @@ class MeshNode(SceneNode):
             return mesh
 
     def alloc_graphics_resources(self, window_client):
+        self._vert_buffer_handle = window_client.gen_buffers(1)
+        self._shader_program = shader.Program(
+            vert_source_path='shaders/vert.glsl',
+            frag_source_path='shaders/frag.glsl')
+        self._shader_program.alloc(window_client.conn)
+
+    def update_graphics_resources(self, window_client):
         self._vert_buffer_handle = window_client.gen_buffers(1)
 
     def free_graphics_resources(self, window_client):

@@ -5,6 +5,7 @@ import dill
 from OpenGL import GL as gl
 
 from bel import ipc
+from bel import shader
 
 class WindowServer:
     def __init__(self, sock):
@@ -14,6 +15,7 @@ class WindowServer:
         import cyglfw3 as glfw
 
         glfw.Init()
+
         window = glfw.CreateWindow(640, 480, 'bel.WindowServer')
         glfw.MakeContextCurrent(window)
 
@@ -27,6 +29,7 @@ class WindowServer:
                 if hasattr(msg, 'draw'):
                     self.command_buffer = msg
                 else:
+                    gl.glCreateProgram()
                     ret = msg()
                     self.conn.send_msg(ret)
                     
@@ -34,7 +37,6 @@ class WindowServer:
     def draw(self):
         if self.command_buffer is not None:
             self.command_buffer.draw()
-
 
 
 class WindowClient:
