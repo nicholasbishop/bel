@@ -13,12 +13,12 @@ class CommandBuffer:
     def __init__(self):
         self.geoms = []
 
-    def draw(self):
+    def draw(self, materials):
         gl.glClearColor(0.3, 0.3, 0.4, 0.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         for geom in self.geoms:
-            geom()
+            geom(materials)
 
 
 class Scene:
@@ -78,7 +78,7 @@ class Scene:
         self.root.add(node)
         # node.alloc_graphics_resources(self._window.conn)
         # node.update_graphics_resources(self._window.conn)
-        # self._command_buffer.geoms.append(node.create_draw_func())
+        self._command_buffer.geoms.append(node.create_draw_func())
         self._send_draw_func()
         return node
 
@@ -212,9 +212,11 @@ class MeshNode(SceneNode):
         self._shader_program.release(conn)
 
     def create_draw_func(self):
-        shader_program = self._shader_program.handle
-        def draw():
-            glUseProgram(shader_program)
+        #shader_program = self._shader_program.handle
+        material_uid = self._material_uid
+        def draw(materials):
+            materials[material_uid].bind()
+            pass #glUseProgram(shader_program)
             
         return draw
 

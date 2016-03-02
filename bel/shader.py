@@ -26,6 +26,7 @@ class Shader:
     def __init__(self, path, kind):
         self._kind = kind
         self._path = path
+        self._uid = None
         with open(self._path) as rfile:
             self._source = rfile.read()
 
@@ -95,16 +96,35 @@ class ShaderProgram:
     def __init__(self, uid):
         self._shaders = []
         self._uid = uid
+        self._next_shader_suffix = 0
 
     @property
     def uid(self):
         return self._uid
 
-    def add_vert_shader_from_path(self, path):
-        self._shaders.append(VertexShader(path))
+    def _take_shader_uid(self):
+        shader_uid = '{}.{}'.format(self._uid, self._next_shader_suffix)
+        self._next_shader_suffix += 1
+        return shader_uid
 
-    def add_frag_shader_from_path(self, path):
+    def add_vert_shader_from_path(self, path, conn):
+        shader = VertexShader(path)
+        shader._uid = self._take_shader_uid()
+        self._shaders.append(shader)
+        self._send_update(conn)
+
+    def add_frag_shader_from_path(self, path, conn):
         self._shaders.append(FragmentShader(path))
+        self._send_update(conn)
+
+    def _send_update(self, conn):
+        def async(resources):
+            for 
+            hnd = glCreateShader(self._kind)
+            
+
+        conn.send_msg(async)
+    
 
         # TODO!
         # self._uniforms = {}

@@ -11,6 +11,7 @@ class WindowServer:
         self.conn = ipc.Conn(sock)
         self.command_buffer = None
         self.glfw = glfw
+        self.materials = {}
 
     def run(self):
         window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
@@ -26,14 +27,14 @@ class WindowServer:
                 if hasattr(msg, 'draw'):
                     self.command_buffer = msg
                 else:
-                    gl.glCreateProgram()
-                    ret = msg()
-                    self.conn.send_msg(ret)
+                    msg(self.materials)
+                    # ret = msg()
+                    # self.conn.send_msg(ret)
 
 
     def draw(self):
         if self.command_buffer is not None:
-            self.command_buffer.draw()
+            self.command_buffer.draw(self.materials)
 
 
 def window_server_main(server_sock):
