@@ -5,7 +5,9 @@ import numpy
 from bel.math3d import (Mat4x4, Transform, Vec3)
 from bel.window import WindowClient
 from bel import shader
+from bel.shader import ShaderProgram
 from bel.buffer_object import ArrayBufferObject
+
 
 class CommandBuffer:
     def __init__(self):
@@ -27,6 +29,18 @@ class Scene:
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
+        self._shader_programs = {}
+
+        # TODO
+        default_material = ShaderProgram('default')
+        default_material.add_vert_shader_from_path('shaders/vert.glsl')
+        default_material.add_frag_shader_from_path('shaders/frag.glsl')
+        self.add_shader_program(default_material)
+
+    def add_shader_program(self, shader_program):
+        if shader_program.uid in self._shader_programs:
+            raise KeyError('shader program with uid already exists', uid)
+        self._shader_programs[shader_program.uid] = shader_program
 
     def _send_draw_func(self):
         self._window.send_msg(self._command_buffer)
@@ -62,9 +76,9 @@ class Scene:
     def load_path(self, path):
         node = MeshNode.load_obj(path)
         self.root.add(node)
-        node.alloc_graphics_resources(self._window.conn)
-        node.update_graphics_resources(self._window.conn)
-        self._command_buffer.geoms.append(node.create_draw_func())
+        # node.alloc_graphics_resources(self._window.conn)
+        # node.update_graphics_resources(self._window.conn)
+        # self._command_buffer.geoms.append(node.create_draw_func())
         self._send_draw_func()
         return node
 
@@ -137,9 +151,7 @@ class MeshNode(SceneNode):
         self.verts = []
         self.faces = []
         self._vert_buffer = ArrayBufferObject()
-        self._shader_program = shader.Program(
-            vert_source_path='shaders/vert.glsl',
-            frag_source_path='shaders/frag.glsl')
+        self._material_uid = 'default'
 
     @staticmethod
     def load_obj(path):
@@ -207,7 +219,9 @@ class MeshNode(SceneNode):
         return draw
 
     def draw(self, scene):
+        material = scene.materials[self._material_name]
         def async():
+            material
             glUseProgram(self._shader_program.handle)
             self._program.set_uniform('model_view', self._baked_transform)
             self._program.set_uniform('projection', scene.projection_matrix)

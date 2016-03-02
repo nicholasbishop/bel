@@ -26,12 +26,11 @@ class Shader:
     def __init__(self, path, kind):
         self._kind = kind
         self._path = path
-        self._hnd = None
-
         with open(self._path) as rfile:
-            source = rfile.read()
+            self._source = rfile.read()
 
-        links = list(extract_links(source))
+    def extract_links(self):
+        links = list(extract_links(self.source))
         self._attributes = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_ATTRIBUTE)
         self._uniforms = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_UNIFORM)
 
@@ -92,11 +91,20 @@ class FragmentShader(Shader):
         super().__init__(path, GL_FRAGMENT_SHADER)
 
 
-class Program:
-    def __init__(self, vert_source_path, frag_source_path):
-        self._vert_shader = VertexShader(vert_source_path)
-        self._frag_shader = FragmentShader(frag_source_path)
-        self._hnd = None
+class ShaderProgram:
+    def __init__(self, uid):
+        self._shaders = []
+        self._uid = uid
+
+    @property
+    def uid(self):
+        return self._uid
+
+    def add_vert_shader_from_path(self, path):
+        self._shaders.append(VertexShader(path))
+
+    def add_frag_shader_from_path(self, path):
+        self._shaders.append(FragmentShader(path))
 
         # TODO!
         # self._uniforms = {}
