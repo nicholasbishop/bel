@@ -83,6 +83,7 @@ class ShaderProgram:
         self._shaders = []
         self._uid = uid
         self._next_shader_suffix = 0
+        self._finalized = False
 
     @property
     def uid(self):
@@ -93,17 +94,20 @@ class ShaderProgram:
         self._next_shader_suffix += 1
         return shader_uid
 
-    def add_vert_shader_from_path(self, path, conn):
+    def add_vert_shader_from_path(self, path):
         shader = VertexShader(path)
         shader._uid = self._take_shader_uid()
         self._shaders.append(shader)
-        self._send_update(conn)
 
-    def add_frag_shader_from_path(self, path, conn):
-        self._shaders.append(FragmentShader(path))
-        self._send_update(conn)
+    def add_frag_shader_from_path(self, path):
+        shader = FragmentShader(path)
+        shader._uid = self._take_shader_uid()
+        self._shaders.append(shader)
 
-    def _send_update(self, conn):
+    def finalize(self, conn):
+        if self._finalized:
+            raise RuntimeError('already finalized')
+
         def async(resources):
             for shader in self._shaders:
                 if shader.uid not in resources:
@@ -121,6 +125,7 @@ class ShaderProgram:
             logging.info('glLinkProgram(%d)', rprog)
             glLinkProgram(rprog)
 
+        self._finalized = True
         conn.send_msg(async)
 
 

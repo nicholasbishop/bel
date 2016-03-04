@@ -34,14 +34,15 @@ class Scene:
         # TODO
         conn = self._window.conn
         default_material = ShaderProgram('default')
-        default_material.add_vert_shader_from_path('shaders/vert.glsl', conn)
-        default_material.add_frag_shader_from_path('shaders/frag.glsl', conn)
+        default_material.add_vert_shader_from_path('shaders/vert.glsl')
+        default_material.add_frag_shader_from_path('shaders/frag.glsl')
         self.add_shader_program(default_material)
 
     def add_shader_program(self, shader_program):
         if shader_program.uid in self._shader_programs:
             raise KeyError('shader program with uid already exists', uid)
         self._shader_programs[shader_program.uid] = shader_program
+        shader_program.finalize(self._window.conn)
 
     def _send_draw_func(self):
         self._window.send_msg(self._command_buffer)
@@ -216,8 +217,7 @@ class MeshNode(SceneNode):
         #shader_program = self._shader_program.handle
         material_uid = self._material_uid
         def draw(resources):
-            resources[material_uid].bind()
-            pass #glUseProgram(shader_program)
+            glUseProgram(resources[material_uid])
             
         return draw
 
