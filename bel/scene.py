@@ -32,9 +32,10 @@ class Scene:
         self._shader_programs = {}
 
         # TODO
+        conn = self._window.conn
         default_material = ShaderProgram('default')
-        default_material.add_vert_shader_from_path('shaders/vert.glsl')
-        default_material.add_frag_shader_from_path('shaders/frag.glsl')
+        default_material.add_vert_shader_from_path('shaders/vert.glsl', conn)
+        default_material.add_frag_shader_from_path('shaders/frag.glsl', conn)
         self.add_shader_program(default_material)
 
     def add_shader_program(self, shader_program):
@@ -214,8 +215,8 @@ class MeshNode(SceneNode):
     def create_draw_func(self):
         #shader_program = self._shader_program.handle
         material_uid = self._material_uid
-        def draw(materials):
-            materials[material_uid].bind()
+        def draw(resources):
+            resources[material_uid].bind()
             pass #glUseProgram(shader_program)
             
         return draw

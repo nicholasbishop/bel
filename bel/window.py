@@ -11,7 +11,7 @@ class WindowServer:
         self.conn = ipc.Conn(sock)
         self.command_buffer = None
         self.glfw = glfw
-        self.materials = {}
+        self.resources = {}
 
     def run(self):
         window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
@@ -27,14 +27,14 @@ class WindowServer:
                 if hasattr(msg, 'draw'):
                     self.command_buffer = msg
                 else:
-                    msg(self.materials)
+                    msg(self.resources)
                     # ret = msg()
                     # self.conn.send_msg(ret)
 
 
     def draw(self):
         if self.command_buffer is not None:
-            self.command_buffer.draw(self.materials)
+            self.command_buffer.draw(self.resources)
 
 
 def window_server_main(server_sock):

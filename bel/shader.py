@@ -36,44 +36,30 @@ class Shader:
         self._uniforms = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_UNIFORM)
 
     @property
-    def handle(self):
-        return self._hnd
+    def uid(self):
+        return self._uid
 
-    def alloc(self, conn):
-        if self._hnd is not None:
-            raise ValueError('shader already has handle')
-
-        def async():
-            hnd = glCreateShader(self._kind)
-            logging.info('created shader %d', hnd)
-            return hnd
-
-        conn.send_msg(async)
-        self._hnd = conn.read_msg_blocking()
-        if self._hnd == 0:
+    def alloc(self):
+        hnd = glCreateShader(self._kind)
+        logging.info('glCreateShader(%s) -> %d', self._kind.name, hnd)
+        if hnd == 0:
             raise ValueError('glCreateShader failed')
+        return hnd
 
     def release(self, conn):
         if self._hnd is not None:
             conn.send_msg(lambda: glDeleteShader(self._hnd))
 
-    def compile(self, conn):
-        if self._hnd is None:
-            raise ValueError('shader not allocated')
+    def compile(self, hnd):
+        logging.info('glShaderSource(%d, ...)', hnd)
+        glShaderSource(hnd, self._source)
+        logging.info('glCompileShader(%d)', hnd)
+        glCompileShader(hnd)
 
-        def async():
-            with open(self._path) as rfile:
-                source = rfile.read()
-            glShaderSource(self._hnd, source)
-            glCompileShader(self._hnd)
-
-            if glGetShaderiv(self._hnd, GL_COMPILE_STATUS) is False:
-                log = glGetShaderInfoLog(self._hnd)
-                glDeleteShader(self._hnd)
-                raise RuntimeError('shader failed to compile', log)
-            logging.info('compiled shader %d', self._hnd)
-
-        conn.send_msg(async)
+        if glGetShaderiv(hnd, GL_COMPILE_STATUS) is False:
+            compile_log = glGetShaderInfoLog(hnd)
+            glDeleteShader(hnd)
+            raise RuntimeError('shader failed to compile', compile_log)
 
     def uniforms(self):
         return self._uniforms
@@ -119,12 +105,24 @@ class ShaderProgram:
 
     def _send_update(self, conn):
         def async(resources):
-            for 
-            hnd = glCreateShader(self._kind)
-            
+            for shader in self._shaders:
+                if shader.uid not in resources:
+                    resources[shader.uid] = shader.alloc()
+                shader.compile(resources[shader.uid])
+
+            if self.uid not in resources:
+                resources[self.uid] = self.alloc()
+
+            rprog = resources[self.uid]
+            for shader in self._shaders:
+                rshad = resources[shader.uid]
+                logging.info('glAttachShader(%d, %d)', rprog, rshad)
+                glAttachShader(rprog, rshad)
+            logging.info('glLinkProgram(%d)', rprog)
+            glLinkProgram(rprog)
 
         conn.send_msg(async)
-    
+
 
         # TODO!
         # self._uniforms = {}
@@ -134,22 +132,12 @@ class ShaderProgram:
         # for name in self._vert_shader.attributes() | self._frag_shader.attributes():
         #     self._attributes[name] = glGetAttribLocation(self._hnd, name)
 
-    def alloc(self, conn):
-        if self._hnd is not None:
-            raise ValueError('shader program already has handle')
-
-        def async():
-            hnd = glCreateProgram()
-            logging.info('created program %d', hnd)
-            return hnd
-
-        conn.send_msg(async)
-        self._hnd = conn.read_msg_blocking()
-        if self._hnd == 0:
+    def alloc(self):
+        hnd = glCreateProgram()
+        logging.info('glCreateProgram() -> %d', hnd)
+        if hnd == 0:
             raise ValueError('glCreateProgram failed')
-
-        self._vert_shader.alloc(conn)
-        self._frag_shader.alloc(conn)
+        return hnd
 
     def release(self, conn):
         self._vert_shader.release(conn)
