@@ -2,7 +2,8 @@ from OpenGL import GL as gl
 from OpenGL.GL import glUseProgram
 import numpy
 
-from bel.math3d import (Mat4x4, Transform, Vec3)
+from bel.math3d import (Mat4x4, Transform, Vec2, Vec3,
+                        perspective_matrix)
 from bel.window import WindowClient
 from bel import shader
 from bel.shader import ShaderProgram
@@ -29,6 +30,14 @@ class Scene:
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
+
+        # TODO
+        viewport_size = Vec2(640, 480)
+        near = 0.01
+        far = 100.0
+        self._projection_matrix = perspective_matrix(90,
+                                                     viewport_size,
+                                                     near, far)
 
         # TODO
         self._window.conn.send_msg({

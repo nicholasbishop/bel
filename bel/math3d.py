@@ -114,6 +114,10 @@ class Mat4x4:
                       0, 0, 1, vec.z,
                       0, 0, 0, 1)
 
+# TODO
+def perspective_matrix(*args):
+    return Mat4x4.perspective(*args)._dat
+
 
 class Quat:
     def __init__(self, x=0, y=0, z=0, w=0):

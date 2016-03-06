@@ -6,9 +6,9 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
                        glAttachShader, glCompileShader,
                        glCreateProgram, glCreateShader,
                        glDeleteProgram, glDeleteShader,
-                       glGetAttribLocation, glGetUniformLocation,
-                       glGetShaderInfoLog, glGetShaderiv,
-                       glLinkProgram, glShaderSource,
+                       glEnableVertexAttribArray, glGetAttribLocation,
+                       glGetUniformLocation, glGetShaderInfoLog,
+                       glGetShaderiv, glLinkProgram, glShaderSource,
                        glUseProgram)
 
 from bel.uniform import MatrixUniform
@@ -116,6 +116,8 @@ class ShaderProgram:
             data = attribute_inputs[attr_name]
             bufname = data['buffer']
             buf = buffer_objects[bufname]
+
+            glEnableVertexAttribArray(attr_index)
 
             # TODO
             assert(data['gltype'] == 'float')
