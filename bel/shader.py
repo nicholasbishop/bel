@@ -1,12 +1,17 @@
+from contextlib import contextmanager
 import logging
 
-from OpenGL.GL import (GL_COMPILE_STATUS, GL_FRAGMENT_SHADER,
-                       GL_VERTEX_SHADER, glAttachShader,
-                       glCompileShader, glCreateProgram,
-                       glCreateShader, glDeleteProgram,
-                       glDeleteShader, glGetAttribLocation,
+from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
+                       GL_FRAGMENT_SHADER, GL_VERTEX_SHADER,
+                       glAttachShader, glCompileShader,
+                       glCreateProgram, glCreateShader,
+                       glDeleteProgram, glDeleteShader,
+                       glGetAttribLocation, glGetUniformLocation,
                        glGetShaderInfoLog, glGetShaderiv,
-                       glLinkProgram, glShaderSource)
+                       glLinkProgram, glShaderSource,
+                       glUseProgram)
+
+from bel.uniform import MatrixUniform
 
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
@@ -24,41 +29,47 @@ def extract_links(source):
 
 class Shader:
     def __init__(self, path, kind):
+        self._hnd = None
+        self._attributes = set()
+        self._uniforms = set()
+
         self._kind = kind
         self._path = path
-        self._uid = None
         with open(self._path) as rfile:
             self._source = rfile.read()
 
-    def extract_links(self):
-        links = list(extract_links(self.source))
+        self._alloc()
+        self._compile()
+        self._extract_links()
+
+    def _extract_links(self):
+        links = list(extract_links(self._source))
         self._attributes = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_ATTRIBUTE)
         self._uniforms = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_UNIFORM)
 
     @property
-    def uid(self):
-        return self._uid
+    def hnd(self):
+        return self._hnd
 
-    def alloc(self):
-        hnd = glCreateShader(self._kind)
-        logging.info('glCreateShader(%s) -> %d', self._kind.name, hnd)
-        if hnd == 0:
+    def _alloc(self):
+        self._hnd = glCreateShader(self._kind)
+        logging.info('glCreateShader(%s) -> %d', self._kind.name, self._hnd)
+        if self._hnd == 0:
             raise ValueError('glCreateShader failed')
-        return hnd
 
     def release(self, conn):
         if self._hnd is not None:
             conn.send_msg(lambda: glDeleteShader(self._hnd))
 
-    def compile(self, hnd):
-        logging.info('glShaderSource(%d, ...)', hnd)
-        glShaderSource(hnd, self._source)
-        logging.info('glCompileShader(%d)', hnd)
-        glCompileShader(hnd)
+    def _compile(self):
+        logging.info('glShaderSource(%d, ...)', self._hnd)
+        glShaderSource(self._hnd, self._source)
+        logging.info('glCompileShader(%d)', self._hnd)
+        glCompileShader(self._hnd)
 
-        if glGetShaderiv(hnd, GL_COMPILE_STATUS) is False:
-            compile_log = glGetShaderInfoLog(hnd)
-            glDeleteShader(hnd)
+        if glGetShaderiv(self._hnd, GL_COMPILE_STATUS) is False:
+            compile_log = glGetShaderInfoLog(self._hnd)
+            glDeleteShader(self._hnd)
             raise RuntimeError('shader failed to compile', compile_log)
 
     def uniforms(self):
@@ -79,63 +90,69 @@ class FragmentShader(Shader):
 
 
 class ShaderProgram:
-    def __init__(self, uid):
+    def __init__(self):
+        self._hnd = None
         self._shaders = []
-        self._uid = uid
-        self._next_shader_suffix = 0
-        self._finalized = False
+        self._uniforms = {}
+        self._attributes = {}
+        self._alloc()
 
-    @property
-    def uid(self):
-        return self._uid
+    def _alloc(self):
+        self._hnd = glCreateProgram()
+        logging.info('glCreateProgram() -> %d', self._hnd)
+        if self._hnd == 0:
+            raise ValueError('glCreateProgram failed')
 
-    def _take_shader_uid(self):
-        shader_uid = '{}.{}'.format(self._uid, self._next_shader_suffix)
-        self._next_shader_suffix += 1
-        return shader_uid
+    @contextmanager
+    def bind(self):
+        glUseProgram(self._hnd)
+        try:
+            yield
+        finally:
+            glUseProgram(0)
 
-    def add_vert_shader_from_path(self, path):
-        shader = VertexShader(path)
-        shader._uid = self._take_shader_uid()
-        self._shaders.append(shader)
+    def bind_attributes(self, buffer_objects, attribute_inputs):
+        for attr_name, attr_index in self._attributes.items():
+            data = attribute_inputs[attr_name]
+            bufname = data['buffer']
+            buf = buffer_objects[bufname]
 
-    def add_frag_shader_from_path(self, path):
-        shader = FragmentShader(path)
-        shader._uid = self._take_shader_uid()
-        self._shaders.append(shader)
+            # TODO
+            assert(data['gltype'] == 'float')
+            gltype = GL_FLOAT
+            buf.bind_to_attribute(attr_index,
+                                  components=data['components'],
+                                  gltype=gltype,
+                                  normalized=data['normalized'],
+                                  offset=data['offset'],
+                                  stride=data['stride'])
 
-    def finalize(self, conn):
-        if self._finalized:
-            raise RuntimeError('already finalized')
+    def bind_uniforms(self, uniforms):
+        for uniform_name, uniform_index in self._uniforms.items():
+            uniform = uniforms[uniform_name]
+            uniform.bind(uniform_index)
 
-        def async(resources):
-            for shader in self._shaders:
-                if shader.uid not in resources:
-                    resources[shader.uid] = shader.alloc()
-                shader.compile(resources[shader.uid])
+    def update(self, msg):
+        # TODO: for now this is just create, not really update
+        for path in msg['vert_shader_paths']:
+            self._shaders.append(VertexShader(path))
+            
+        for path in msg['frag_shader_paths']:
+            self._shaders.append(FragmentShader(path))
 
-            if self.uid not in resources:
-                resources[self.uid] = self.alloc()
+        for shader in self._shaders:
+            logging.info('glAttachShader(%d, %d)', self._hnd, shader.hnd)
+            glAttachShader(self._hnd, shader.hnd)
+        logging.info('glLinkProgram(%d)', self._hnd)
+        glLinkProgram(self._hnd)
 
-            rprog = resources[self.uid]
-            for shader in self._shaders:
-                rshad = resources[shader.uid]
-                logging.info('glAttachShader(%d, %d)', rprog, rshad)
-                glAttachShader(rprog, rshad)
-            logging.info('glLinkProgram(%d)', rprog)
-            glLinkProgram(rprog)
-
-        self._finalized = True
-        conn.send_msg(async)
-
-
-        # TODO!
-        # self._uniforms = {}
-        # self._attributes = {}
-        # for name in self._vert_shader.uniforms() | self._frag_shader.uniforms():
-        #     self._uniforms[name] = glGetUniformLocation(self._hnd, name)
-        # for name in self._vert_shader.attributes() | self._frag_shader.attributes():
-        #     self._attributes[name] = glGetAttribLocation(self._hnd, name)
+        self._uniforms = {}
+        self._attributes = {}
+        for shader in self._shaders:
+            for name in shader.uniforms():
+                self._uniforms[name] = glGetUniformLocation(self._hnd, name)
+            for name in shader.attributes():
+                self._attributes[name] = glGetAttribLocation(self._hnd, name)
 
     def alloc(self):
         hnd = glCreateProgram()

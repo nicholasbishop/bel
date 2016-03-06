@@ -1,24 +1,15 @@
+from contextlib import contextmanager
 import logging
 
 from OpenGL.GL import (GL_ARRAY_BUFFER, GL_STREAM_DRAW, glBindBuffer,
-                       glBufferData, glDeleteBuffers, glGenBuffers)
+                       glBufferData, glDeleteBuffers, glGenBuffers,
+                       glVertexAttribPointer)
 
 class BufferObject:
     def __init__(self, kind):
         self._kind = kind
-        self._hnd = None
-
-    def alloc(self, conn):
-        if self._hnd is not None:
-            raise ValueError('buffer already has handle')
-
-        def async():
-            hnd = glGenBuffers(1)
-            logging.info('created buffer %d', hnd)
-            return hnd
-
-        conn.send_msg(async)
-        self._hnd = conn.read_msg_blocking()
+        self._hnd = glGenBuffers(1)
+        logging.info('glGenBuffers(1) -> %d', self._hnd)
         if self._hnd == 0:
             raise ValueError('glGenBuffers failed')
 
@@ -26,20 +17,32 @@ class BufferObject:
         if self._hnd is not None:
             conn.send_msg(lambda: glDeleteBuffers(self._hnd))
 
-    def set_data(self, conn, data, usage=None):
-        if self._hnd is None:
-            raise ValueError('shader not allocated')
+    @contextmanager
+    def bind(self):
+        glBindBuffer(self._kind, self._hnd)
+        try:
+            yield
+        finally:
+            glBindBuffer(self._kind, 0)
 
+    def set_data(self, data, usage=None):
         if usage is None:
             usage = GL_STREAM_DRAW
 
-        def async():
-            glBindBuffer(self._kind, self._hnd)
+        with self.bind():
             glBufferData(self._kind, data, usage)
-            logging.info('updated data in buffer %d', self._hnd)
-            glBindBuffer(self._kind, 0)
+            logging.info('glBufferData(buffer=%s, %s, ..., %s)', self._hnd,
+                         self._kind.name, usage.name)
 
-        conn.send_msg(async)
+    def bind_to_attribute(self, attr_index, components, gltype,
+                          normalized, stride, offset):
+        with self.bind():
+            glVertexAttribPointer(attr_index,
+ 	                          components,
+ 	                          gltype,
+ 	                          normalized,
+ 	                          stride,
+ 	                          offset)
 
 
 class ArrayBufferObject(BufferObject):

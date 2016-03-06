@@ -29,20 +29,14 @@ class Scene:
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
-        self._shader_programs = {}
 
         # TODO
-        conn = self._window.conn
-        default_material = ShaderProgram('default')
-        default_material.add_vert_shader_from_path('shaders/vert.glsl')
-        default_material.add_frag_shader_from_path('shaders/frag.glsl')
-        self.add_shader_program(default_material)
-
-    def add_shader_program(self, shader_program):
-        if shader_program.uid in self._shader_programs:
-            raise KeyError('shader program with uid already exists', uid)
-        self._shader_programs[shader_program.uid] = shader_program
-        shader_program.finalize(self._window.conn)
+        self._window.conn.send_msg({
+            'tag': 'update_material',
+            'uid': 'default',
+            'vert_shader_paths': ['shaders/vert.glsl'],
+            'frag_shader_paths': ['shaders/frag.glsl'],
+        })
 
     def _send_draw_func(self):
         self._window.send_msg(self._command_buffer)
@@ -78,9 +72,7 @@ class Scene:
     def load_path(self, path):
         node = MeshNode.load_obj(path)
         self.root.add(node)
-        # node.alloc_graphics_resources(self._window.conn)
-        # node.update_graphics_resources(self._window.conn)
-        self._command_buffer.geoms.append(node.create_draw_func())
+        node.send(self, self._window.conn)
         self._send_draw_func()
         return node
 
@@ -152,7 +144,6 @@ class MeshNode(SceneNode):
         super().__init__()
         self.verts = []
         self.faces = []
-        self._vert_buffer = ArrayBufferObject()
         self._material_uid = 'default'
 
     @staticmethod
@@ -188,8 +179,17 @@ class MeshNode(SceneNode):
         self._vert_buffer.alloc(conn)
         self._shader_program.alloc(conn)
 
-    def update_graphics_resources(self, conn):
-        verts = numpy.empty(1)
+    def send(self, scene, conn):
+        elem_per_vert = 4
+        vert_per_tri = 3
+        fac = elem_per_vert * vert_per_tri
+
+        num_triangles = 0
+        for face in self.faces:
+            num_triangles += (len(face.indices) - 2) * fac
+
+        verts = numpy.empty(num_triangles)
+        out = 0
 
         for face in self.faces:
             vi0 = face.indices[-1]
@@ -199,27 +199,42 @@ class MeshNode(SceneNode):
 
                 for index, vit in enumerate((vi0, vi1, vi2)):
                     vec = self.verts[vit].loc
-                    verts += vec.x
-                    verts += vec.y
-                    verts += vec.z
-                    # TODO
-                    verts += index
+                    verts[out + 0] = vec.x
+                    verts[out + 1] = vec.y
+                    verts[out + 2] = vec.z
+                    verts[out + 3] = index
+                    out += 4
 
-        self._vert_buffer.set_data(conn, verts)
+        conn.send_msg({
+            'tag': 'update_buffer',
+            'name': 'buffer0',
+            'contents': verts
+        })
 
-        self._shader_program.compile_and_link(conn)
+        conn.send_msg({
+            'tag': 'draw_arrays',
+            'material': 'default',
+            'attributes': {
+                'vert_loc': {
+                    'buffer': 'buffer0',
+                    'components': 4,
+                    'gltype': 'float',
+                    'normalized': False,
+                    'offset': 0,
+                    'stride': 0
+                }
+            },
+            'uniforms': {
+                'model_view': self._baked_transform,
+                'projection': scene.projection_matrix
+            },
+            'range': (0, num_triangles),
+            'primitive': 'triangles'
+        })
 
     def free_graphics_resources(self, conn):
         self._vert_buffer.release(conn)
         self._shader_program.release(conn)
-
-    def create_draw_func(self):
-        #shader_program = self._shader_program.handle
-        material_uid = self._material_uid
-        def draw(resources):
-            glUseProgram(resources[material_uid])
-            
-        return draw
 
     def draw(self, scene):
         material = scene.materials[self._material_name]
