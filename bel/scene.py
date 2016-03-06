@@ -7,7 +7,7 @@ from bel.window import WindowClient
 from bel import shader
 from bel.shader import ShaderProgram
 from bel.buffer_object import ArrayBufferObject
-
+from bel.uniform import MatrixUniform
 
 class CommandBuffer:
     def __init__(self):
@@ -25,7 +25,7 @@ class Scene:
     def __init__(self):
         self._command_buffer = CommandBuffer()
         self._window = WindowClient()
-        self._projection_matrix = Mat4x4.identity()
+        self._projection_matrix = numpy.identity(4)
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
@@ -85,7 +85,7 @@ class SceneNode:
         self._parent = None
         self._children = []
         self._transform = Transform()
-        self._baked_transform = Mat4x4()
+        self._baked_transform = numpy.identity(4)
 
     def _bake_transform(self):
         mat = self._transform.matrix()
@@ -225,8 +225,10 @@ class MeshNode(SceneNode):
                 }
             },
             'uniforms': {
-                'model_view': self._baked_transform,
-                'projection': scene.projection_matrix
+                'model_view':
+                MatrixUniform(self._baked_transform),
+                'projection':
+                MatrixUniform(scene.projection_matrix)
             },
             'range': (0, num_triangles),
             'primitive': 'triangles'

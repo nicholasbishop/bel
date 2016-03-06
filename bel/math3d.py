@@ -126,10 +126,10 @@ class Quat:
     def from_axis_angle(axis, angle):
         half_angle = angle * 0.5
         fac = math.sin(half_angle)
-        self.x = axis.x * fac;
-        self.y = axis.y * fac;
-        self.z = axis.z * fac;
-        self.w = math.cos(half_angle);
+        self.x = axis.x * fac
+        self.y = axis.y * fac
+        self.z = axis.z * fac
+        self.w = math.cos(half_angle)
 
 
 class Transform:

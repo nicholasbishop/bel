@@ -52,19 +52,19 @@ class WindowServer:
             if uid not in self.materials:
                 self.materials[uid] = ShaderProgram()
             self.materials[uid].update(msg)
-            
 
     def draw(self):
         if self.command_buffer is not None:
             self.command_buffer.draw(self.resources)
         for item in self.draw_list:
             material = self.materials[item['material']]
-            material.bind_attributes(self.buffer_objects, item['attributes'])
-            material.bind_uniforms(item['uniforms'])
+            with material.bind():
+                material.bind_attributes(self.buffer_objects, item['attributes'])
+                material.bind_uniforms(item['uniforms'])
 
             first, count = item['range']
             # TODO
-            assert(item['primitive'] == 'triangles')
+            assert item['primitive'] == 'triangles'
             mode = gl.GL_TRIANGLES
             logging.debug('glDrawArrays(%s, first=%d, count=%d',
                          mode.name, first, count)
