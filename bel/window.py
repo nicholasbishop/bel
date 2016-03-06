@@ -67,7 +67,7 @@ class WindowServer:
             assert item['primitive'] == 'triangles'
             mode = gl.GL_TRIANGLES
             logging.debug('glDrawArrays(%s, first=%d, count=%d',
-                         mode.name, first, count)
+                          mode.name, first, count)
             with material.bind():
                 gl.glDrawArrays(mode, first, count)
 
