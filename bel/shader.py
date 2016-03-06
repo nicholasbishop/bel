@@ -136,7 +136,7 @@ class ShaderProgram:
         # TODO: for now this is just create, not really update
         for path in msg['vert_shader_paths']:
             self._shaders.append(VertexShader(path))
-            
+
         for path in msg['frag_shader_paths']:
             self._shaders.append(FragmentShader(path))
 

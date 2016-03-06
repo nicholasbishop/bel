@@ -38,11 +38,11 @@ class BufferObject:
                           normalized, stride, offset):
         with self.bind():
             glVertexAttribPointer(attr_index,
- 	                          components,
- 	                          gltype,
- 	                          normalized,
- 	                          stride,
- 	                          offset)
+                                  components,
+                                  gltype,
+                                  normalized,
+                                  stride,
+                                  offset)
 
 
 class ArrayBufferObject(BufferObject):
