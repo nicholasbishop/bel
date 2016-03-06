@@ -1,5 +1,6 @@
 import logging
 from multiprocessing import Process
+import os
 from socket import socketpair
 
 from OpenGL import GL as gl
@@ -73,6 +74,7 @@ class WindowServer:
 
 
 def window_server_main(server_sock):
+    #print('verify', os.environ['LD_PRELOAD'])
     logging.basicConfig(level=logging.INFO, format=
                         '%(levelname)s: window process '
                         '[%(filename)s:%(lineno)d] %(message)s')
@@ -81,6 +83,15 @@ def window_server_main(server_sock):
     import cyglfw3 as glfw
     if not glfw.Init():
         raise RuntimeError('glfw.Init failed')
+
+    #version = 3,2
+    # glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, version[0])
+    # glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, version[1])
+    # # glfw.WindowHint(glfw.OPENGL_FORWARD_COMPAT, 1)
+    # # glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    # glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, True)
+    glfw.WindowHint( glfw.CLIENT_API, glfw.OPENGL_ES_API );
+    glfw.WindowHint( glfw.CONTEXT_VERSION_MAJOR, 2 );
 
     window = WindowServer(server_sock, glfw)
     window.run()
@@ -92,6 +103,8 @@ class WindowClient:
         # socketpair guarantee message ordering
         sock, server_sock = socketpair()
         self.conn = ipc.Conn(sock)
+        # tracelib = '/home/nicholasbishop/apitrace/build/wrappers/glxtrace.so'
+        # os.environ['LD_PRELOAD'] = tracelib
         self.proc = Process(target=window_server_main, args=(server_sock,))
         self.proc.start()
 

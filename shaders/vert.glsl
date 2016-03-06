@@ -1,3 +1,5 @@
+precision mediump float;
+
 attribute vec4 vert_loc;
  
 uniform mat4 model_view;

@@ -7,9 +7,9 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
                        glCreateProgram, glCreateShader,
                        glDeleteProgram, glDeleteShader,
                        glEnableVertexAttribArray, glGetAttribLocation,
-                       glGetUniformLocation, glGetShaderInfoLog,
-                       glGetShaderiv, glLinkProgram, glShaderSource,
-                       glUseProgram)
+                       glGetProgramInfoLog, glGetUniformLocation,
+                       glGetShaderInfoLog, glGetShaderiv,
+                       glLinkProgram, glShaderSource, glUseProgram)
 
 from bel.uniform import MatrixUniform
 
@@ -67,8 +67,9 @@ class Shader:
         logging.info('glCompileShader(%d)', self._hnd)
         glCompileShader(self._hnd)
 
-        if glGetShaderiv(self._hnd, GL_COMPILE_STATUS) is False:
-            compile_log = glGetShaderInfoLog(self._hnd)
+        compile_log = glGetShaderInfoLog(self._hnd)
+        logging.info('glGetShaderInfoLog(%d) -> %s', self._hnd, compile_log)
+        if not glGetShaderiv(self._hnd, GL_COMPILE_STATUS):
             glDeleteShader(self._hnd)
             raise RuntimeError('shader failed to compile', compile_log)
 
@@ -117,8 +118,6 @@ class ShaderProgram:
             bufname = data['buffer']
             buf = buffer_objects[bufname]
 
-            glEnableVertexAttribArray(attr_index)
-
             # TODO
             assert(data['gltype'] == 'float')
             gltype = GL_FLOAT
@@ -128,6 +127,8 @@ class ShaderProgram:
                                   normalized=data['normalized'],
                                   offset=data['offset'],
                                   stride=data['stride'])
+            with buf.bind():
+                glEnableVertexAttribArray(attr_index)
 
     def bind_uniforms(self, uniforms):
         for uniform_name, uniform_index in self._uniforms.items():
@@ -147,11 +148,14 @@ class ShaderProgram:
             glAttachShader(self._hnd, shader.hnd)
         logging.info('glLinkProgram(%d)', self._hnd)
         glLinkProgram(self._hnd)
+        logging.info('glGetProgramInfoLog(%d) -> %s', self._hnd,
+                     glGetProgramInfoLog(self._hnd))
 
         self._uniforms = {}
         self._attributes = {}
         for shader in self._shaders:
             for name in shader.uniforms():
+                logging.info('glGetAttribLocation(%d, "%s")', self._hnd, name)
                 self._uniforms[name] = glGetUniformLocation(self._hnd, name)
             for name in shader.attributes():
                 self._attributes[name] = glGetAttribLocation(self._hnd, name)

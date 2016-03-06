@@ -4,7 +4,7 @@ import logging
 from OpenGL.GL import (GL_ARRAY_BUFFER, GL_STREAM_DRAW, glBindBuffer,
                        glBufferData, glDeleteBuffers, glGenBuffers,
                        glVertexAttribPointer)
-
+from OpenGL.GL import glGetInteger, GL_ARRAY_BUFFER_BINDING
 class BufferObject:
     def __init__(self, kind):
         self._kind = kind
