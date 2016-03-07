@@ -110,7 +110,7 @@ class ShaderProgram:
         try:
             yield
         finally:
-            glUseProgram(0)
+            pass#glUseProgram(0)
 
     def bind_attributes(self, buffer_objects, attribute_inputs):
         for attr_name, attr_index in self._attributes.items():
@@ -155,10 +155,13 @@ class ShaderProgram:
         self._attributes = {}
         for shader in self._shaders:
             for name in shader.uniforms():
-                logging.info('glGetAttribLocation(%d, "%s")', self._hnd, name)
                 self._uniforms[name] = glGetUniformLocation(self._hnd, name)
+                logging.info('glGetUniformLocation(%d, "%s") -> %d',
+                             self._hnd, name, self._uniforms[name])
             for name in shader.attributes():
                 self._attributes[name] = glGetAttribLocation(self._hnd, name)
+                logging.info('glGetAttribLocation(%d, "%s") -> %d',
+                             self._hnd, name, self._attributes[name])
 
     def alloc(self):
         hnd = glCreateProgram()

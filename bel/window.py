@@ -9,6 +9,9 @@ from bel import ipc
 from bel.shader import ShaderProgram
 from bel.buffer_object import ArrayBufferObject
 
+def handle_dbg_msg(source, msg_type, msg_id, msg_severity, msg_length, msg, user_data):
+    print('here')
+
 class WindowServer:
     def __init__(self, sock, glfw):
         self.conn = ipc.Conn(sock)
@@ -22,6 +25,8 @@ class WindowServer:
     def run(self):
         window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
         self.glfw.MakeContextCurrent(window)
+
+        gl.glDebugMessageCallback(gl.GLDEBUGPROC(handle_dbg_msg), None)
 
         while not self.glfw.WindowShouldClose(window):
             self.draw()
@@ -55,8 +60,12 @@ class WindowServer:
             self.materials[uid].update(msg)
 
     def draw(self):
-        if self.command_buffer is not None:
-            self.command_buffer.draw(self.resources)
+        # TODO
+        gl.glClearColor(0.3, 0.3, 0.4, 0.0)
+        #gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        gl.glViewport(0, 0, 640, 480)
+
         for item in self.draw_list:
             material = self.materials[item['material']]
             with material.bind():
@@ -66,9 +75,12 @@ class WindowServer:
             first, count = item['range']
             # TODO
             assert item['primitive'] == 'triangles'
-            mode = gl.GL_TRIANGLES
+            #mode = gl.GL_TRIANGLES
+            mode = gl.GL_POINTS
             logging.debug('glDrawArrays(%s, first=%d, count=%d',
                           mode.name, first, count)
+            # TODO
+            count = 2
             with material.bind():
                 gl.glDrawArrays(mode, first, count)
 
@@ -84,14 +96,12 @@ def window_server_main(server_sock):
     if not glfw.Init():
         raise RuntimeError('glfw.Init failed')
 
-    #version = 3,2
-    # glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, version[0])
-    # glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, version[1])
-    # # glfw.WindowHint(glfw.OPENGL_FORWARD_COMPAT, 1)
-    # # glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-    # glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, True)
-    glfw.WindowHint( glfw.CLIENT_API, glfw.OPENGL_ES_API );
-    glfw.WindowHint( glfw.CONTEXT_VERSION_MAJOR, 2 );
+    glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 2)
+    glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, True)
+    #glfw.WindowHint( glfw.CLIENT_API, glfw.OPENGL_ES_API );
+    #glfw.WindowHint( glfw.CONTEXT_VERSION_MAJOR, 2 );
 
     window = WindowServer(server_sock, glfw)
     window.run()

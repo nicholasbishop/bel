@@ -5,6 +5,7 @@ from OpenGL.GL import (GL_ARRAY_BUFFER, GL_STREAM_DRAW, glBindBuffer,
                        glBufferData, glDeleteBuffers, glGenBuffers,
                        glVertexAttribPointer)
 from OpenGL.GL import glGetInteger, GL_ARRAY_BUFFER_BINDING
+import OpenGL.GL as gl
 class BufferObject:
     def __init__(self, kind):
         self._kind = kind
@@ -23,9 +24,11 @@ class BufferObject:
         try:
             yield
         finally:
-            glBindBuffer(self._kind, 0)
+            pass
+            #glBindBuffer(self._kind, 0)
 
     def set_data(self, data, usage=None):
+        print(data)
         if usage is None:
             usage = GL_STREAM_DRAW
 
@@ -37,6 +40,14 @@ class BufferObject:
     def bind_to_attribute(self, attr_index, components, gltype,
                           normalized, stride, offset):
         with self.bind():
+            logging.debug('glVertexAttribPointer(index=%d, size=%d, type=%s, '
+                          'normalized=%r, stride=%d, pointer=%d',
+                          attr_index, components, gltype.name,
+                          normalized, stride, offset)
+
+            vao = gl.glGenVertexArrays(1)
+            gl.glBindVertexArray(vao)
+
             glVertexAttribPointer(attr_index,
                                   components,
                                   gltype,
