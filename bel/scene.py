@@ -159,7 +159,7 @@ class MeshNode(SceneNode):
             mesh.faces = faces
             return mesh
 
-    def send(self, scene, conn):
+    def create_draw_array(self):
         elem_per_vert = 4
         vert_per_tri = 3
         fac = elem_per_vert * vert_per_tri
@@ -184,6 +184,11 @@ class MeshNode(SceneNode):
                     verts[out + 2] = vec.z
                     verts[out + 3] = index
                     out += 4
+        return verts
+
+    def send(self, scene, conn):
+        verts = self.create_draw_array()
+        num_triangles = len(verts) // 3
 
         conn.send_msg({
             'tag': 'update_buffer',
