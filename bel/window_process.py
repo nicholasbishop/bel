@@ -16,23 +16,24 @@ class WindowServer:
     def __init__(self, sock, glfw):
         self.conn = ipc.Conn(sock)
         self.glfw = glfw
+        self.window = None
         self.resources = {}
         self.buffer_objects = {}
         self.draw_list = []
         self.materials = {}
 
     def run(self):
-        window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
-        self.glfw.MakeContextCurrent(window)
+        self.window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
+        self.glfw.MakeContextCurrent(self.window)
 
         if gl.glDebugMessageCallback:
             callback = gl.GLDEBUGPROC(cb_handle_dbg_msg)
             gl.glDebugMessageCallback(callback, None)
 
-        while not self.glfw.WindowShouldClose(window):
+        while not self.glfw.WindowShouldClose(self.window):
             self.draw()
 
-            self.glfw.SwapBuffers(window)
+            self.glfw.SwapBuffers(self.window)
             self.glfw.PollEvents()
             msg = self.conn.read_msg_nonblocking()
             if msg is not None:
@@ -58,7 +59,9 @@ class WindowServer:
         gl.glClearColor(0.3, 0.3, 0.4, 0.0)
         #gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-        gl.glViewport(0, 0, 640, 480)
+
+        width, height = self.glfw.GetFramebufferSize(self.window)
+        gl.glViewport(0, 0, width, height)
 
         for item in self.draw_list:
             material = self.materials[item['material']]
