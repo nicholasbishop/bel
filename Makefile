@@ -2,7 +2,7 @@ run:
 	venv/bin/python demo.py
 
 lint:
-	venv/bin/pylint -rn bel demo.py -d missing-docstring -d protected-access -d no-member -d invalid-name
+	venv/bin/pylint -rn bel demo.py -d locally-disabled,missing-docstring,too-few-public-methods
 
 virtualenv:
 	virtualenv-3.4 venv

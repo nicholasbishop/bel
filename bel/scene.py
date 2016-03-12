@@ -1,30 +1,12 @@
-from OpenGL import GL as gl
-from OpenGL.GL import glUseProgram
 import numpy
 
 from bel.math3d import (Mat4x4, Transform, Vec2, Vec3,
                         perspective_matrix)
-from bel.window import WindowClient
-from bel import shader
-from bel.shader import ShaderProgram
-from bel.buffer_object import ArrayBufferObject
 from bel.uniform import MatrixUniform
-
-class CommandBuffer:
-    def __init__(self):
-        self.geoms = []
-
-    def draw(self, materials):
-        gl.glClearColor(0.3, 0.3, 0.4, 0.0)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-        for geom in self.geoms:
-            geom(materials)
-
+from bel.window import WindowClient
 
 class Scene:
     def __init__(self):
-        self._command_buffer = CommandBuffer()
         self._window = WindowClient()
         self._projection_matrix = numpy.identity(4)
         self._root = SceneNode()
@@ -46,9 +28,6 @@ class Scene:
             'vert_shader_paths': ['shaders/vert.glsl'],
             'frag_shader_paths': ['shaders/frag.glsl'],
         })
-
-    def _send_draw_func(self):
-        self._window.send_msg(self._command_buffer)
 
     @property
     def projection_matrix(self):
@@ -72,9 +51,6 @@ class Scene:
                                                      viewport_size,
                                                      near, far)
 
-        gl.glClearColor(0.0, 0.0, 0.0, 1.0)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
         self.iter_nodes(SceneNode._bake_transform)
         self.iter_nodes(lambda node: node.draw(self))
 
@@ -82,7 +58,6 @@ class Scene:
         node = MeshNode.load_obj(path)
         self.root.add(node)
         node.send(self, self._window.conn)
-        self._send_draw_func()
         return node
 
     def run(self):
@@ -184,10 +159,6 @@ class MeshNode(SceneNode):
             mesh.faces = faces
             return mesh
 
-    def alloc_graphics_resources(self, conn):
-        self._vert_buffer.alloc(conn)
-        self._shader_program.alloc(conn)
-
     def send(self, scene, conn):
         elem_per_vert = 4
         vert_per_tri = 3
@@ -242,36 +213,3 @@ class MeshNode(SceneNode):
             'range': (0, num_triangles),
             'primitive': 'triangles'
         })
-
-    def free_graphics_resources(self, conn):
-        self._vert_buffer.release(conn)
-        self._shader_program.release(conn)
-
-    def draw(self, scene):
-        material = scene.materials[self._material_name]
-        def async():
-            material
-            glUseProgram(self._shader_program.handle)
-            self._program.set_uniform('model_view', self._baked_transform)
-            self._program.set_uniform('projection', scene.projection_matrix)
-
-        verts = []
-
-        attrib = self._program.get_attribute_location('vert_loc')
-        attrib_size = 4  # xyzw
-
-        gl.glEnableVertexAttribArray(attrib)
-
-        normalized = False
-        stride = 0
-
-        gl.glVertexAttribPointer(attrib,
-                                 attrib_size,
-                                 gl.GL_FLOAT,
-                                 normalized,
-                                 stride,
-                                 verts)
-
-        gl.glDrawArrays(gl.GL_TRIANGLES, 0, len(verts) // 3)
-
-        gl.glDisableVertexAttribArray(attrib)
