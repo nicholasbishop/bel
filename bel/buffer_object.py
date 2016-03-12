@@ -1,13 +1,11 @@
 from contextlib import contextmanager
+from ctypes import c_void_p
 import logging
 
 from OpenGL.GL import (GL_ARRAY_BUFFER, GL_STATIC_DRAW, glBindBuffer,
                        glBufferData, glDeleteBuffers, glGenBuffers,
                        glVertexAttribPointer)
-from OpenGL.GL import glGetInteger, GL_ARRAY_BUFFER_BINDING
 import OpenGL.GL as gl
-
-from ctypes import c_void_p
 
 class BufferObject:
     def __init__(self, kind):

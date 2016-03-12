@@ -5,13 +5,11 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
                        GL_FRAGMENT_SHADER, GL_VERTEX_SHADER,
                        glAttachShader, glCompileShader,
                        glCreateProgram, glCreateShader,
-                       glDeleteProgram, glDeleteShader,
-                       glEnableVertexAttribArray, glGetAttribLocation,
-                       glGetProgramInfoLog, glGetUniformLocation,
-                       glGetShaderInfoLog, glGetShaderiv,
-                       glLinkProgram, glShaderSource, glUseProgram)
-
-from bel.uniform import MatrixUniform
+                       glDeleteShader, glEnableVertexAttribArray,
+                       glGetAttribLocation, glGetProgramInfoLog,
+                       glGetUniformLocation, glGetShaderInfoLog,
+                       glGetShaderiv, glLinkProgram, glShaderSource,
+                       glUseProgram)
 
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
@@ -123,7 +121,7 @@ class ShaderProgram:
             with buf.bind():
                 glEnableVertexAttribArray(attr_index)
             # TODO
-            assert(data['gltype'] == 'float')
+            assert data['gltype'] == 'float'
             gltype = GL_FLOAT
             buf.bind_to_attribute(attr_index,
                                   components=data['components'],
@@ -164,31 +162,6 @@ class ShaderProgram:
                 self._attributes[name] = glGetAttribLocation(self._hnd, name)
                 logging.info('glGetAttribLocation(%d, "%s") -> %d',
                              self._hnd, name, self._attributes[name])
-
-    def alloc(self):
-        hnd = glCreateProgram()
-        logging.info('glCreateProgram() -> %d', hnd)
-        if hnd == 0:
-            raise ValueError('glCreateProgram failed')
-        return hnd
-
-    def release(self, conn):
-        self._vert_shader.release(conn)
-        self._frag_shader.release(conn)
-        if self._hnd is not None:
-            conn.send_msg(lambda: glDeleteProgram(self._hnd))
-
-    def compile_and_link(self, conn):
-        self._vert_shader.compile(conn)
-        self._frag_shader.compile(conn)
-
-        def async():
-            glAttachShader(self._hnd, self._vert_shader.handle)
-            glAttachShader(self._hnd, self._frag_shader.handle)
-            glLinkProgram(self._hnd)
-            logging.info('linked shader program %d', self._hnd)
-
-        conn.send_msg(async)
 
     @property
     def handle(self):
