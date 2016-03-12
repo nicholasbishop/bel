@@ -78,7 +78,7 @@ class WindowServer:
             # TODO
             assert item['primitive'] == 'triangles'
             mode = gl.GL_TRIANGLES
-            mode = gl.GL_POINTS
+            #mode = gl.GL_POINTS
             logging.debug('glDrawArrays(%s, first=%d, count=%d',
                           mode.name, first, count)
             # TODO
