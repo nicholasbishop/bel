@@ -15,7 +15,6 @@ def cb_handle_dbg_msg(*args):
 class WindowServer:
     def __init__(self, sock, glfw):
         self.conn = ipc.Conn(sock)
-        self.command_buffer = None
         self.glfw = glfw
         self.resources = {}
         self.buffer_objects = {}
@@ -37,14 +36,7 @@ class WindowServer:
             self.glfw.PollEvents()
             msg = self.conn.read_msg_nonblocking()
             if msg is not None:
-                if hasattr(msg, 'draw'):
-                    self.command_buffer = msg
-                elif hasattr(msg, 'keys') and 'tag' in msg:
-                    self.handle_msg(msg)
-                else:
-                    msg(self.resources)
-                    # ret = msg()
-                    # self.conn.send_msg(ret)
+                self.handle_msg(msg)
 
     def handle_msg(self, msg):
         tag = msg['tag']
