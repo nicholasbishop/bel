@@ -13,7 +13,7 @@ class Demo:
         self.scene = Scene()
 
         # Load an object and set its color
-        self.obj = self.scene.load_path('examples/cube.obj')
+        self.obj = self.scene.load_path('examples/xyz-text.obj')
         self.obj.color = self.color1
 
         # Add an event handler
