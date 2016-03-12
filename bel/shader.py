@@ -113,11 +113,15 @@ class ShaderProgram:
             pass#glUseProgram(0)
 
     def bind_attributes(self, buffer_objects, attribute_inputs):
-        for attr_name, attr_index in self._attributes.items():
+        # TODO
+        #for attr_name, attr_index in self._attributes.items():
+        for attr_name, attr_index in {'vert_loc': 0}.items():
             data = attribute_inputs[attr_name]
             bufname = data['buffer']
             buf = buffer_objects[bufname]
 
+            with buf.bind():
+                glEnableVertexAttribArray(attr_index)
             # TODO
             assert(data['gltype'] == 'float')
             gltype = GL_FLOAT
@@ -127,8 +131,6 @@ class ShaderProgram:
                                   normalized=data['normalized'],
                                   offset=data['offset'],
                                   stride=data['stride'])
-            with buf.bind():
-                glEnableVertexAttribArray(attr_index)
 
     def bind_uniforms(self, uniforms):
         for uniform_name, uniform_index in self._uniforms.items():

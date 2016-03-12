@@ -26,8 +26,9 @@ class WindowServer:
         window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
         self.glfw.MakeContextCurrent(window)
 
-        callback = gl.GLDEBUGPROC(cb_handle_dbg_msg)
-        gl.glDebugMessageCallback(callback, None)
+        if gl.glDebugMessageCallback:
+            callback = gl.GLDEBUGPROC(cb_handle_dbg_msg)
+            gl.glDebugMessageCallback(callback, None)
 
         while not self.glfw.WindowShouldClose(window):
             self.draw()
@@ -98,7 +99,7 @@ def window_server_main(server_sock):
     glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 3)
     glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 2)
     glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-    glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, True)
+    #glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, True)
 
     window = WindowServer(server_sock, glfw)
     window.run()

@@ -195,9 +195,9 @@ class MeshNode(SceneNode):
 
         num_triangles = 0
         for face in self.faces:
-            num_triangles += (len(face.indices) - 2) * fac
+            num_triangles += len(face.indices) - 2
 
-        verts = numpy.empty(num_triangles)
+        verts = numpy.empty(num_triangles * fac, numpy.float32)
         out = 0
 
         for face in self.faces:

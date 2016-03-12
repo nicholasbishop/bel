@@ -18,12 +18,17 @@ class WindowClient:
 
         cmd = []
         #cmd += ['gdb', '--eval-command', 'run', '--args']
-        #cmd += ['apitrace', 'trace']
+        cmd += ['apitrace', 'trace']
         #cmd += ['valgrind']
+        #cmd += ['/home/nicholasbishop/vogl/vogl_build/vogl64', 'trace']
         cmd += ['venv/bin/python3', 'bel/window_process.py', socket_path]
 
         env = dict(os.environ)
         env['PYTHONPATH'] = ':'.join(sys.path)
+
+        #env['LIBGL_ALWAYS_SOFTWARE'] = '1'
+        #env['MESA_DEBUG'] = '1'
+        #env['LD_PRELOAD'] = '/home/nicholasbishop/vogl/vogl_build/libvogltrace64.so'
 
         proc = subprocess.Popen(cmd, env=env)
 

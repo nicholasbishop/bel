@@ -1,15 +1,22 @@
 from contextlib import contextmanager
 import logging
 
-from OpenGL.GL import (GL_ARRAY_BUFFER, GL_STREAM_DRAW, glBindBuffer,
+from OpenGL.GL import (GL_ARRAY_BUFFER, GL_STATIC_DRAW, glBindBuffer,
                        glBufferData, glDeleteBuffers, glGenBuffers,
                        glVertexAttribPointer)
 from OpenGL.GL import glGetInteger, GL_ARRAY_BUFFER_BINDING
 import OpenGL.GL as gl
+
+from ctypes import c_void_p
+
 class BufferObject:
     def __init__(self, kind):
         self._kind = kind
         self._hnd = glGenBuffers(1)
+
+        # TODO
+        self._vao = gl.glGenVertexArrays(1)
+
         logging.info('glGenBuffers(1) -> %d', self._hnd)
         if self._hnd == 0:
             raise ValueError('glGenBuffers failed')
@@ -30,7 +37,7 @@ class BufferObject:
     def set_data(self, data, usage=None):
         print(data)
         if usage is None:
-            usage = GL_STREAM_DRAW
+            usage = GL_STATIC_DRAW
 
         with self.bind():
             glBufferData(self._kind, data, usage)
@@ -45,15 +52,15 @@ class BufferObject:
                           attr_index, components, gltype.name,
                           normalized, stride, offset)
 
-            vao = gl.glGenVertexArrays(1)
-            gl.glBindVertexArray(vao)
+            # TODO
+            gl.glBindVertexArray(self._vao)
 
             glVertexAttribPointer(attr_index,
                                   components,
                                   gltype,
                                   normalized,
                                   stride,
-                                  offset)
+                                  c_void_p(offset))
 
 
 class ArrayBufferObject(BufferObject):
