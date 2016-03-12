@@ -1,4 +1,5 @@
 import numpy
+from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel.math3d import (Mat4x4, Transform, Vec2, Vec3,
                         perspective_matrix)
@@ -15,11 +16,16 @@ class Scene:
 
         # TODO
         viewport_size = Vec2(640, 480)
+        fovy = 90
+        aspect = viewport_size.x / viewport_size.y
         near = 0.01
         far = 100.0
-        self._projection_matrix = perspective_matrix(90,
-                                                     viewport_size,
-                                                     near, far)
+
+        self._projection_matrix = create_perspective_projection_matrix(fovy,
+                                                                       aspect,
+                                                                       near,
+                                                                       far,
+                                                                       numpy.float32)
 
         # TODO
         self._window.conn.send_msg({
@@ -47,9 +53,6 @@ class Scene:
     def draw(self, viewport_size):
         near = 0.01
         far = 100.0
-        self._projection_matrix = Mat4x4.perspective(90,
-                                                     viewport_size,
-                                                     near, far)
 
         self.iter_nodes(SceneNode._bake_transform)
         self.iter_nodes(lambda node: node.draw(self))
@@ -96,7 +99,6 @@ class SceneNode:
 
     def draw(self, scene):
     #     subdraw = DrawData()
-    #     subdraw.projection = draw_data.projection
     #     subdraw.model_view = subdraw.model_view * self._transform.matrix()
 
     #     for child in self._children:

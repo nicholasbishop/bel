@@ -1,7 +1,12 @@
-#version 330
+#version 330 core
 
-layout(location = 0) in vec4 vert_loc;
+layout(location=0) in vec4 vert_loc;
+
+uniform mat4 projection;
+uniform mat4 model_view;
 
 void main() {
-	gl_Position = vec4(vert_loc.x / 3.0, vert_loc.y / 3.0, vert_loc.z, 1);
+	float zpos = -2.0;
+	vec4 adj = vec4(vert_loc.x, vert_loc.y, vert_loc.z + zpos, 1);
+	gl_Position = projection * model_view * adj;
 }

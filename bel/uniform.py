@@ -8,7 +8,6 @@ class MatrixUniform:
         count = 1
         transpose = False
         if self._data.shape == (4, 4):
-            glUniformMatrix4fv(uniform_location, count, transpose,
-                               self._data.flatten(order='F'))
+            glUniformMatrix4fv(uniform_location, count, transpose, self._data)
         else:
             raise NotImplementedError()
