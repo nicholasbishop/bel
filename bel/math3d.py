@@ -1,3 +1,8 @@
+# pylint: disable=invalid-name,too-few-public-methods
+
+# TODO
+# pylint: disable=protected-access
+
 import math
 
 import numpy
@@ -22,9 +27,9 @@ class Vec3:
     def __init__(self, *args):
         args = flatten(args)
         if len(args) > 0 and isinstance(args[0], Vec3):
-            args = [args[0].x,
+            args = (args[0].x,
                     args[0].y,
-                    args[0].z]
+                    args[0].z)
         num = len(args)
         self.x = args[0] if num > 0 else 0
         self.y = args[1] if num > 1 else 0
@@ -69,6 +74,8 @@ class Mat4x4:
 
     @staticmethod
     def frustum(right, left, top, bottom, near, far):
+        # TODO
+        # pylint: disable=too-many-arguments
         rml = right - left
         rpl = right + left
         tmb = top - bottom
@@ -78,6 +85,7 @@ class Mat4x4:
         n2 = near * 2
         n2f = n2 * far
 
+        # pylint: disable=bad-whitespace
         return Mat4x4(n2 / rml, 0,         rpl / rml,  0,
                       0,        n2 / tmb,  tpb / tmb,  0,
                       0,        0,        -fpn / fmn, -n2f / fmn,
@@ -130,10 +138,10 @@ class Quat:
     def from_axis_angle(axis, angle):
         half_angle = angle * 0.5
         fac = math.sin(half_angle)
-        self.x = axis.x * fac
-        self.y = axis.y * fac
-        self.z = axis.z * fac
-        self.w = math.cos(half_angle)
+        return Quat(axis.x * fac,
+                    axis.y * fac,
+                    axis.z * fac,
+                    math.cos(half_angle))
 
 
 class Transform:
