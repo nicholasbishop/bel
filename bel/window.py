@@ -18,7 +18,7 @@ class WindowClient:
 
         cmd = []
         #cmd += ['gdb', '--eval-command', 'run', '--args']
-        cmd += ['apitrace', 'trace']
+        #cmd += ['apitrace', 'trace']
         #cmd += ['valgrind']
         #cmd += ['/home/nicholasbishop/vogl/vogl_build/vogl64', 'trace']
         cmd += ['venv/bin/python3', 'bel/window_process.py', socket_path]
