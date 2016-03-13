@@ -1,8 +1,7 @@
 import numpy
 from pyrr.matrix44 import create_perspective_projection_matrix
+from pyrr import Vector3
 
-from bel.math3d import (Mat4x4, Transform, Vec2, Vec3,
-                        perspective_matrix)
 from bel.uniform import MatrixUniform
 from bel.window import WindowClient
 
@@ -15,9 +14,9 @@ class Scene:
         self._root.add(self._camera)
 
         # TODO
-        viewport_size = Vec2(640, 480)
+        viewport_size = (640, 480)
         fovy = 90
-        aspect = viewport_size.x / viewport_size.y
+        aspect = viewport_size[0] / viewport_size[1]
         near = 0.01
         far = 100.0
 
@@ -71,7 +70,6 @@ class SceneNode:
     def __init__(self):
         self._parent = None
         self._children = []
-        self._transform = Transform()
         self._baked_transform = numpy.identity(4)
 
     def _bake_transform(self):
@@ -144,7 +142,7 @@ class MeshNode(SceneNode):
                     continue
                 tok = parts[0]
                 if tok == 'v':
-                    vec = Vec3()
+                    vec = Vector3()
                     if len(parts) > 1:
                         vec.x = float(parts[1])
                     if len(parts) > 2:
