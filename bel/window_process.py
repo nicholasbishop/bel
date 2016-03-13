@@ -1,12 +1,14 @@
 from socket import AF_UNIX, SOCK_STREAM, socket
 import logging
-
 import sys
+
 from OpenGL import GL as gl
+from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel import ipc
 from bel.shader import ShaderProgram
 from bel.buffer_object import ArrayBufferObject
+from bel.uniform import MatrixUniform
 
 def cb_handle_dbg_msg(*args):
     msg = args[5]
@@ -63,11 +65,24 @@ class WindowServer:
         width, height = self.glfw.GetFramebufferSize(self.window)
         gl.glViewport(0, 0, width, height)
 
+        fovy = 90
+        aspect = width / height if height != 0 else 1.0
+        near = 0.01
+        far = 100.0
+        builtin_uniforms = {
+            'projection': MatrixUniform(create_perspective_projection_matrix(fovy,
+                                                                             aspect,
+                                                                             near,
+                                                                             far))
+        }
+
         for item in self.draw_list:
             material = self.materials[item['material']]
             with material.bind():
                 material.bind_attributes(self.buffer_objects, item['attributes'])
-                material.bind_uniforms(item['uniforms'])
+                uniforms = dict(item['uniforms'])
+                uniforms.update(builtin_uniforms)
+                material.bind_uniforms(uniforms)
 
             first, count = item['range']
             # TODO

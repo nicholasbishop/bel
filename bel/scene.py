@@ -1,5 +1,4 @@
 import numpy
-from pyrr.matrix44 import create_perspective_projection_matrix
 from pyrr import Vector3
 from pyrr.vector3 import generate_normals
 
@@ -9,23 +8,9 @@ from bel.window import WindowClient
 class Scene:
     def __init__(self):
         self._window = WindowClient()
-        self._projection_matrix = numpy.identity(4)
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
-
-        # TODO
-        viewport_size = (640, 480)
-        fovy = 90
-        aspect = viewport_size[0] / viewport_size[1]
-        near = 0.01
-        far = 100.0
-
-        self._projection_matrix = create_perspective_projection_matrix(fovy,
-                                                                       aspect,
-                                                                       near,
-                                                                       far,
-                                                                       numpy.float32)
 
         # TODO
         self._window.conn.send_msg({
@@ -34,10 +19,6 @@ class Scene:
             'vert_shader_paths': ['shaders/vert.glsl'],
             'frag_shader_paths': ['shaders/frag.glsl'],
         })
-
-    @property
-    def projection_matrix(self):
-        return self._projection_matrix
 
     @property
     def root(self):
@@ -225,9 +206,7 @@ class MeshNode(SceneNode):
             },
             'uniforms': {
                 'model_view':
-                MatrixUniform(self._baked_transform),
-                'projection':
-                MatrixUniform(scene.projection_matrix)
+                MatrixUniform(self._baked_transform)
             },
             'range': (0, num_triangles),
             'primitive': 'triangles'
