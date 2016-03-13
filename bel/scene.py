@@ -7,7 +7,7 @@ from bel.window import WindowClient
 
 class Scene:
     def __init__(self):
-        self._window = WindowClient()
+        self._window = WindowClient(self)
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
@@ -19,6 +19,9 @@ class Scene:
             'vert_shader_paths': ['shaders/vert.glsl'],
             'frag_shader_paths': ['shaders/frag.glsl'],
         })
+
+    def handle_event(self, msg):
+        print(msg)
 
     @property
     def root(self):

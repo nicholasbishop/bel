@@ -24,6 +24,14 @@ class WindowServer:
         self.draw_list = []
         self.materials = {}
 
+    def cb_mouse_button(self, window, button, action, mods):
+        self.conn.send_msg({
+            'tag': 'event_mouse_button',
+            'button': button,
+            'action': action,
+            'mods': mods
+        })
+
     def run(self):
         self.window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
         self.glfw.MakeContextCurrent(self.window)
@@ -31,6 +39,8 @@ class WindowServer:
         if gl.glDebugMessageCallback:
             callback = gl.GLDEBUGPROC(cb_handle_dbg_msg)
             gl.glDebugMessageCallback(callback, None)
+
+        self.glfw.SetMouseButtonCallback(self.window, self.cb_mouse_button)
 
         while not self.glfw.WindowShouldClose(self.window):
             self.draw()

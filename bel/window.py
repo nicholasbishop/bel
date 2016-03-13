@@ -7,7 +7,7 @@ import sys
 from bel import ipc
 
 class WindowClient:
-    def __init__(self):
+    def __init__(self, scene):
         # TODO!
         socket_path = "/tmp/bel.socket"
         if os.path.exists(socket_path):
@@ -15,6 +15,7 @@ class WindowClient:
         server_sock = socket(AF_UNIX, SOCK_STREAM)
         server_sock.bind(socket_path)
         server_sock.listen(1)
+        self.scene = scene
 
         cmd = []
         #cmd += ['gdb', '--eval-command', 'run', '--args']
@@ -30,11 +31,17 @@ class WindowClient:
         #env['MESA_DEBUG'] = '1'
         #env['LD_PRELOAD'] = '/home/nicholasbishop/vogl/vogl_build/libvogltrace64.so'
 
-        proc = subprocess.Popen(cmd, env=env)
+        self.proc = subprocess.Popen(cmd, env=env)
 
         sock, _ = server_sock.accept()
         self.conn = ipc.Conn(sock)
-        atexit.register(proc.wait)
+        atexit.register(self.event_loop)
+
+    def event_loop(self):
+        while True:
+            msg = self.read_msg_blocking()
+            self.scene.handle_event(msg)
+        proc.wait()
 
     def send_msg(self, msg):
         self.conn.send_msg(msg)
