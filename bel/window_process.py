@@ -25,11 +25,18 @@ class WindowServer:
         self.materials = {}
 
     def cb_mouse_button(self, window, button, action, mods):
+        width, height = self.glfw.GetWindowSize(self.window)
+        x, y = self.glfw.GetCursorPos(self.window)
+
+        action_str = 'press' if action == self.glfw.PRESS else 'release'
+
         self.conn.send_msg({
             'tag': 'event_mouse_button',
             'button': button,
-            'action': action,
-            'mods': mods
+            'action': action_str,
+            'mods': mods,
+            'x': x / width,
+            'y': y / height
         })
 
     def run(self):
@@ -50,6 +57,8 @@ class WindowServer:
             msg = self.conn.read_msg_nonblocking()
             if msg is not None:
                 self.handle_msg(msg)
+
+        self.conn.send_msg({'tag': 'exit'})
 
     def handle_msg(self, msg):
         tag = msg['tag']

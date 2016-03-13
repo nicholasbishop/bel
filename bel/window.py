@@ -41,7 +41,9 @@ class WindowClient:
         while True:
             msg = self.read_msg_blocking()
             self.scene.handle_event(msg)
-        proc.wait()
+            if msg['tag'] == 'exit':
+                break
+        self.proc.wait()
 
     def send_msg(self, msg):
         self.conn.send_msg(msg)

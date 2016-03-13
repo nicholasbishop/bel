@@ -21,7 +21,19 @@ class Scene:
         })
 
     def handle_event(self, msg):
-        print(msg)
+        tag = msg['tag']
+        if tag == 'event_mouse_button':
+            print(msg)
+
+    def ray_cast(self, ray):
+        class Hit:
+            def __init__(self):
+                self.node = None
+                self.t = None
+
+        hit = Hit()
+        # TODO, implement properly
+        iter_nodes(lambda node: node.ray_cast(hit))
 
     @property
     def root(self):
