@@ -113,7 +113,7 @@ class ShaderProgram:
     def bind_attributes(self, buffer_objects, attribute_inputs):
         # TODO
         #for attr_name, attr_index in self._attributes.items():
-        for attr_name, attr_index in {'vert_loc': 0}.items():
+        for attr_name, attr_index in {'vert_loc': 0, 'vert_nor': 1}.items():
             data = attribute_inputs[attr_name]
             bufname = data['buffer']
             buf = buffer_objects[bufname]

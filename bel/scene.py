@@ -1,6 +1,7 @@
 import numpy
 from pyrr.matrix44 import create_perspective_projection_matrix
 from pyrr import Vector3
+from pyrr.vector3 import generate_normals
 
 from bel.uniform import MatrixUniform
 from bel.window import WindowClient
@@ -160,7 +161,7 @@ class MeshNode(SceneNode):
             return mesh
 
     def create_draw_array(self):
-        elem_per_vert = 4
+        elem_per_vert = 6
         vert_per_tri = 3
         fac = elem_per_vert * vert_per_tri
 
@@ -177,23 +178,28 @@ class MeshNode(SceneNode):
                 vi1 = face.indices[i]
                 vi2 = face.indices[i + 1]
 
-                for index, vit in enumerate((vi0, vi1, vi2)):
-                    vec = self.verts[vit].loc
-                    verts[out + 0] = vec.x
-                    verts[out + 1] = vec.y
-                    verts[out + 2] = vec.z
-                    verts[out + 3] = index
-                    out += 4
+                locs = [self.verts[vit].loc for vit in (vi0, vi1, vi2)]
+                nor = Vector3(generate_normals(*locs))
+
+                for loc in locs:
+                    verts[out + 0] = loc.x
+                    verts[out + 1] = loc.y
+                    verts[out + 2] = loc.z
+                    verts[out + 3] = nor.x
+                    verts[out + 4] = nor.y
+                    verts[out + 5] = nor.z
+                    out += 6
         return verts
 
     def send(self, scene, conn):
-        verts = self.create_draw_array()
-        num_triangles = len(verts) // 3
+        vert_nors = self.create_draw_array()
+        num_triangles = len(vert_nors) // 6
+        bytes_per_float32 = 4
 
         conn.send_msg({
             'tag': 'update_buffer',
             'name': 'buffer0',
-            'contents': verts
+            'contents': vert_nors
         })
 
         conn.send_msg({
@@ -202,11 +208,19 @@ class MeshNode(SceneNode):
             'attributes': {
                 'vert_loc': {
                     'buffer': 'buffer0',
-                    'components': 4,
+                    'components': 3,
                     'gltype': 'float',
                     'normalized': False,
                     'offset': 0,
-                    'stride': 0
+                    'stride': bytes_per_float32 * 6
+                },
+                'vert_nor': {
+                    'buffer': 'buffer0',
+                    'components': 3,
+                    'gltype': 'float',
+                    'normalized': False,
+                    'offset': bytes_per_float32 * 3,
+                    'stride': bytes_per_float32 * 6
                 }
             },
             'uniforms': {

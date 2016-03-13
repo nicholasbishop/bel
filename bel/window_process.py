@@ -57,8 +57,8 @@ class WindowServer:
     def draw(self):
         # TODO
         gl.glClearColor(0.3, 0.3, 0.4, 0.0)
-        #gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        gl.glEnable(gl.GL_DEPTH_TEST)
 
         width, height = self.glfw.GetFramebufferSize(self.window)
         gl.glViewport(0, 0, width, height)
