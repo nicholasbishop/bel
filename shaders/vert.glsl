@@ -8,8 +8,6 @@ uniform mat4 projection;
 uniform mat4 model_view;
 
 void main() {
-    float zpos = -2.0;
-    vec4 adj = vec4(vert_loc.x, vert_loc.y, vert_loc.z + zpos, 1.0f);
     surface_normal = vert_nor;
-    gl_Position = projection * model_view * adj;
+    gl_Position = projection * model_view * vec4(vert_loc, 1.0f);
 }

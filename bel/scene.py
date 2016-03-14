@@ -1,5 +1,5 @@
 import numpy
-from pyrr import Vector3
+from pyrr import Matrix44, Vector3
 from pyrr.vector3 import generate_normals
 
 from bel.uniform import MatrixUniform
@@ -67,7 +67,8 @@ class SceneNode:
     def __init__(self):
         self._parent = None
         self._children = []
-        self._baked_transform = numpy.identity(4)
+        # TODO
+        self._baked_transform = Matrix44.from_translation(Vector3([0, 0, -2]))
 
     def _bake_transform(self):
         mat = self._transform.matrix()
