@@ -23,6 +23,20 @@ class WindowServer:
         self.buffer_objects = {}
         self.draw_list = []
         self.materials = {}
+        self._perspective_matrix = None
+
+    def update_perspective_matrices(self):
+        # TODO
+        width, height = self.glfw.GetFramebufferSize(self.window)
+        fovy = 90
+        aspect = width / height if height != 0 else 1.0
+        near = 0.01
+        far = 100.0
+
+        self._perspective_matrix = create_perspective_projection_matrix(fovy,
+                                                                        aspect,
+                                                                        near,
+                                                                        far)
 
     def cb_mouse_button(self, window, button, action, mods):
         width, height = self.glfw.GetWindowSize(self.window)
@@ -84,15 +98,11 @@ class WindowServer:
         width, height = self.glfw.GetFramebufferSize(self.window)
         gl.glViewport(0, 0, width, height)
 
-        fovy = 90
-        aspect = width / height if height != 0 else 1.0
-        near = 0.01
-        far = 100.0
+        # TODO, on resize
+        self.update_perspective_matrices()
+
         builtin_uniforms = {
-            'projection': MatrixUniform(create_perspective_projection_matrix(fovy,
-                                                                             aspect,
-                                                                             near,
-                                                                             far))
+            'projection': MatrixUniform(self._perspective_matrix)
         }
 
         for item in self.draw_list:

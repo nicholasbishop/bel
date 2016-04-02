@@ -22,8 +22,9 @@ class Scene:
 
     def handle_event(self, msg):
         tag = msg['tag']
-        if tag == 'event_mouse_button':
+        if tag == 'event_mouse_button' and msg['action'] == 'press':
             print(msg)
+            create_ray_from_mouse()
 
     def ray_cast(self, ray):
         class Hit:
