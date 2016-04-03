@@ -125,6 +125,8 @@ class WindowServer:
                 mode = gl.GL_TRIANGLES
             elif primitive == 'lines':
                 mode = gl.GL_LINES
+            elif primitive == 'points':
+                mode = gl.GL_POINTS
             else:
                 raise NotImplementedError()
             
