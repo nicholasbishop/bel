@@ -33,7 +33,6 @@ class BufferObject:
             #glBindBuffer(self._kind, 0)
 
     def set_data(self, data, usage=None):
-        print(data)
         if usage is None:
             usage = GL_STATIC_DRAW
 
