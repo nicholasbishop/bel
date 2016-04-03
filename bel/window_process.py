@@ -3,6 +3,7 @@ import logging
 import sys
 
 from OpenGL import GL as gl
+from pyrr import Matrix44
 from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel import ipc
@@ -33,10 +34,9 @@ class WindowServer:
         near = 0.01
         far = 100.0
 
-        self._perspective_matrix = create_perspective_projection_matrix(fovy,
-                                                                        aspect,
-                                                                        near,
-                                                                        far)
+        self._perspective_matrix = Matrix44(
+            create_perspective_projection_matrix(
+                fovy, aspect, near, far))
 
     def cb_mouse_button(self, window, button, action, mods):
         width, height = self.glfw.GetWindowSize(self.window)
@@ -44,13 +44,18 @@ class WindowServer:
 
         action_str = 'press' if action == self.glfw.PRESS else 'release'
 
+        norm_x = (2.0 * x) / width - 1.0
+        norm_y = 1.0 - (2.0 * y) / height
+
         self.conn.send_msg({
             'tag': 'event_mouse_button',
             'button': button,
             'action': action_str,
             'mods': mods,
-            'x': x / width,
-            'y': y / height
+            'x': norm_x,
+            'y': norm_y,
+            # TODO, should go in its own event
+            'projection_matrix': self._perspective_matrix
         })
 
     def run(self):
@@ -115,8 +120,14 @@ class WindowServer:
 
             first, count = item['range']
             # TODO
-            assert item['primitive'] == 'triangles'
-            mode = gl.GL_TRIANGLES
+            primitive = item['primitive']
+            if primitive == 'triangles':
+                mode = gl.GL_TRIANGLES
+            elif primitive == 'lines':
+                mode = gl.GL_LINES
+            else:
+                raise NotImplementedError()
+            
             #mode = gl.GL_POINTS
             logging.debug('glDrawArrays(%s, first=%d, count=%d',
                           mode.name, first, count)

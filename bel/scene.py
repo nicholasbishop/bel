@@ -1,8 +1,8 @@
 import numpy
-from pyrr import Matrix44, Vector3
+from pyrr import Matrix44, Vector3, Vector4
 from pyrr.vector3 import generate_normals
 
-from bel.uniform import MatrixUniform
+from bel.uniform import MatrixUniform, VectorUniform
 from bel.window import WindowClient
 
 class Scene:
@@ -19,12 +19,41 @@ class Scene:
             'vert_shader_paths': ['shaders/vert.glsl'],
             'frag_shader_paths': ['shaders/frag.glsl'],
         })
+        self._window.conn.send_msg({
+            'tag': 'update_material',
+            'uid': 'flat',
+            'vert_shader_paths': ['shaders/flat.vert.glsl'],
+            'frag_shader_paths': ['shaders/flat.frag.glsl'],
+        })
 
     def handle_event(self, msg):
         tag = msg['tag']
         if tag == 'event_mouse_button' and msg['action'] == 'press':
-            print(msg)
-            create_ray_from_mouse()
+            ray = self.create_ray_from_mouse(msg)
+            print('ray', ray)
+            self.add_line(Vector3((0, 0, 0)), ray)
+            self.add_line(Vector3((-100, -100, -100)),
+                          Vector3((100, 100, 100)))
+
+    def create_ray_from_mouse(self, mouse):
+        # TODO
+        view_matrix = Matrix44.identity()
+        
+        # http://antongerdelan.net/opengl/raycasting.html
+        ray_clip = Vector4((mouse['x'], mouse['y'], -1.0, 1.0))
+        ray_eye = mouse['projection_matrix'].inverse * ray_clip
+        ray_eye.y = -1.0
+        ray_eye.z = 0.0
+        ray_world = (view_matrix.inverse * ray_eye).xyz;
+        #ray_world = ray_world.normalise
+        return ray_world
+
+    def add_line(self, start_point, end_point):
+        node = LineNode(start_point, end_point)
+        self.root.add(node)
+        # TODO...
+        node.send(self._window.conn)
+        return node
 
     def ray_cast(self, ray):
         class Hit:
@@ -57,7 +86,7 @@ class Scene:
     def load_path(self, path):
         node = MeshNode.load_obj(path)
         self.root.add(node)
-        node.send(self, self._window.conn)
+        node.send(self._window.conn)
         return node
 
     def run(self):
@@ -113,6 +142,50 @@ def obj_remove_comment(line):
         line = line[:ind].rstrip()
     return line
 
+
+class LineNode(SceneNode):
+    def __init__(self, start_point, end_point):
+        super().__init__()
+        self.start_point = start_point
+        self.end_point = end_point
+
+    def send(self, conn):
+        verts = numpy.empty(6, numpy.float32)
+        verts[0] = self.start_point.x
+        verts[1] = self.start_point.y
+        verts[2] = self.start_point.z
+        verts[3] = self.end_point.x
+        verts[4] = self.end_point.y
+        verts[5] = self.end_point.z
+
+        conn.send_msg({
+            'tag': 'update_buffer',
+            'name': 'buffer1',
+            'contents': verts
+        })
+
+        conn.send_msg({
+            'tag': 'draw_arrays',
+            'material': 'flat',
+            'attributes': {
+                'vert_loc': {
+                    'buffer': 'buffer0',
+                    'components': 3,
+                    'gltype': 'float',
+                    'normalized': False,
+                    'offset': 0,
+                    'stride': 0
+                },
+            },
+            'uniforms': {
+                'model_view':
+                MatrixUniform(self._baked_transform),
+                'flat_color': VectorUniform(Vector4((1, 0, 0, 0)))
+            },
+            'range': (0, 1),
+            'primitive': 'lines'
+        })
+        
 
 class MeshNode(SceneNode):
     class Vert:
@@ -189,7 +262,7 @@ class MeshNode(SceneNode):
                     out += 6
         return verts
 
-    def send(self, scene, conn):
+    def send(self, conn):
         vert_nors = self.create_draw_array()
         num_triangles = len(vert_nors) // 6
         bytes_per_float32 = 4

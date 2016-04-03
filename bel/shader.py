@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 import logging
 
+from bidict import bidict
+
 from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
                        GL_FRAGMENT_SHADER, GL_VERTEX_SHADER,
                        glAttachShader, glCompileShader,
@@ -14,15 +16,29 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
 
-def extract_links(source):
+
+def extract_uniforms(source):
+    for line in source.splitlines():
+         parts = line.split()
+         if len(parts) == 3 and parts[0] == 'uniform':
+             name = parts[2].rstrip(';')
+             yield name
+
+
+def extract_links(source, keyword):
     for line in source.splitlines():
         parts = line.split()
-        if len(parts) == 3:
-            keyword = parts[0]
-            name = parts[2].rstrip(';')
-
-            if keyword in (KEYWORD_ATTRIBUTE, KEYWORD_UNIFORM):
-                yield keyword, name
+        if (len(parts) >= 4 and parts[-3] == keyword and
+              parts[0].startswith('layout')):
+            layout = ''.join(parts[0:-3])
+            layout = layout.replace('\t', '')
+            layout = layout.replace(' ', '')
+            index = layout.find('location=')
+            if index != -1:
+                index += len('location=')
+                location = layout[index:-1]
+                name = parts[-1][:-1]
+                yield name, int(location)
 
 
 class Shader:
@@ -41,9 +57,10 @@ class Shader:
         self._extract_links()
 
     def _extract_links(self):
-        links = list(extract_links(self._source))
-        self._attributes = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_ATTRIBUTE)
-        self._uniforms = set(lnk[1] for lnk in links if lnk[0] == KEYWORD_UNIFORM)
+        # TODO
+        if self._kind == GL_VERTEX_SHADER:
+            self._attributes = extract_links(self._source, 'in')
+        self._uniforms = extract_uniforms(self._source)
 
     @property
     def hnd(self):
@@ -112,8 +129,7 @@ class ShaderProgram:
 
     def bind_attributes(self, buffer_objects, attribute_inputs):
         # TODO
-        #for attr_name, attr_index in self._attributes.items():
-        for attr_name, attr_index in {'vert_loc': 0, 'vert_nor': 1}.items():
+        for attr_name, attr_index in self._attributes.items():
             data = attribute_inputs[attr_name]
             bufname = data['buffer']
             buf = buffer_objects[bufname]
@@ -152,16 +168,17 @@ class ShaderProgram:
                      glGetProgramInfoLog(self._hnd))
 
         self._uniforms = {}
-        self._attributes = {}
+        self._attributes = bidict()
         for shader in self._shaders:
             for name in shader.uniforms():
                 self._uniforms[name] = glGetUniformLocation(self._hnd, name)
                 logging.info('glGetUniformLocation(%d, "%s") -> %d',
                              self._hnd, name, self._uniforms[name])
-            for name in shader.attributes():
-                self._attributes[name] = glGetAttribLocation(self._hnd, name)
-                logging.info('glGetAttribLocation(%d, "%s") -> %d',
-                             self._hnd, name, self._attributes[name])
+            for name, location in shader.attributes():
+                if location in self._attributes.inv:
+                    raise KeyError('duplication attribute location', location,
+                                   name)
+                self._attributes[name] = location
 
     @property
     def handle(self):
