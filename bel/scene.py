@@ -2,6 +2,7 @@ import numpy
 from pyrr import Matrix44, Vector3, Vector4
 from pyrr.vector3 import generate_normals
 
+from bel.auto_name import auto_name
 from bel.uniform import MatrixUniform, VectorUniform
 from bel.window import WindowClient
 
@@ -30,7 +31,6 @@ class Scene:
         tag = msg['tag']
         if tag == 'event_mouse_button' and msg['action'] == 'press':
             ray = self.create_ray_from_mouse(msg)
-            print('ray', ray)
             self.add_line(Vector3((0, 0, 0)), ray)
 
     def create_ray_from_mouse(self, mouse):
@@ -146,6 +146,7 @@ class LineNode(SceneNode):
         super().__init__()
         self.start_point = start_point
         self.end_point = end_point
+        self._vert_buffer = auto_name('buffer')
 
     def send(self, conn):
         verts = numpy.empty(6, numpy.float32)
@@ -158,7 +159,7 @@ class LineNode(SceneNode):
 
         conn.send_msg({
             'tag': 'update_buffer',
-            'name': 'buffer1',
+            'name': self._vert_buffer,
             'contents': verts
         })
 
@@ -167,7 +168,7 @@ class LineNode(SceneNode):
             'material': 'flat',
             'attributes': {
                 'vert_loc': {
-                    'buffer': 'buffer1',
+                    'buffer': self._vert_buffer,
                     'components': 3,
                     'gltype': 'float',
                     'normalized': False,
@@ -199,6 +200,7 @@ class MeshNode(SceneNode):
         self.verts = []
         self.faces = []
         self._material_uid = 'default'
+        self._vert_buffer = auto_name('buffer')
 
     @staticmethod
     def load_obj(path):
@@ -267,7 +269,7 @@ class MeshNode(SceneNode):
 
         conn.send_msg({
             'tag': 'update_buffer',
-            'name': 'buffer0',
+            'name': self._vert_buffer,
             'contents': vert_nors
         })
 
@@ -276,7 +278,7 @@ class MeshNode(SceneNode):
             'material': 'default',
             'attributes': {
                 'vert_loc': {
-                    'buffer': 'buffer0',
+                    'buffer': self._vert_buffer,
                     'components': 3,
                     'gltype': 'float',
                     'normalized': False,
@@ -284,7 +286,7 @@ class MeshNode(SceneNode):
                     'stride': bytes_per_float32 * 6
                 },
                 'vert_nor': {
-                    'buffer': 'buffer0',
+                    'buffer': self._vert_buffer,
                     'components': 3,
                     'gltype': 'float',
                     'normalized': False,
