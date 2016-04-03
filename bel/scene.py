@@ -32,8 +32,6 @@ class Scene:
             ray = self.create_ray_from_mouse(msg)
             print('ray', ray)
             self.add_line(Vector3((0, 0, 0)), ray)
-            self.add_line(Vector3((-100, -100, -100)),
-                          Vector3((100, 100, 100)))
 
     def create_ray_from_mouse(self, mouse):
         # TODO
@@ -169,7 +167,7 @@ class LineNode(SceneNode):
             'material': 'flat',
             'attributes': {
                 'vert_loc': {
-                    'buffer': 'buffer0',
+                    'buffer': 'buffer1',
                     'components': 3,
                     'gltype': 'float',
                     'normalized': False,
@@ -180,9 +178,9 @@ class LineNode(SceneNode):
             'uniforms': {
                 'model_view':
                 MatrixUniform(self._baked_transform),
-                'flat_color': VectorUniform(Vector4((1, 0, 0, 0)))
+                'flat_color': VectorUniform(Vector4((1, 0, 0, 1)))
             },
-            'range': (0, 1),
+            'range': (0, 2),
             'primitive': 'lines'
         })
         
