@@ -69,13 +69,13 @@ class WindowServer:
         self.glfw.SetMouseButtonCallback(self.window, self.cb_mouse_button)
 
         while not self.glfw.WindowShouldClose(self.window):
-            self.draw()
-
-            self.glfw.SwapBuffers(self.window)
             self.glfw.PollEvents()
+
             msg = self.conn.read_msg_nonblocking()
             if msg is not None:
                 self.handle_msg(msg)
+
+            self.draw()
 
         self.conn.send_msg({'tag': 'exit'})
 
@@ -137,6 +137,8 @@ class WindowServer:
             #count = 2
             with material.bind():
                 gl.glDrawArrays(mode, first, count)
+        self.glfw.SwapBuffers(self.window)
+
 
 def window_server_main(server_sock):
     logging.basicConfig(level=logging.INFO, format=

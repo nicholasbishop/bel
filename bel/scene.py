@@ -1,5 +1,5 @@
 import numpy
-from pyrr import Matrix44, Vector3, Vector4
+from pyrr import Matrix44, Vector3, Vector4, vector
 from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
@@ -40,10 +40,10 @@ class Scene:
         # http://antongerdelan.net/opengl/raycasting.html
         ray_clip = Vector4((mouse['x'], mouse['y'], -1.0, 1.0))
         ray_eye = mouse['projection_matrix'].inverse * ray_clip
-        ray_eye.y = -1.0
+        ray_eye.w = -1.0
         ray_eye.z = 0.0
-        ray_world = (view_matrix.inverse * ray_eye).xyz;
-        #ray_world = ray_world.normalise
+        ray_world, _ = (view_matrix.inverse * ray_eye).vector3;
+        ray_world.normalise()
         return ray_world
 
     def add_line(self, start_point, end_point):
