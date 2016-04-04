@@ -14,6 +14,9 @@ class Scene:
         self._root.add(self._camera)
 
         # TODO
+        self._send_default_materials()
+
+    def _send_default_materials(self):
         self._window.conn.send_msg({
             'tag': 'update_material',
             'uid': 'default',
