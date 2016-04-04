@@ -1,9 +1,9 @@
 import numpy
-from pyrr import Matrix44, Vector3, Vector4, vector
+from pyrr import Matrix44, Quaternion, Vector3, Vector4, vector
 from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
-from bel.transform import Transform
+from bel.transform import Transform, deg_to_rad
 from bel.uniform import MatrixUniform, VectorUniform
 from bel.window import WindowClient
 
@@ -35,7 +35,11 @@ class Scene:
         tag = msg['tag']
         if tag == 'event_mouse_button' and msg['action'] == 'press':
             ray = self.create_ray_from_mouse(msg)
-            self.add_line(Vector3((0, 0, 0)), ray)
+            #self.add_line(Vector3((0, 0, 0)), ray)
+            # TODO
+            node = self.root.children[1]
+            node.transform.rotate(Quaternion.from_z_rotation(deg_to_rad(30)))
+            node.send(self._window.conn)
 
     def create_ray_from_mouse(self, mouse):
         # TODO
