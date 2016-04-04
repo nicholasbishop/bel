@@ -3,6 +3,7 @@ from pyrr import Matrix44, Vector3, Vector4, vector
 from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
+from bel.transform import Transform
 from bel.uniform import MatrixUniform, VectorUniform
 from bel.window import WindowClient
 
@@ -77,13 +78,6 @@ class Scene:
             stack += node.children
             func(node)
 
-    def draw(self, viewport_size):
-        near = 0.01
-        far = 100.0
-
-        self.iter_nodes(SceneNode._bake_transform)
-        self.iter_nodes(lambda node: node.draw(self))
-
     def load_path(self, path):
         node = MeshNode.load_obj(path)
         self.root.add(node)
@@ -98,8 +92,9 @@ class SceneNode:
     def __init__(self):
         self._parent = None
         self._children = []
+        self._transform = Transform()
         # TODO
-        self._baked_transform = Matrix44.from_translation(Vector3([0, 0, -2]))
+        self._transform.translate(Vector3((0, 0, -2)))
 
     def _bake_transform(self):
         mat = self._transform.matrix()
@@ -123,18 +118,6 @@ class SceneNode:
     def remove(self, child):
         child._parent = None
         self._children.append(child)
-
-    def draw(self, scene):
-    #     subdraw = DrawData()
-    #     subdraw.model_view = subdraw.model_view * self._transform.matrix()
-
-    #     for child in self._children:
-    #         child.draw(subdraw)
-
-    #     self.draw_self(subdraw)
-
-    # def draw_self(self, draw_data):
-        pass
 
 
 def obj_remove_comment(line):
@@ -181,7 +164,7 @@ class LineNode(SceneNode):
             },
             'uniforms': {
                 'model_view':
-                MatrixUniform(self._baked_transform),
+                MatrixUniform(self._transform.matrix()),
                 'flat_color': VectorUniform(Vector4((1, 0, 0, 1)))
             },
             'range': (0, 2),
@@ -299,7 +282,7 @@ class MeshNode(SceneNode):
             },
             'uniforms': {
                 'model_view':
-                MatrixUniform(self._baked_transform)
+                MatrixUniform(self._transform.matrix())
             },
             'range': (0, num_triangles),
             'primitive': 'triangles'
