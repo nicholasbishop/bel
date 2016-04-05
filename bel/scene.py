@@ -191,6 +191,7 @@ class MeshNode(SceneNode):
         self.faces = []
         self._material_uid = 'default'
         self._vert_buffer = auto_name('buffer')
+        self._draw_arrays_name = auto_name('draw_arrays')
 
     @staticmethod
     def load_obj(path):
@@ -265,6 +266,7 @@ class MeshNode(SceneNode):
 
         conn.send_msg({
             'tag': 'draw_arrays',
+            'name': self._draw_arrays_name,
             'material': 'default',
             'attributes': {
                 'vert_loc': {

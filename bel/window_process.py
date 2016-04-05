@@ -22,7 +22,7 @@ class WindowServer:
         self.window = None
         self.resources = {}
         self.buffer_objects = {}
-        self.draw_list = []
+        self.draw_arrays = {}
         self.materials = {}
         self._perspective_matrix = None
 
@@ -87,7 +87,7 @@ class WindowServer:
                 self.buffer_objects[name] = ArrayBufferObject()
             self.buffer_objects[name].set_data(msg['contents'])
         elif tag == 'draw_arrays':
-            self.draw_list.append(msg)
+            self.draw_arrays[msg['name']] = msg
         elif tag == 'update_material':
             uid = msg['uid']
             if uid not in self.materials:
@@ -110,7 +110,7 @@ class WindowServer:
             'projection': MatrixUniform(self._perspective_matrix)
         }
 
-        for item in self.draw_list:
+        for item in self.draw_arrays.values():
             material = self.materials[item['material']]
             with material.bind():
                 material.bind_attributes(self.buffer_objects, item['attributes'])
