@@ -3,12 +3,41 @@ from pyrr import Matrix44, Quaternion, Vector3, Vector4, vector
 from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
+from bel.event import InputManager
 from bel.transform import Transform, deg_to_rad
 from bel.uniform import MatrixUniform, VectorUniform
 from bel.window import WindowClient
 
+class EventHandler:
+    def __init__(self, scene):
+        self._scene = scene
+        self._input_manager = None
+
+    def set_input_manager(self, input_manager):
+        self._input_manager = input_manager
+
+    def mouse_down(self, button):
+        #     # TODO
+        #     ray = self.create_ray_from_mouse(msg)
+        #     #self.add_line(Vector3((0, 0, 0)), ray)
+        node = self._scene.root.children[1]
+        node.transform.rotate(Quaternion.from_z_rotation(deg_to_rad(30)))
+        node.send(self._scene._window.conn)
+
+    def mouse_up(self, button):
+        pass
+
+    def mouse_drag(self, pos):
+        pass
+
+    def mouse_move(self, pos):
+        pass
+
+
 class Scene:
     def __init__(self):
+        self._event_handler = EventHandler(self)
+        self._input_manager = InputManager(self._event_handler)
         self._window = WindowClient(self)
         self._root = SceneNode()
         self._camera = SceneNode()
@@ -32,14 +61,7 @@ class Scene:
         })
 
     def handle_event(self, msg):
-        tag = msg['tag']
-        if tag == 'event_mouse_button' and msg['action'] == 'press':
-            ray = self.create_ray_from_mouse(msg)
-            #self.add_line(Vector3((0, 0, 0)), ray)
-            # TODO
-            node = self.root.children[1]
-            node.transform.rotate(Quaternion.from_z_rotation(deg_to_rad(30)))
-            node.send(self._window.conn)
+        self._input_manager.feed(msg)
 
     def create_ray_from_mouse(self, mouse):
         # TODO

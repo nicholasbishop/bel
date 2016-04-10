@@ -15,6 +15,12 @@ def cb_handle_dbg_msg(*args):
     msg = args[5]
     logging.info('glDebugMessage: %s', msg.decode())
 
+
+def normalize_mouse(pos, width, height):
+    return ((2.0 * pos[0]) / width - 1.0,
+            1.0 - (2.0 * pos[1]) / height)
+
+
 class WindowServer:
     def __init__(self, sock, glfw):
         self.conn = ipc.Conn(sock)
@@ -37,6 +43,15 @@ class WindowServer:
         self._perspective_matrix = Matrix44(
             create_perspective_projection_matrix(
                 fovy, aspect, near, far))
+
+    def cb_cursor_pos(self, window, xpos, ypos):
+        # TODO
+        width, height = self.glfw.GetWindowSize(self.window)
+
+        self.conn.send_msg({
+            'tag': 'event_mouse_move',
+            'pos': normalize_mouse((xpos, ypos), width, height)
+        })
 
     def cb_mouse_button(self, window, button, action, mods):
         width, height = self.glfw.GetWindowSize(self.window)
@@ -67,6 +82,7 @@ class WindowServer:
             gl.glDebugMessageCallback(callback, None)
 
         self.glfw.SetMouseButtonCallback(self.window, self.cb_mouse_button)
+        self.glfw.SetCursorPosCallback(self.window, self.cb_cursor_pos)
 
         while not self.glfw.WindowShouldClose(self.window):
             self.glfw.PollEvents()
