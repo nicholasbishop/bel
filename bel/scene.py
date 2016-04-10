@@ -4,9 +4,9 @@ from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
 from bel.event import InputManager
+from bel.ipc import LaunchProcess
 from bel.transform import Transform, deg_to_rad
 from bel.uniform import MatrixUniform, VectorUniform
-from bel.window import WindowClient
 
 class EventHandler:
     def __init__(self, scene):
@@ -41,7 +41,7 @@ class Scene:
     def __init__(self):
         self._event_handler = EventHandler(self)
         self._input_manager = InputManager(self._event_handler)
-        self._window = WindowClient(self)
+        self._window = LaunchProcess('window', self._input_manager)
         self._root = SceneNode()
         self._camera = SceneNode()
         self._root.add(self._camera)
@@ -62,9 +62,6 @@ class Scene:
             'vert_shader_paths': ['shaders/flat.vert.glsl'],
             'frag_shader_paths': ['shaders/flat.frag.glsl'],
         })
-
-    def handle_event(self, msg):
-        self._input_manager.feed(msg)
 
     def create_ray_from_mouse(self, mouse):
         # TODO
