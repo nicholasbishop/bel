@@ -20,15 +20,18 @@ class EventHandler:
         #     # TODO
         #     ray = self.create_ray_from_mouse(msg)
         #     #self.add_line(Vector3((0, 0, 0)), ray)
-        node = self._scene.root.children[1]
-        node.transform.rotate(Quaternion.from_z_rotation(deg_to_rad(30)))
-        node.send(self._scene._window.conn)
+        # node = self._scene.root.children[1]
+        # node.transform.rotate(Quaternion.from_z_rotation(deg_to_rad(30)))
+        # node.send(self._scene._window.conn)
+        pass
 
     def mouse_up(self, button):
         pass
 
     def mouse_drag(self, pos):
-        pass
+        node = self._scene.root.children[1]
+        node.transform.set_translation([pos[0], pos[1], -2])
+        node.send(self._scene._window.conn)
 
     def mouse_move(self, pos):
         pass

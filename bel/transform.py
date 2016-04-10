@@ -8,12 +8,19 @@ class Transform:
         self._rotation = Quaternion()
         # TODO
 
+    @property
+    def translation(self):
+        return self._translation
+
     def matrix(self):
         return (Matrix44.from_translation(self._translation) *
                 self._rotation.matrix44)
 
     def translate(self, vec):
         self._translation += vec
+
+    def set_translation(self, vec):
+        self._translation = vec
 
     def set_rotation(self, quat):
         self._rotation = quat
