@@ -1,3 +1,5 @@
+from inspect import getargspec, getmembers, isfunction
+
 import numpy
 from pyrr import Matrix44, Quaternion, Vector3, Vector4, vector
 from pyrr.vector3 import generate_normals
@@ -37,6 +39,11 @@ class EventHandler:
         pass
 
 
+# TODO
+class Scene2:
+    def __init__(self):
+        self._scene_process = LaunchProcess('scene', None)
+
 class Scene:
     def __init__(self):
         self._event_handler = EventHandler(self)
@@ -48,6 +55,30 @@ class Scene:
 
         # TODO
         self._send_default_materials()
+
+    @classmethod
+    def make_client(cls):
+        class Client:
+            def __init__(self):
+                self._scene_process = LaunchProcess('scene', None)
+
+                methods = getmembers(cls, predicate=isfunction)
+                for name, orig_method in methods:
+                    if name.startswith('_'):
+                        continue
+
+                    #print(getargspec(orig_method))
+
+                    def new_method(*args, **kwargs):
+                        self._scene_process.conn.send_msg({
+                            'tag': 'call',
+                            'name': name,
+                            'args': args,
+                            'kwargs': kwargs
+                        })
+                        
+                    setattr(self, name, new_method)
+        return Client()
 
     def _send_default_materials(self):
         self._window.conn.send_msg({
