@@ -1,0 +1,11 @@
+Rethinking the IPC a bit, some notes:
+
+The window process has its own event loop from Glfw. That event loop
+needs to go in the main thread because OpenGL, but it looks like the
+capnp event loop can go to a separate thread. Then a thread-safe queue
+can provide non-blocking events from capnp to Glfw. What about the
+other direction?
+
+Scene: Window.addEventReceiver(self.event_receiver)
+...
+Window: self.event_receiver.send(resize_event)

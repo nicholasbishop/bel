@@ -9,7 +9,8 @@ interface SceneNode {
 }
 
 interface Scene {
-	loadPath @0 (path :Text) -> (node :SceneNode);
+	sayHello @0 () -> (response :Text);
+	loadPath @1 (path :Text) -> (node :SceneNode);
 }
 
 interface Material {
