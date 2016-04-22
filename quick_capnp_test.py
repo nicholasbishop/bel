@@ -5,5 +5,5 @@ import capnp
 from bel import ipc_capnp as ipc
 from bel.launcher import Launcher
 
-launcher = Launcher('bel.scene_server.SceneServer', ipc.Scene)
+launcher = Launcher('bel.server', 'bel.scene_server.SceneServer', ipc.Scene)
 launcher.launch()

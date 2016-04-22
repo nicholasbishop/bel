@@ -5,7 +5,7 @@ from bel.launcher import Launcher
 
 class SceneServer(ipc.Scene.Server):
     def __init__(self):
-        self._window = Launcher('bel.window_server.WindowServer', ipc.Window)
+        self._window = Launcher('bel.server', 'bel.window_server.WindowServer', ipc.Window)
         self._window.launch()
 
     def sayHello(self, _context):
