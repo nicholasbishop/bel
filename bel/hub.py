@@ -38,6 +38,10 @@ class Child:
     def conn(self):
         return self._conn
 
+    @property
+    def proc(self):
+        return self._proc
+
     @classmethod
     def _finalize_command(cls, cmd, socket_path):
         for elem in cmd:
@@ -72,6 +76,8 @@ class Hub:
     def __init__(self):
         self._scene_child = Child('bel/scene_process.py')
         self._window_child = Child('bel/window_process.py')
+        self._children = (self._scene_child,
+                          self._window_child)
 
     def launch_children(self):
         logging.debug('creating temporary directory')
@@ -79,26 +85,34 @@ class Hub:
             socket_path = os.path.join(temp_dir, 'bel.socket')
             logging.debug('creating socket: %s', socket_path)
             server_socket = _create_socket(socket_path)
-            
-            #self._scene_child.launch(socket_path)
-            self._window_child.launch(socket_path)
-            #self._scene_child.connect(server_socket)
-            self._window_child.connect(server_socket)
+
+            for child in self._children:
+                child.launch(socket_path)
+
+            for child in self._children:
+                child.connect(server_socket)
+
+    def _broadcast(self, msg):
+        for child in self._children:
+            child.conn.send_msg(msg)
 
     def run_until_exit(self):
-        conns = {
-            self._window_child.conn.socket:
-            self._window_child.conn
-        }
-        rlist = [self._window_child.conn.socket]
-        wlist = []
-        xlist = []
-        while True:
-            logging.debug('pre-select')
-            select(rlist, wlist, xlist)
-            logging.debug('post-select: %r', rlist)
-            for sock in rlist:
+        conns = dict(
+            (child.conn.socket, child.conn) for child in self._children
+        )
+        in_rlist = conns.keys()
+        in_wlist = []
+        in_xlist = []
+        running = True
+        while running:
+            out_rlist, _, _ = select(in_rlist, in_wlist, in_xlist)
+            for sock in out_rlist:
                 conn = conns[sock]
-                msg = conn.read_msg_blocking()
+                msg = conn.read_msg_nonblocking()
                 if msg['tag'] == 'exit':
-                    return
+                    running = False
+                    break
+
+        self._broadcast({'tag': 'exit'})
+        for child in self._children:
+            child.proc.wait()

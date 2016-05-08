@@ -1,4 +1,5 @@
 import atexit
+import logging
 import os
 from socket import AF_UNIX, MSG_DONTWAIT, SOCK_STREAM, socket
 import subprocess
@@ -9,10 +10,24 @@ import dill
 MSG_LEN_FIELD_LEN = 8
 RECV_CHUNK_SIZE = 4096
 
+
+class ConnectionClosed(Exception):
+    pass
+
+
 class Conn:
     def __init__(self, sock):
         self._sock = sock
         self._recv_buf = bytearray()
+
+    @classmethod
+    def connect(cls, socket_path):
+        logging.debug('creating client socket')
+        sock = socket(AF_UNIX, SOCK_STREAM)
+        logging.debug('connecting to socket %s', socket_path)
+        sock.connect(socket_path)
+        logging.debug('connected to socket %s', socket_path)
+        return cls(sock)
 
     @property
     def socket(self):
@@ -52,4 +67,7 @@ class Conn:
     def _ensure_min_recv_buf_size(self, size, blocking):
         while len(self._recv_buf) < size:
             flags = 0 if blocking else MSG_DONTWAIT
-            self._recv_buf += self._sock.recv(RECV_CHUNK_SIZE, flags)
+            new_data = self._sock.recv(RECV_CHUNK_SIZE, flags)
+            if len(new_data) == 0:
+                raise ConnectionClosed()
+            self._recv_buf += new_data

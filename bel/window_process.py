@@ -7,7 +7,7 @@ from pyrr import Matrix44
 from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel import ipc
-from bel import log
+from bel.child import main
 from bel.shader import ShaderProgram
 from bel.buffer_object import ArrayBufferObject
 from bel.uniform import MatrixUniform
@@ -23,8 +23,8 @@ def normalize_mouse(pos, width, height):
 
 
 class WindowServer:
-    def __init__(self, sock, glfw):
-        self.conn = ipc.Conn(sock)
+    def __init__(self, conn, glfw):
+        self.conn = conn
         self.glfw = glfw
         self.window = None
         self.resources = {}
@@ -141,9 +141,7 @@ class WindowServer:
         self.glfw.SwapBuffers(self.window)
 
 
-def window_server_main(server_sock):
-    log.configure('window', logging.INFO)
-
+def window_server_main(conn):
     # pylint: disable=locally-disabled,no-member
     import cyglfw3 as glfw
     if not glfw.Init():
@@ -154,16 +152,9 @@ def window_server_main(server_sock):
     glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
     #glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, True)
 
-    window = WindowServer(server_sock, glfw)
+    window = WindowServer(conn, glfw)
     window.run()
 
 
-def main():
-    socket_path = sys.argv[1]
-    sock = socket(AF_UNIX, SOCK_STREAM)
-    sock.connect(socket_path)
-    window_server_main(sock)
-
-
 if __name__ == '__main__':
-    main()
+    main('window', window_server_main)
