@@ -5,7 +5,7 @@ from socket import AF_UNIX, MSG_DONTWAIT, SOCK_STREAM, socket
 import subprocess
 import sys
 
-import dill
+from bel.msg import Msg
 
 MSG_LEN_FIELD_LEN = 8
 RECV_CHUNK_SIZE = 4096
@@ -34,19 +34,19 @@ class Conn:
     def socket(self):
         return self._sock
 
-    def send_msg(self, data):
+    def send_msg(self, msg):
         if self._closed:
             # TODO
             logging.debug('silently dropping message to closed connection')
             return
 
-        msg = dill.dumps(data)
+        raw_msg = msg.encode()
 
         len_fmt = '{:' + str(MSG_LEN_FIELD_LEN) + '}'
-        len_field = len_fmt.format(len(msg))
+        len_field = len_fmt.format(len(raw_msg))
 
         self._sock.sendall(len_field.encode())
-        self._sock.sendall(msg)
+        self._sock.sendall(raw_msg)
 
     def read_msg_nonblocking(self):
         return self._read_msg(blocking=False)
@@ -61,7 +61,7 @@ class Conn:
             msg_len = int(len_field)
 
             self._ensure_min_recv_buf_size(msg_len, blocking)
-            return dill.loads(self._take(msg_len))
+            return Msg.decode(self._take(msg_len))
         except BlockingIOError:
             return None
 

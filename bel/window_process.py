@@ -8,6 +8,7 @@ from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel import ipc
 from bel.child import main
+from bel.msg import Msg, Tag
 from bel.shader import ShaderProgram
 from bel.buffer_object import ArrayBufferObject
 from bel.uniform import MatrixUniform
@@ -79,7 +80,7 @@ class WindowServer:
             if msg is not None:
                 self.handle_msg(msg)
 
-        self.conn.send_msg({'tag': 'exit'})
+        self.conn.send_msg(Msg(Tag.Exit))
 
     def handle_msg(self, msg):
         tag = msg['tag']

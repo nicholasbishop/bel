@@ -7,6 +7,7 @@ import sys
 from tempfile import TemporaryDirectory
 
 from bel.ipc import Conn, ConnectionClosed
+from bel.msg import Msg, Tag
 
 def _create_socket(path):
     sock = socket(AF_UNIX, SOCK_STREAM)
@@ -97,7 +98,7 @@ class Hub:
             child.conn.send_msg(msg)
 
     def _cleanup(self):
-        self._broadcast({'tag': 'exit'})
+        self._broadcast(Msg(Tag.Exit))
         for child in self._children:
             child.proc.wait()
 
@@ -115,7 +116,7 @@ class Hub:
                 conn = conns[sock]
                 try:
                     msg = conn.read_msg_nonblocking()
-                    if msg['tag'] == 'exit':
+                    if msg.tag == Tag.Exit:
                         running = False
                         break
                 except ConnectionClosed:

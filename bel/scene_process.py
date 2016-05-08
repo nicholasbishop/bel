@@ -1,4 +1,5 @@
 from bel.child import main
+from bel.msg import Tag
 
 
 class Scene:
@@ -10,7 +11,7 @@ def scene_main(conn):
     while running:
         # TODO: timeout?
         msg = conn.read_msg_blocking()
-        if msg['tag'] == 'exit':
+        if msg.tag == Tag.Exit:
             running = False
 
 
