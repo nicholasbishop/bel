@@ -14,6 +14,10 @@ class Conn:
         self._sock = sock
         self._recv_buf = bytearray()
 
+    @property
+    def socket(self):
+        return self._sock
+
     def send_msg(self, data):
         msg = dill.dumps(data)
 
@@ -49,52 +53,3 @@ class Conn:
         while len(self._recv_buf) < size:
             flags = 0 if blocking else MSG_DONTWAIT
             self._recv_buf += self._sock.recv(RECV_CHUNK_SIZE, flags)
-
-
-
-class LaunchProcess:
-    def __init__(self, name, input_manager):
-        # TODO!
-        socket_path = '/tmp/{}.socket'.format(name)
-        if os.path.exists(socket_path):
-            os.remove(socket_path)
-        server_sock = socket(AF_UNIX, SOCK_STREAM)
-        server_sock.bind(socket_path)
-        server_sock.listen(1)
-        self._input_manager = input_manager
-
-        cmd = []
-        #cmd += ['gdb', '--eval-command', 'run', '--args']
-        #cmd += ['apitrace', 'trace']
-        #cmd += ['valgrind']
-        #cmd += ['/home/nicholasbishop/vogl/vogl_build/vogl64', 'trace']
-        cmd += ['venv/bin/python3',
-                'bel/{}_process.py'.format(name),
-                socket_path]
-
-        env = dict(os.environ)
-        env['PYTHONPATH'] = ':'.join(sys.path)
-
-        #env['LIBGL_ALWAYS_SOFTWARE'] = '1'
-        #env['MESA_DEBUG'] = '1'
-        #env['LD_PRELOAD'] = '/home/nicholasbishop/vogl/vogl_build/libvogltrace64.so'
-
-        self.proc = subprocess.Popen(cmd, env=env)
-
-        sock, _ = server_sock.accept()
-        self.conn = Conn(sock)
-        atexit.register(self.event_loop)
-
-    def event_loop(self):
-        while True:
-            msg = self.read_msg_blocking()
-            self._input_manager.feed(msg)
-            if msg['tag'] == 'exit':
-                break
-        self.proc.wait()
-
-    def send_msg(self, msg):
-        self.conn.send_msg(msg)
-
-    def read_msg_blocking(self):
-        return self.conn.read_msg_blocking()

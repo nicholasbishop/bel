@@ -7,6 +7,7 @@ from pyrr import Matrix44
 from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel import ipc
+from bel import log
 from bel.shader import ShaderProgram
 from bel.buffer_object import ArrayBufferObject
 from bel.uniform import MatrixUniform
@@ -31,18 +32,6 @@ class WindowServer:
         self.draw_arrays = {}
         self.materials = {}
         self._perspective_matrix = None
-
-    def update_perspective_matrices(self):
-        # TODO
-        width, height = self.glfw.GetFramebufferSize(self.window)
-        fovy = 90
-        aspect = width / height if height != 0 else 1.0
-        near = 0.01
-        far = 100.0
-
-        self._perspective_matrix = Matrix44(
-            create_perspective_projection_matrix(
-                fovy, aspect, near, far))
 
     def cb_cursor_pos(self, window, xpos, ypos):
         # TODO
@@ -75,23 +64,20 @@ class WindowServer:
 
     def run(self):
         self.window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
+        self.glfw.SwapInterval(1);
         self.glfw.MakeContextCurrent(self.window)
-
-        if gl.glDebugMessageCallback:
-            callback = gl.GLDEBUGPROC(cb_handle_dbg_msg)
-            gl.glDebugMessageCallback(callback, None)
 
         self.glfw.SetMouseButtonCallback(self.window, self.cb_mouse_button)
         self.glfw.SetCursorPosCallback(self.window, self.cb_cursor_pos)
 
         while not self.glfw.WindowShouldClose(self.window):
+            self.draw()
+
             self.glfw.PollEvents()
 
             msg = self.conn.read_msg_nonblocking()
             if msg is not None:
                 self.handle_msg(msg)
-
-            self.draw()
 
         self.conn.send_msg({'tag': 'exit'})
 
@@ -109,6 +95,8 @@ class WindowServer:
             if uid not in self.materials:
                 self.materials[uid] = ShaderProgram()
             self.materials[uid].update(msg)
+        elif tag == 'exit':
+            self.glfw.SetWindowShouldClose(self.window, True)
 
     def draw(self):
         # TODO
@@ -118,9 +106,6 @@ class WindowServer:
 
         width, height = self.glfw.GetFramebufferSize(self.window)
         gl.glViewport(0, 0, width, height)
-
-        # TODO, on resize
-        self.update_perspective_matrices()
 
         builtin_uniforms = {
             'projection': MatrixUniform(self._perspective_matrix)
@@ -157,9 +142,7 @@ class WindowServer:
 
 
 def window_server_main(server_sock):
-    logging.basicConfig(level=logging.INFO, format=
-                        '%(levelname)s: window process '
-                        '[%(filename)s:%(lineno)d] %(message)s')
+    log.configure('window', logging.INFO)
 
     # pylint: disable=locally-disabled,no-member
     import cyglfw3 as glfw
