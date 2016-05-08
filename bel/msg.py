@@ -6,6 +6,7 @@ import dill
 @unique
 class Tag(Enum):
     Exit = 1
+    SetBackgroundColor = 2
 
 
 class Msg:
