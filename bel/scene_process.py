@@ -5,4 +5,4 @@ def scene_main(conn):
 
 
 if __name__ == '__main__':
-    main('scene', scene_main)
+    main('sce', scene_main)

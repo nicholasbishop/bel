@@ -157,4 +157,4 @@ def window_server_main(conn):
 
 
 if __name__ == '__main__':
-    main('window', window_server_main)
+    main('wnd', window_server_main)

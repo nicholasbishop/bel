@@ -6,7 +6,7 @@ from subprocess import Popen
 import sys
 from tempfile import TemporaryDirectory
 
-from bel.ipc import Conn
+from bel.ipc import Conn, ConnectionClosed
 
 def _create_socket(path):
     sock = socket(AF_UNIX, SOCK_STREAM)
@@ -96,11 +96,16 @@ class Hub:
         for child in self._children:
             child.conn.send_msg(msg)
 
+    def _cleanup(self):
+        self._broadcast({'tag': 'exit'})
+        for child in self._children:
+            child.proc.wait()
+
     def run_until_exit(self):
         conns = dict(
             (child.conn.socket, child.conn) for child in self._children
         )
-        in_rlist = conns.keys()
+        in_rlist = list(conns.keys())
         in_wlist = []
         in_xlist = []
         running = True
@@ -108,11 +113,14 @@ class Hub:
             out_rlist, _, _ = select(in_rlist, in_wlist, in_xlist)
             for sock in out_rlist:
                 conn = conns[sock]
-                msg = conn.read_msg_nonblocking()
-                if msg['tag'] == 'exit':
-                    running = False
-                    break
+                try:
+                    msg = conn.read_msg_nonblocking()
+                    if msg['tag'] == 'exit':
+                        running = False
+                        break
+                except ConnectionClosed:
+                    in_rlist.remove(sock)
+                    # TODO
+                    logging.error('connection closed')
 
-        self._broadcast({'tag': 'exit'})
-        for child in self._children:
-            child.proc.wait()
+        self._cleanup()

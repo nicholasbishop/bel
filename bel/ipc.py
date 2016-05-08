@@ -19,6 +19,7 @@ class Conn:
     def __init__(self, sock):
         self._sock = sock
         self._recv_buf = bytearray()
+        self._closed = False
 
     @classmethod
     def connect(cls, socket_path):
@@ -34,6 +35,11 @@ class Conn:
         return self._sock
 
     def send_msg(self, data):
+        if self._closed:
+            # TODO
+            logging.debug('silently dropping message to closed connection')
+            return
+
         msg = dill.dumps(data)
 
         len_fmt = '{:' + str(MSG_LEN_FIELD_LEN) + '}'
@@ -65,9 +71,10 @@ class Conn:
         return data
 
     def _ensure_min_recv_buf_size(self, size, blocking):
+        flags = 0 if blocking else MSG_DONTWAIT
         while len(self._recv_buf) < size:
-            flags = 0 if blocking else MSG_DONTWAIT
             new_data = self._sock.recv(RECV_CHUNK_SIZE, flags)
             if len(new_data) == 0:
+                self._closed = True
                 raise ConnectionClosed()
             self._recv_buf += new_data
