@@ -6,12 +6,22 @@ from bel import log
 from bel.hub import Hub
 from bel.msg import Msg, Tag
 
+
+def mouse_button_handler(scene, event):
+    from random import random
+    scene.background_color = (
+        random(),
+        random(),
+        random(),
+        0.0
+    )
+
+
 def main():
     hub = Hub()
     hub.start_background_thread()
-    from time import sleep
-    sleep(1)
-    hub.send_msg(Msg(Tag.SCE_SetBackgroundColor, (0, 1, 0, 0)))
+    hub.send_msg(Msg(Tag.SCE_AttachEventHandler, ('mouse_button',
+                     mouse_button_handler)))
     hub.join_background_thread()
 
 

@@ -11,6 +11,7 @@ class Tag(Enum):
     SCE_EventMouseButton = 4
     SCE_EventWindowSize = 5
     SCE_EventCursorPosition = 6
+    SCE_AttachEventHandler = 7
 
 
 class Msg:
