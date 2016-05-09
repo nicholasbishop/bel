@@ -30,6 +30,7 @@ class WindowServer:
         self.draw_arrays = {}
         self.materials = {}
         self._perspective_matrix = None
+        self._clear_color = (0.3, 0.3, 0.4, 0.0)
 
     def cb_cursor_pos(self, window, xpos, ypos):
         # TODO
@@ -80,6 +81,13 @@ class WindowServer:
         self.conn.send_msg(Msg(Tag.Exit))
 
     def handle_msg(self, msg):
+        if msg.tag == Tag.WND_SetClearColor:
+            # todo: validate color
+            self._clear_color = msg.body
+
+        # TODO
+        return
+
         tag = msg['tag']
         if tag == 'update_buffer':
             name = msg['name']
@@ -98,7 +106,7 @@ class WindowServer:
 
     def draw(self):
         # TODO
-        gl.glClearColor(0.3, 0.3, 0.4, 0.0)
+        gl.glClearColor(*self._clear_color)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         gl.glEnable(gl.GL_DEPTH_TEST)
 

@@ -10,12 +10,12 @@ class Dirty(Enum):
 
 class Scene:
     def __init__(self, conn):
-        self._background_color = (1, 0, 0)
+        self._background_color = (0.3, 0.3, 0.4, 0.0)
         self._conn = conn
-        self._dirty = set()
+        self._dirty = set((Dirty.BackgroundColor,))
 
     def _mark_dirty(self, dirty):
-        self._dirty.update(dirty)
+        self._dirty.add(dirty)
 
     @property
     def background_color(self):
@@ -26,7 +26,8 @@ class Scene:
         self._background_color = color
         self._mark_dirty(Dirty.BackgroundColor)
         # TODO, second thread
-        self._conn.send_msg(Msg(Tag.SetClearColor, self._background_color))
+        self._conn.send_msg(Msg(Tag.WND_SetClearColor,
+                                self._background_color))
 
 
 def scene_main(conn):
@@ -37,7 +38,7 @@ def scene_main(conn):
         msg = conn.read_msg_blocking()
         if msg.tag == Tag.Exit:
             running = False
-        elif msg.tag == Tag.SetBackgroundColor:
+        elif msg.tag == Tag.SCE_SetBackgroundColor:
             scene.background_color = msg.body
 
 if __name__ == '__main__':

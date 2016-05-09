@@ -6,8 +6,8 @@ import dill
 @unique
 class Tag(Enum):
     Exit = 1
-    SetBackgroundColor = 2
-    SetClearColor = 3
+    SCE_SetBackgroundColor = 2
+    WND_SetClearColor = 3
 
 
 class Msg:
@@ -18,6 +18,10 @@ class Msg:
     @property
     def tag(self):
         return self._tag
+
+    @property
+    def body(self):
+        return self._body
 
     @classmethod
     def decode(cls, raw_msg):

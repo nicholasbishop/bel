@@ -9,7 +9,9 @@ from bel.msg import Msg, Tag
 def main():
     hub = Hub()
     hub.start_background_thread()
-    hub.send_scene(Msg(Tag.SetBackgroundColor, (0, 1, 0)))
+    from time import sleep
+    sleep(1)
+    hub.send_msg(Msg(Tag.SCE_SetBackgroundColor, (0, 1, 0, 0)))
     hub.join_background_thread()
 
 
