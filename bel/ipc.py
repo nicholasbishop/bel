@@ -22,6 +22,13 @@ class Conn:
         self._closed = False
 
     @classmethod
+    def accept(cls, server_socket):
+        logging.debug('waiting for client to connect...')
+        sock, _ = server_socket.accept()
+        logging.debug('connection accepted')
+        return cls(sock)
+
+    @classmethod
     def connect(cls, socket_path):
         logging.debug('creating client socket')
         sock = socket(AF_UNIX, SOCK_STREAM)

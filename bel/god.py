@@ -2,23 +2,15 @@
 
 import logging
 
-from bel import ipc
-from bel.hub import Hub
 from bel import log
-
-class Reader:
-    def feed(self, data):
-        print('received:', data)
-        
+from bel.hub import Hub
+from bel.msg import Msg, Tag
 
 def main():
-    # proc = ipc.LaunchProcess('window', Reader())
-    # proc.send_msg({
-    #     'tag': 'exit'
-    # })
     hub = Hub()
-    hub.launch_children()
-    hub.run_until_exit()
+    hub.start_background_thread()
+    hub.send_scene(Msg(Tag.SetBackgroundColor, (0, 1, 0)))
+    hub.join_background_thread()
 
 
 if __name__ == '__main__':

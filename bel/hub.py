@@ -5,6 +5,7 @@ from socket import socket, AF_UNIX, SOCK_STREAM
 from subprocess import Popen
 import sys
 from tempfile import TemporaryDirectory
+from threading import Thread
 
 from bel.ipc import Conn, ConnectionClosed
 from bel.msg import Msg, Tag
@@ -60,10 +61,7 @@ class Child:
         self._proc = Popen(self._cmd, env=self._env)
 
     def connect(self, server_sock):
-        logging.debug('waiting for child to connect...')
-        sock, _ = server_sock.accept()
-        self._conn = Conn(sock)
-        logging.debug('child connected')
+        self._conn = Conn.accept(server_sock)
 
 
 class Hub:
@@ -73,25 +71,56 @@ class Hub:
     this is strictly necessary, but at least for getting things
     started it seems helpful to have a central place for launching
     processes and passing messages.
+
+    TODO(nicholasbishop): split the two threads apart more, confusing
+    currently.
     """
     def __init__(self):
         self._scene_child = Child('bel/scene_process.py')
         self._window_child = Child('bel/window_process.py')
         self._children = (self._scene_child,
                           self._window_child)
+        self._bg_thread = Thread(name='bel.hub.Hub',
+                                 target=self._bg_thread_target)
+        self._thread_server_conn = None
+        self._thread_client_conn = None
 
-    def launch_children(self):
+        # TODO: make easier to ensure cleanup
         logging.debug('creating temporary directory')
-        with TemporaryDirectory(prefix='bel-') as temp_dir:
-            socket_path = os.path.join(temp_dir, 'bel.socket')
-            logging.debug('creating socket: %s', socket_path)
-            server_socket = _create_socket(socket_path)
+        self._temp_dir = TemporaryDirectory(prefix='bel-')
+        self._socket_path = os.path.join(self._temp_dir.name, 'bel.socket')
+        self._server_socket = None
+        self._create_server_socket()
 
-            for child in self._children:
-                child.launch(socket_path)
+    def _delete_socket_directory(self):
+        self._temp_dir.cleanup()
 
-            for child in self._children:
-                child.connect(server_socket)
+    def start_background_thread(self):
+        self._bg_thread.start()
+        self._thread_client_conn = Conn.connect(self._socket_path)
+
+    def join_background_thread(self):
+        self._bg_thread.join()
+        self._delete_socket_directory()
+
+    # TODO: target
+    def send_scene(self, msg):
+        self._thread_client_conn.send_msg(msg)
+
+    def _bg_thread_target(self):
+        self._launch_children()
+        self._run_until_exit()
+
+    def _create_server_socket(self):
+        logging.debug('creating socket: %s', self._socket_path)
+        self._server_socket = _create_socket(self._socket_path)
+
+    def _launch_children(self):
+        self._thread_server_conn = Conn.accept(self._server_socket)
+        
+        for child in self._children:
+            child.launch(self._socket_path)
+            child.connect(self._server_socket)
 
     def _broadcast(self, msg):
         for child in self._children:
@@ -102,10 +131,11 @@ class Hub:
         for child in self._children:
             child.proc.wait()
 
-    def run_until_exit(self):
+    def _run_until_exit(self):
         conns = dict(
             (child.conn.socket, child.conn) for child in self._children
         )
+        conns[self._thread_server_conn.socket] = self._thread_server_conn
         in_rlist = list(conns.keys())
         in_wlist = []
         in_xlist = []

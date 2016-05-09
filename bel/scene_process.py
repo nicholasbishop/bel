@@ -9,8 +9,9 @@ class Dirty(Enum):
 
 
 class Scene:
-    def __init__(self):
+    def __init__(self, conn):
         self._background_color = (1, 0, 0)
+        self._conn = conn
 
     @property
     def background_color(self):
@@ -20,10 +21,12 @@ class Scene:
     def background_color(self, color):
         self._background_color = color
         self._mark_dirty(Dirty.BackgroundColor)
+        # TODO, second thread
+        self._conn.send_msg(Msg(Tag.SetClearColor, self._background_color))
 
 
 def scene_main(conn):
-    scene = Scene()
+    scene = Scene(conn)
     running = True
     while running:
         # TODO: timeout?
