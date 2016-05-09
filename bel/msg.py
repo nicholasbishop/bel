@@ -8,6 +8,9 @@ class Tag(Enum):
     Exit = 1
     SCE_SetBackgroundColor = 2
     WND_SetClearColor = 3
+    SCE_EventMouseButton = 4
+    SCE_EventWindowSize = 5
+    SCE_EventCursorPosition = 6
 
 
 class Msg:

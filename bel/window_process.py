@@ -33,41 +33,37 @@ class WindowServer:
         self._clear_color = (0.3, 0.3, 0.4, 0.0)
 
     def cb_cursor_pos(self, window, xpos, ypos):
-        # TODO
         width, height = self.glfw.GetWindowSize(self.window)
-
-        self.conn.send_msg({
+        self.conn.send_msg(Msg(Tag.SCE_EventCursorPosition, {
             'tag': 'event_mouse_move',
             'pos': normalize_mouse((xpos, ypos), width, height)
-        })
+        }))
 
     def cb_mouse_button(self, window, button, action, mods):
         width, height = self.glfw.GetWindowSize(self.window)
         x, y = self.glfw.GetCursorPos(self.window)
-
         action_str = 'press' if action == self.glfw.PRESS else 'release'
 
-        norm_x = (2.0 * x) / width - 1.0
-        norm_y = 1.0 - (2.0 * y) / height
-
-        self.conn.send_msg({
-            'tag': 'event_mouse_button',
+        self.conn.send_msg(Msg(Tag.SCE_EventMouseButton, {
             'button': button,
             'action': action_str,
             'mods': mods,
-            'x': norm_x,
-            'y': norm_y,
+            'pos': normalize_mouse((x, y), width, height)
             # TODO, should go in its own event
-            'projection_matrix': self._perspective_matrix
-        })
+            # 'projection_matrix': self._perspective_matrix
+        }))
+
+    def cb_window_size(self, window, width, height):
+        self.conn.send_msg(Msg(Tag.SCE_EventWindowSize, (width, height)))
 
     def run(self):
         self.window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
         self.glfw.SwapInterval(1)
         self.glfw.MakeContextCurrent(self.window)
 
-        self.glfw.SetMouseButtonCallback(self.window, self.cb_mouse_button)
         self.glfw.SetCursorPosCallback(self.window, self.cb_cursor_pos)
+        self.glfw.SetMouseButtonCallback(self.window, self.cb_mouse_button)
+        self.glfw.SetWindowSizeCallback(self.window, self.cb_window_size)
 
         while not self.glfw.WindowShouldClose(self.window):
             self.draw()

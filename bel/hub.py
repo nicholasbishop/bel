@@ -151,10 +151,10 @@ class Hub:
                         break
                     # TODO
                     elif msg.tag.name.startswith('SCE_'):
-                        logging.debug('sending sce msg: %r', msg)
+                        logging.debug('sending sce msg: %r', msg.tag)
                         self._scene_child.conn.send_msg(msg)
                     elif msg.tag.name.startswith('WND_'):
-                        logging.debug('sending wnd msg: %r', msg)
+                        logging.debug('sending wnd msg: %r', msg.tag)
                         self._window_child.conn.send_msg(msg)
                     else:
                         raise ValueError('invalid tag', msg.tag)
