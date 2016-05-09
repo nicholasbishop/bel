@@ -1,12 +1,9 @@
-from socket import AF_UNIX, SOCK_STREAM, socket
 import logging
-import sys
 
 from OpenGL import GL as gl
 from pyrr import Matrix44
 from pyrr.matrix44 import create_perspective_projection_matrix
 
-from bel import ipc
 from bel.child import main
 from bel.msg import Msg, Tag
 from bel.shader import ShaderProgram
@@ -65,7 +62,7 @@ class WindowServer:
 
     def run(self):
         self.window = self.glfw.CreateWindow(640, 480, 'bel.WindowServer')
-        self.glfw.SwapInterval(1);
+        self.glfw.SwapInterval(1)
         self.glfw.MakeContextCurrent(self.window)
 
         self.glfw.SetMouseButtonCallback(self.window, self.cb_mouse_button)
@@ -131,7 +128,7 @@ class WindowServer:
                 mode = gl.GL_POINTS
             else:
                 raise NotImplementedError()
-            
+
             #mode = gl.GL_POINTS
             logging.debug('glDrawArrays(%s, first=%d, count=%d',
                           mode.name, first, count)

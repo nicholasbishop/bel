@@ -1,7 +1,7 @@
 from enum import Enum
 
 from bel.child import main
-from bel.msg import Tag
+from bel.msg import Msg, Tag
 
 
 class Dirty(Enum):
@@ -12,6 +12,10 @@ class Scene:
     def __init__(self, conn):
         self._background_color = (1, 0, 0)
         self._conn = conn
+        self._dirty = set()
+
+    def _mark_dirty(self, dirty):
+        self._dirty.update(dirty)
 
     @property
     def background_color(self):

@@ -103,8 +103,8 @@ class Hub:
         self._bg_thread.join()
         self._delete_socket_directory()
 
-    # TODO: target
-    def send_scene(self, msg):
+    # TODO: target?
+    def send_msg(self, msg):
         self._thread_client_conn.send_msg(msg)
 
     def _bg_thread_target(self):
@@ -117,7 +117,7 @@ class Hub:
 
     def _launch_children(self):
         self._thread_server_conn = Conn.accept(self._server_socket)
-        
+
         for child in self._children:
             child.launch(self._socket_path)
             child.connect(self._server_socket)
@@ -149,6 +149,9 @@ class Hub:
                     if msg.tag == Tag.Exit:
                         running = False
                         break
+                    # TODO
+                    elif msg.tag in (Tag.SetBackgroundColor,):
+                        _scene_child
                 except ConnectionClosed:
                     in_rlist.remove(sock)
                     # TODO

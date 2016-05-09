@@ -1,9 +1,5 @@
-import atexit
 import logging
-import os
 from socket import AF_UNIX, MSG_DONTWAIT, SOCK_STREAM, socket
-import subprocess
-import sys
 
 from bel.msg import Msg
 
