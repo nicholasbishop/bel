@@ -15,11 +15,53 @@ class ConnectionClosed(Exception):
 # possible in the implementation. :)
 
 
-class Conn:
+class BufferedSocket:
     def __init__(self, sock):
         self._sock = sock
         self._recv_buf = bytearray()
         self._closed = False
+
+    def __len__(self):
+        return len(self._recv_buf)
+
+    @property
+    def closed(self):
+        return self._closed
+
+    @property
+    def socket(self):
+        return self._sock
+
+    def send_all(self, data):
+        self._sock.sendall(data)
+
+    def peek(self, size):
+        if len(self._recv_buf) >= size:
+            return self._recv_buf[:size]
+        else:
+            return None
+
+    def skip(self, size):
+        self._recv_buf = self._recv_buf[size:]
+
+    def take(self, size):
+        data = self._recv_buf[:size]
+        self._recv_buf = self._recv_buf[size:]
+        return data
+
+    def ensure_min_recv_buf_size(self, size, blocking):
+        flags = 0 if blocking else MSG_DONTWAIT
+        while len(self._recv_buf) < size:
+            new_data = self._sock.recv(RECV_CHUNK_SIZE, flags)
+            if len(new_data) == 0:
+                self._closed = True
+                raise ConnectionClosed()
+            self._recv_buf += new_data
+
+
+class Conn:
+    def __init__(self, sock):
+        self._bufsock = BufferedSocket(sock)
 
     @classmethod
     def accept(cls, server_socket):
@@ -39,10 +81,10 @@ class Conn:
 
     @property
     def socket(self):
-        return self._sock
+        return self._bufsock.socket
 
     def send_msg(self, msg):
-        if self._closed:
+        if self._bufsock.closed:
             # TODO
             logging.debug('silently dropping message to closed connection')
             return
@@ -52,8 +94,8 @@ class Conn:
         len_fmt = '{:' + str(MSG_LEN_FIELD_LEN) + '}'
         len_field = len_fmt.format(len(raw_msg))
 
-        self._sock.sendall(len_field.encode())
-        self._sock.sendall(raw_msg)
+        self._bufsock.send_all(len_field.encode())
+        self._bufsock.send_all(raw_msg)
 
     def read_messages_nonblocking(self):
         try:
@@ -68,14 +110,14 @@ class Conn:
         # Read the length header. If blocking is False and not
         # enough bytes have been received yet this will raise
         # BlockingIOError.
-        self._ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN, blocking)
+        self._bufsock.ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN, blocking)
         msg_len = self._peek_msg_len()
 
         # Enough bytes have been received to know the size of the
         # next message, try to read the full message. Again may
         # raise BlockingIOError.
-        self._ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN + msg_len,
-                                       blocking)
+        self._bufsock.ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN + msg_len,
+                                               blocking)
 
         # At this point we have *at least* one message to return,
         # but there may be more than one in the buffer. The caller
@@ -85,47 +127,21 @@ class Conn:
         # that additional messages are already ready.
         messages = [self._take_message(msg_len)]
 
-        while len(self._recv_buf) > MSG_LEN_FIELD_LEN:
+        while len(self._bufsock) > MSG_LEN_FIELD_LEN:
             msg_len = self._peek_msg_len()
             assert(msg_len is not None)
-            if len(self._recv_buf) >= MSG_LEN_FIELD_LEN + msg_len:
+            if len(self._bufsock) >= MSG_LEN_FIELD_LEN + msg_len:
                 messages.append(self._take_message(msg_len))
 
         return messages
 
-    def _peek(self, size):
-        if len(self._recv_buf) >= size:
-            return self._recv_buf[:size]
-        else:
-            return None
-
     def _peek_msg_len(self):
-        len_field = self._peek(MSG_LEN_FIELD_LEN)
+        len_field = self._bufsock.peek(MSG_LEN_FIELD_LEN)
         if len_field is None:
             return None
         else:
             return int(len_field)
 
     def _take_message(self, msg_len):
-        self._skip(MSG_LEN_FIELD_LEN)
-        return Msg.decode(self._take(msg_len))
-
-    def _take(self, size):
-        data = self._recv_buf[:size]
-        self._recv_buf = self._recv_buf[size:]
-        return data
-
-    def _skip(self, size):
-        self._recv_buf = self._recv_buf[size:]
-
-    def _raise_closed(self):
-        self._closed = True
-        raise ConnectionClosed()
-
-    def _ensure_min_recv_buf_size(self, size, blocking):
-        flags = 0 if blocking else MSG_DONTWAIT
-        while len(self._recv_buf) < size:
-            new_data = self._sock.recv(RECV_CHUNK_SIZE, flags)
-            if len(new_data) == 0:
-                self._raise_closed()
-            self._recv_buf += new_data
+        self._bufsock.skip(MSG_LEN_FIELD_LEN)
+        return Msg.decode(self._bufsock.take(msg_len))
