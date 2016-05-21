@@ -103,8 +103,8 @@ class Hub:
         self._bg_thread.join()
         self._delete_socket_directory()
 
-    # TODO: target?
     def send_msg(self, msg):
+        logging.debug('sending message to background thread: %s', msg.tag)
         self._thread_client_conn.send_msg(msg)
 
     def _bg_thread_target(self):
