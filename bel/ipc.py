@@ -73,11 +73,14 @@ class Conn:
         self._recv_buf = self._recv_buf[size:]
         return data
 
+    def _raise_closed(self):
+        self._closed = True
+        raise ConnectionClosed()
+
     def _ensure_min_recv_buf_size(self, size, blocking):
         flags = 0 if blocking else MSG_DONTWAIT
         while len(self._recv_buf) < size:
             new_data = self._sock.recv(RECV_CHUNK_SIZE, flags)
             if len(new_data) == 0:
-                self._closed = True
-                raise ConnectionClosed()
+                self._raise_closed()
             self._recv_buf += new_data
