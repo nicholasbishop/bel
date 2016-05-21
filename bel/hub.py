@@ -104,7 +104,6 @@ class Hub:
         self._delete_socket_directory()
 
     def send_msg(self, msg):
-        logging.debug('sending message to background thread: %s', msg.tag)
         self._thread_client_conn.send_msg(msg)
 
     def _bg_thread_target(self):
@@ -151,20 +150,20 @@ class Hub:
             # TODO
             conn = socket_to_conn[sock]
             try:
-                msg = conn.read_msg_blocking()
-                logging.debug('background thread received msg: %s', msg.tag)
-                if msg.tag == Tag.Exit:
-                    running = False
-                    break
-                # TODO
-                elif msg.tag.name.startswith('SCE_'):
-                    logging.debug('sending sce msg: %r', msg.tag)
-                    self._scene_child.conn.send_msg(msg)
-                elif msg.tag.name.startswith('WND_'):
-                    logging.debug('sending wnd msg: %r', msg.tag)
-                    self._window_child.conn.send_msg(msg)
-                else:
-                    raise ValueError('invalid tag', msg.tag)
+                messages = conn.read_messages_blocking()
+                for msg in messages:
+                    if msg.tag == Tag.Exit:
+                        running = False
+                        break
+                    # TODO
+                    elif msg.tag.name.startswith('SCE_'):
+                        logging.debug('sending sce msg: %r', msg.tag)
+                        self._scene_child.conn.send_msg(msg)
+                    elif msg.tag.name.startswith('WND_'):
+                        logging.debug('sending wnd msg: %r', msg.tag)
+                        self._window_child.conn.send_msg(msg)
+                    else:
+                        raise ValueError('invalid tag', msg.tag)
             except ConnectionClosed:
                 in_rlist.remove(sock)
                 # TODO

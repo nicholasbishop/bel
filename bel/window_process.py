@@ -70,8 +70,8 @@ class WindowServer:
 
             self.glfw.PollEvents()
 
-            msg = self.conn.read_msg_nonblocking()
-            if msg is not None:
+            messages = self.conn.read_messages_nonblocking()
+            for msg in messages:
                 self.handle_msg(msg)
 
         self.conn.send_msg(Msg(Tag.Exit))

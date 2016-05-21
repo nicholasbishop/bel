@@ -46,16 +46,17 @@ def scene_main(conn):
     running = True
     while running:
         # TODO: timeout?
-        msg = conn.read_msg_blocking()
-        if msg.tag == Tag.Exit:
-            running = False
-        elif msg.tag == Tag.SCE_SetBackgroundColor:
-            scene.background_color = msg.body
-        elif msg.tag == Tag.SCE_AttachEventHandler:
-            # TODO, formalize message bodies
-            scene.attach_event_handler(*msg.body)
-        elif msg.tag == Tag.SCE_EventMouseButton:
-            scene.event_mouse_button(msg.body)
+        messages = conn.read_messages_blocking()
+        for msg in messages:
+            if msg.tag == Tag.Exit:
+                running = False
+            elif msg.tag == Tag.SCE_SetBackgroundColor:
+                scene.background_color = msg.body
+            elif msg.tag == Tag.SCE_AttachEventHandler:
+                # TODO, formalize message bodies
+                scene.attach_event_handler(*msg.body)
+            elif msg.tag == Tag.SCE_EventMouseButton:
+                scene.event_mouse_button(msg.body)
 
 if __name__ == '__main__':
     main('sce', scene_main)
