@@ -56,8 +56,6 @@ def scene_main(conn):
             scene.attach_event_handler(*msg.body)
         elif msg.tag == Tag.SCE_EventMouseButton:
             scene.event_mouse_button(msg.body)
-        else:
-            logging.error('unhandled scene message')
 
 if __name__ == '__main__':
     main('sce', scene_main)
