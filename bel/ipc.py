@@ -56,42 +56,42 @@ class Conn:
         self._sock.sendall(raw_msg)
 
     def read_messages_nonblocking(self):
-        return self._read_messages(blocking=False)
+        try:
+            return self._read_messages(blocking=False)
+        except BlockingIOError:
+            return []
 
     def read_messages_blocking(self):
         return self._read_messages(blocking=True)
 
     def _read_messages(self, blocking):
-        try:
-            # Read the length header. If blocking is False and not
-            # enough bytes have been received yet this will raise
-            # BlockingIOError.
-            self._ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN, blocking)
+        # Read the length header. If blocking is False and not
+        # enough bytes have been received yet this will raise
+        # BlockingIOError.
+        self._ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN, blocking)
+        msg_len = self._peek_msg_len()
+
+        # Enough bytes have been received to know the size of the
+        # next message, try to read the full message. Again may
+        # raise BlockingIOError.
+        self._ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN + msg_len,
+                                       blocking)
+
+        # At this point we have *at least* one message to return,
+        # but there may be more than one in the buffer. The caller
+        # should receive all messages already in the buffer
+        # because if the caller uses select() to sleep until the
+        # next message is ready it would have no way of knowing
+        # that additional messages are already ready.
+        messages = [self._take_message(msg_len)]
+
+        while len(self._recv_buf) > MSG_LEN_FIELD_LEN:
             msg_len = self._peek_msg_len()
+            assert(msg_len is not None)
+            if len(self._recv_buf) >= MSG_LEN_FIELD_LEN + msg_len:
+                messages.append(self._take_message(msg_len))
 
-            # Enough bytes have been received to know the size of the
-            # next message, try to read the full message. Again may
-            # raise BlockingIOError.
-            self._ensure_min_recv_buf_size(MSG_LEN_FIELD_LEN + msg_len,
-                                           blocking)
-
-            # At this point we have *at least* one message to return,
-            # but there may be more than one in the buffer. The caller
-            # should receive all messages already in the buffer
-            # because if the caller uses select() to sleep until the
-            # next message is ready it would have no way of knowing
-            # that additional messages are already ready.
-            messages = [self._take_message(msg_len)]
-
-            while len(self._recv_buf) > MSG_LEN_FIELD_LEN:
-                msg_len = self._peek_msg_len()
-                assert(msg_len is not None)
-                if len(self._recv_buf) >= MSG_LEN_FIELD_LEN + msg_len:
-                    messages.append(self._take_message(msg_len))
-
-            return messages
-        except BlockingIOError:
-            return []
+        return messages
 
     def _peek(self, size):
         if len(self._recv_buf) >= size:
