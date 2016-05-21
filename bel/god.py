@@ -22,6 +22,7 @@ def main():
     hub.start_background_thread()
     hub.send_msg(Msg(Tag.SCE_AttachEventHandler, ('mouse_button',
                      mouse_button_handler)))
+    hub.send_msg(Msg(Tag.SCE_LoadObject, 'examples/xyz-text.obj'))
     hub.join_background_thread()
 
 
