@@ -9,3 +9,75 @@ other direction?
 Scene: Window.addEventReceiver(self.event_receiver)
 ...
 Window: self.event_receiver.send(resize_event)
+
+
+
+-----
+
+More rethinking.
+
+It seems like the capnp RPC model isn't a great fit for this
+application. Might be better to use just the serialization part? Could
+probably make the RPC work but I'm having difficulty getting a good
+mental model.
+
+Notes on the actual layout:
+
+App | Scene | Window
+
+Let's try this:
+
+The Scene should contain all data necessary to restore
+everything. I.e. if the application crashed it could be restored with
+only the data in Scene (not necessarily stuff in memory, could have
+disk cache or whatever, but data owned by Scene that no other process
+touches).
+
+The Scene process would handle batching updates to the Window. 
+
+So the App would then be logic only, which should permit it to be
+entirely reactionary (to events provided by Scene).
+
+The Window process uses Glfw. The main process waits for events which
+can come from either Glfw or
+
+----
+
+I'm beginning to wonder if maybe the basic approach actually
+*requires* threads in addition to processes. I'm thinking here of
+Scene operations. Suppose that a steady stream of events comes where
+each event requires a small but significant amount of processing time
+to handle. To think about how to handle that, let's try some different
+constraints:
+
+Option 1:
+
+(W) Mouse-move event -> (A) modify scene -> (S) receive update, mark node(s) as dirty
+
+
+
+
+----
+
+# Window:
+
+## Event Loop
+
+1. Draw a frame
+2. Check for events
+3. Process each event (mostly or maybe entirely just forwarding to the
+Scene process?)
+4. Wait for update message from Scene
+
+# Scene:
+
+## Event Loop
+
+1.
+
+
+...
+
+STATELESS?
+
+Need actual code to work from (demo.py)

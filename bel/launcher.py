@@ -34,3 +34,5 @@ class Launcher:
         client = capnp.TwoPartyClient(self._capnp_socket_path)
         bootstrap = client.bootstrap().cast_as(self._bootstrap_capnp_type)
         print(bootstrap.sayHello().wait())
+
+        return bootstrap
