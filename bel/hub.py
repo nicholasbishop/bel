@@ -131,36 +131,47 @@ class Hub:
         for child in self._children:
             child.proc.wait()
 
-    def _run_until_exit(self):
-        conns = dict(
+    def _await_message(self):
+        running = True
+
+        socket_to_conn = dict(
             (child.conn.socket, child.conn) for child in self._children
         )
-        conns[self._thread_server_conn.socket] = self._thread_server_conn
-        in_rlist = list(conns.keys())
+        socket_to_conn[self._thread_server_conn.socket] = self._thread_server_conn
+        in_rlist = socket_to_conn.keys()
         in_wlist = []
         in_xlist = []
+
+        out_rlist, _, _ = select(in_rlist, in_wlist, in_xlist)
+
+        for sock in out_rlist:
+            # TODO
+            conn = socket_to_conn[sock]
+            try:
+                msg = conn.read_msg_blocking()
+                logging.debug('background thread received msg: %s', msg.tag)
+                if msg.tag == Tag.Exit:
+                    running = False
+                    break
+                # TODO
+                elif msg.tag.name.startswith('SCE_'):
+                    logging.debug('sending sce msg: %r', msg.tag)
+                    self._scene_child.conn.send_msg(msg)
+                elif msg.tag.name.startswith('WND_'):
+                    logging.debug('sending wnd msg: %r', msg.tag)
+                    self._window_child.conn.send_msg(msg)
+                else:
+                    raise ValueError('invalid tag', msg.tag)
+            except ConnectionClosed:
+                in_rlist.remove(sock)
+                # TODO
+                logging.error('connection closed')
+
+        return running
+
+    def _run_until_exit(self):
         running = True
         while running:
-            out_rlist, _, _ = select(in_rlist, in_wlist, in_xlist)
-            for sock in out_rlist:
-                conn = conns[sock]
-                try:
-                    msg = conn.read_msg_nonblocking()
-                    if msg.tag == Tag.Exit:
-                        running = False
-                        break
-                    # TODO
-                    elif msg.tag.name.startswith('SCE_'):
-                        logging.debug('sending sce msg: %r', msg.tag)
-                        self._scene_child.conn.send_msg(msg)
-                    elif msg.tag.name.startswith('WND_'):
-                        logging.debug('sending wnd msg: %r', msg.tag)
-                        self._window_child.conn.send_msg(msg)
-                    else:
-                        raise ValueError('invalid tag', msg.tag)
-                except ConnectionClosed:
-                    in_rlist.remove(sock)
-                    # TODO
-                    logging.error('connection closed')
+            running = self._await_message()
 
         self._cleanup()
