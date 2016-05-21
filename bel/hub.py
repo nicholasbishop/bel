@@ -108,6 +108,11 @@ class Hub:
         self._thread_client_conn.send_msg(msg)
 
     def _bg_thread_target(self):
+        # Block until the thread connection is created. Do this before
+        # creating children so we know it's the thread connection
+        # we're accepting.
+        self._thread_server_conn = Conn.accept(self._server_socket)
+
         self._launch_children()
         self._run_until_exit()
 
@@ -116,8 +121,6 @@ class Hub:
         self._server_socket = _create_socket(self._socket_path)
 
     def _launch_children(self):
-        self._thread_server_conn = Conn.accept(self._server_socket)
-
         for child in self._children:
             child.launch(self._socket_path)
             child.connect(self._server_socket)
