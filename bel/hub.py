@@ -165,7 +165,6 @@ class Hub:
                     else:
                         raise ValueError('invalid tag', msg.tag)
             except ConnectionClosed:
-                in_rlist.remove(sock)
                 # TODO
                 logging.error('connection closed')
 
