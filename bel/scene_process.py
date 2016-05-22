@@ -2,6 +2,7 @@ from enum import Enum
 import logging
 
 from bel.child import main
+from bel.mesh import Mesh
 from bel.msg import Msg, Tag
 
 
@@ -15,6 +16,10 @@ class Scene:
         self._conn = conn
         self._dirty = set((Dirty.BackgroundColor,))
         self._event_handlers = {}
+
+        # TODO(nicholasbishop): this will eventually be in a node
+        # tree, just getting basic things tested first
+        self._mesh = None
 
     def _mark_dirty(self, dirty):
         self._dirty.add(dirty)
@@ -40,6 +45,10 @@ class Scene:
         # TODO, multiple handlers for same event type
         self._event_handlers[event_type] = handler
 
+    def load_object(self, filepath):
+        logging.info('load_object, TODO: %s', filepath)
+        self._mesh = Mesh.load_obj(filepath)
+
 
 def scene_main(conn):
     scene = Scene(conn)
@@ -57,6 +66,8 @@ def scene_main(conn):
                 scene.attach_event_handler(*msg.body)
             elif msg.tag == Tag.SCE_EventMouseButton:
                 scene.event_mouse_button(msg.body)
+            elif msg.tag == Tag.SCE_LoadObject:
+                scene.load_object(msg.body)
 
 if __name__ == '__main__':
     main('sce', scene_main)
