@@ -4,6 +4,8 @@ from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
 from bel.msg import Msg, Tag
+from bel.transform import Transform
+from bel.uniform import MatrixUniform
 
 def _obj_remove_comment(line):
     ind = line.find('#')
@@ -30,6 +32,9 @@ class Mesh:
         self._faces = []
         self._vert_buf_uid = auto_name('vertbuf')
         self._draw_cmd_uid = auto_name('drawcmd')
+        self._transform = Transform()
+        # TODO
+        self._transform.translate(Vector3((0, 0, -2)))
 
     def create_draw_array(self):
         elem_per_vert = 6
@@ -93,10 +98,10 @@ class Mesh:
                     'stride': bytes_per_float32 * 6
                 }
             },
-            # 'uniforms': {
-            #     'model_view':
-            #     MatrixUniform(self._transform.matrix())
-            # },
+            'uniforms': {
+                'model_view':
+                MatrixUniform(self._transform.matrix())
+            },
             'range': (0, num_triangles),
             'primitive': 'triangles'
         }))

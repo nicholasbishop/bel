@@ -29,7 +29,6 @@ class WindowServer:
         self.buffer_objects = {}
         self.draw_arrays = {}
         self.materials = {}
-        self._perspective_matrix = None
         self._clear_color = (0.3, 0.3, 0.4, 0.0)
 
         # TODO, might not belong here
@@ -102,22 +101,15 @@ class WindowServer:
             self.buffer_objects[uid].set_data(msg.body['array'])
         elif msg.tag == Tag.WND_UpdateDrawCommand:
             self.draw_arrays[msg.body['uid']] = msg.body
-
-        # TODO
-        return
-
-        tag = msg['tag']
-        if tag == 'draw_arrays':
-            self.draw_arrays[msg['name']] = msg
-        elif tag == 'update_material':
-            uid = msg['uid']
+        elif msg.tag == Tag.WND_UpdateMaterial:
+            uid = msg.body['uid']
             if uid not in self.materials:
                 self.materials[uid] = ShaderProgram()
-            self.materials[uid].update(msg)
-        elif tag == 'exit':
-            self.glfw.SetWindowShouldClose(self.window, True)
+            self.materials[uid].update(msg.body)
+        else:
+            logging.error('unhandled message tag: %r', msg.tag)
 
-    def _draw_one(self, item):
+    def _draw_one(self, item, builtin_uniforms):
         material_uid = item['material']
         if material_uid not in self.materials:
             logging.error('unknown material: %r', material_uid)
@@ -159,12 +151,24 @@ class WindowServer:
         width, height = self.glfw.GetFramebufferSize(self.window)
         gl.glViewport(0, 0, width, height)
 
+        # TODO
+        fovy = 90
+        aspect = width / height
+        near = 0.01
+        far = 100
+        proj_matrix = create_perspective_projection_matrix(
+            fovy,
+            aspect,
+            near,
+            far,
+        )
+
         builtin_uniforms = {
-            'projection': MatrixUniform(self._perspective_matrix)
+            'projection': MatrixUniform(proj_matrix)
         }
 
         for item in self.draw_arrays.values():
-            self._draw_one(item)
+            self._draw_one(item, builtin_uniforms)
         self.glfw.SwapBuffers(self.window)
 
 
