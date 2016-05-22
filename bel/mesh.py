@@ -1,4 +1,4 @@
-from math import Vec3
+from mth import Vec3
 
 def _obj_remove_comment(line):
     ind = line.find('#')
@@ -20,7 +20,7 @@ class Face:
 class Mesh:
     # TODO, worker thread
     def __init__(self):
-        self._original_filepath = None
+        self._original_path = None
         self._verts = []
         self._faces = []
 
@@ -49,7 +49,7 @@ class Mesh:
                     faces.append(Face(indices))
 
         mesh = Mesh()
-        mesh._original_filepath = filepath
+        mesh._original_path = path
         mesh._verts = verts
         mesh._faces = faces
         return mesh
