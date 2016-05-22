@@ -32,6 +32,21 @@ class WindowServer:
         self._perspective_matrix = None
         self._clear_color = (0.3, 0.3, 0.4, 0.0)
 
+        # TODO, might not belong here
+        self._send_default_materials()
+
+    def _send_default_materials(self):
+        self.conn.send_msg(Msg(Tag.WND_UpdateMaterial, {
+            'uid': 'default',
+            'vert_shader_paths': ['shaders/vert.glsl'],
+            'frag_shader_paths': ['shaders/frag.glsl'],
+        }))
+        self.conn.send_msg(Msg(Tag.WND_UpdateMaterial, {
+            'uid': 'flat',
+            'vert_shader_paths': ['shaders/flat.vert.glsl'],
+            'frag_shader_paths': ['shaders/flat.frag.glsl'],
+        }))
+
     def cb_cursor_pos(self, window, xpos, ypos):
         width, height = self.glfw.GetWindowSize(self.window)
         self.conn.send_msg(Msg(Tag.SCE_EventCursorPosition, {
@@ -80,17 +95,19 @@ class WindowServer:
         if msg.tag == Tag.WND_SetClearColor:
             # todo: validate color
             self._clear_color = msg.body
+        elif msg.tag == Tag.WND_UpdateBuffer:
+            uid = msg.body['uid']
+            if uid not in self.buffer_objects:
+                self.buffer_objects[uid] = ArrayBufferObject()
+            self.buffer_objects[uid].set_data(msg.body['array'])
+        elif msg.tag == Tag.WND_UpdateDrawCommand:
+            self.draw_arrays[msg.body['uid']] = msg.body
 
         # TODO
         return
 
         tag = msg['tag']
-        if tag == 'update_buffer':
-            name = msg['name']
-            if name not in self.buffer_objects:
-                self.buffer_objects[name] = ArrayBufferObject()
-            self.buffer_objects[name].set_data(msg['contents'])
-        elif tag == 'draw_arrays':
+        if tag == 'draw_arrays':
             self.draw_arrays[msg['name']] = msg
         elif tag == 'update_material':
             uid = msg['uid']
