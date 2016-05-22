@@ -12,7 +12,10 @@ class Tag(Enum):
     SCE_EventWindowSize = 5
     SCE_EventCursorPosition = 6
     SCE_AttachEventHandler = 7
-    SCE_LoadObject = 8
+    SCE_LoadObject = 8,
+    WND_UpdateBuffer = 9,
+    WND_UpdateDrawCommand = 10,
+    WND_UpdateMaterial = 11,
 
 
 class Msg:
