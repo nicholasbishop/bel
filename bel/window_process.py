@@ -33,7 +33,7 @@ class WindowServer:
         self._clear_color = (0.3, 0.3, 0.4, 0.0)
 
         # TODO, might not belong here
-        #self._send_default_materials()
+        self._send_default_materials()
 
     def _send_default_materials(self):
         self.conn.send_msg(Msg(Tag.WND_UpdateMaterial, {
