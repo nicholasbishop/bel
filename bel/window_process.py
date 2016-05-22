@@ -33,7 +33,7 @@ class WindowServer:
         self._clear_color = (0.3, 0.3, 0.4, 0.0)
 
         # TODO, might not belong here
-        self._send_default_materials()
+        #self._send_default_materials()
 
     def _send_default_materials(self):
         self.conn.send_msg(Msg(Tag.WND_UpdateMaterial, {
@@ -117,6 +117,39 @@ class WindowServer:
         elif tag == 'exit':
             self.glfw.SetWindowShouldClose(self.window, True)
 
+    def _draw_one(self, item):
+        material_uid = item['material']
+        if material_uid not in self.materials:
+            logging.error('unknown material: %r', material_uid)
+            return
+
+        material = self.materials[material_uid]
+        with material.bind():
+            material.bind_attributes(self.buffer_objects, item['attributes'])
+            uniforms = dict(item['uniforms'])
+            uniforms.update(builtin_uniforms)
+            material.bind_uniforms(uniforms)
+
+        first, count = item['range']
+        # TODO
+        primitive = item['primitive']
+        if primitive == 'triangles':
+            mode = gl.GL_TRIANGLES
+        elif primitive == 'lines':
+            mode = gl.GL_LINES
+        elif primitive == 'points':
+            mode = gl.GL_POINTS
+        else:
+            raise NotImplementedError()
+
+        #mode = gl.GL_POINTS
+        logging.debug('glDrawArrays(%s, first=%d, count=%d',
+                      mode.name, first, count)
+        # TODO
+        #count = 2
+        with material.bind():
+            gl.glDrawArrays(mode, first, count)
+
     def draw(self):
         # TODO
         gl.glClearColor(*self._clear_color)
@@ -131,32 +164,7 @@ class WindowServer:
         }
 
         for item in self.draw_arrays.values():
-            material = self.materials[item['material']]
-            with material.bind():
-                material.bind_attributes(self.buffer_objects, item['attributes'])
-                uniforms = dict(item['uniforms'])
-                uniforms.update(builtin_uniforms)
-                material.bind_uniforms(uniforms)
-
-            first, count = item['range']
-            # TODO
-            primitive = item['primitive']
-            if primitive == 'triangles':
-                mode = gl.GL_TRIANGLES
-            elif primitive == 'lines':
-                mode = gl.GL_LINES
-            elif primitive == 'points':
-                mode = gl.GL_POINTS
-            else:
-                raise NotImplementedError()
-
-            #mode = gl.GL_POINTS
-            logging.debug('glDrawArrays(%s, first=%d, count=%d',
-                          mode.name, first, count)
-            # TODO
-            #count = 2
-            with material.bind():
-                gl.glDrawArrays(mode, first, count)
+            self._draw_one(item)
         self.glfw.SwapBuffers(self.window)
 
 
