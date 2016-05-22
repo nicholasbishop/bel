@@ -132,6 +132,10 @@ class Conn:
             assert(msg_len is not None)
             if len(self._bufsock) >= MSG_LEN_FIELD_LEN + msg_len:
                 messages.append(self._take_message(msg_len))
+            else:
+                # Exit the loop since the rest of the message
+                # isn't available yet
+                break
 
         return messages
 
