@@ -48,6 +48,8 @@ class Scene:
     def load_object(self, filepath):
         logging.info('load_object, TODO: %s', filepath)
         self._mesh = Mesh.load_obj(filepath)
+        # TODO, second thread, naming
+        self._mesh.send_draw_stuff(self._conn)
 
 
 def scene_main(conn):
