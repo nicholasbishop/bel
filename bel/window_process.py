@@ -91,6 +91,14 @@ class WindowServer:
         self.conn.send_msg(Msg(Tag.Exit))
 
     def handle_msg(self, msg):
+        if not hasattr(msg, 'tag'):
+            if msg.which() == 'wndUpdateBuffer':
+                uid = msg.uid
+                if uid not in self.buffer_objects:
+                    self.buffer_objects[uid] = ArrayBufferObject()
+                self.buffer_objects[uid].set_data(msg.array)
+            return
+
         if msg.tag == Tag.WND_SetClearColor:
             # todo: validate color
             self._clear_color = msg.body

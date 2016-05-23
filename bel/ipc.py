@@ -1,7 +1,10 @@
 import logging
 from socket import AF_UNIX, MSG_DONTWAIT, SOCK_STREAM, socket
 
+import capnp
+
 from bel.msg import Msg
+from bel.messages_capnp import Message
 
 MSG_LEN_FIELD_LEN = 8
 RECV_CHUNK_SIZE = 4096
@@ -89,12 +92,17 @@ class Conn:
             logging.debug('silently dropping message to closed connection')
             return
 
-        raw_msg = msg.encode()
+        raw_msg = msg.to_bytes()
 
         len_fmt = '{:' + str(MSG_LEN_FIELD_LEN) + '}'
-        len_field = len_fmt.format(len(raw_msg))
+        len_field = len_fmt.format(len(raw_msg) + 3) # TODO, remove plus 3
 
         self._bufsock.send_all(len_field.encode())
+        # TODO, remove plus 3 and this
+        if isinstance(msg, Msg):
+            self._bufsock.send_all('old'.encode())
+        else:
+            self._bufsock.send_all('new'.encode())
         self._bufsock.send_all(raw_msg)
 
     def read_messages_nonblocking(self):
@@ -148,4 +156,10 @@ class Conn:
 
     def _take_message(self, msg_len):
         self._bufsock.skip(MSG_LEN_FIELD_LEN)
-        return Msg.decode(self._bufsock.take(msg_len))
+        tmpkey = self._bufsock.take(3).decode()
+        if tmpkey == 'old':
+            return Msg.decode(self._bufsock.take(msg_len - 3))
+        elif tmpkey == 'new':
+            return Message.from_bytes(self._bufsock.take(msg_len - 3))
+        else:
+            raise Exception('tmpkey={}'.format(tmpkey))

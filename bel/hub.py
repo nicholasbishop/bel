@@ -152,6 +152,13 @@ class Hub:
             try:
                 messages = conn.read_messages_blocking()
                 for msg in messages:
+                    if not hasattr(msg, 'tag'):
+                        tag = msg.which()
+                        if tag.startswith('wnd'):
+                            logging.debug('sending wnd msg: %r', tag)
+                            self._window_child.conn.send_msg(msg)
+                        continue
+
                     if msg.tag == Tag.Exit:
                         running = False
                         break

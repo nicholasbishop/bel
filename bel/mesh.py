@@ -3,7 +3,7 @@ from pyrr import Matrix44, Quaternion, Vector3, Vector4, vector
 from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
-from bel.msg import Msg, Tag
+from bel.msg import Msg, Tag, msg
 from bel.transform import Transform
 from bel.uniform import MatrixUniform
 
@@ -73,10 +73,11 @@ class Mesh:
         num_triangles = len(vert_nors) // 6
         bytes_per_float32 = 4
 
-        conn.send_msg(Msg(Tag.WND_UpdateBuffer, {
+        conn.send_msg(msg.Message.new_message(
+            wndUpdateBuffer = {
             'uid': self._vert_buf_uid,
-            'array': vert_nors
-        }))
+            'array': vert_nors.tostring()
+            }))
         conn.send_msg(Msg(Tag.WND_UpdateDrawCommand, {
             'uid': self._draw_cmd_uid,
             'material': 'default',

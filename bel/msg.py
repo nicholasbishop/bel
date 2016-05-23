@@ -1,7 +1,10 @@
 from enum import Enum, unique
 
+import capnp
 import dill
 
+# TODO, naming
+from bel import messages_capnp as msg
 
 @unique
 class Tag(Enum):
@@ -36,7 +39,7 @@ class Msg:
         msg = dill.loads(raw_msg)
         return Msg(Tag(msg[0]), msg[1])
 
-    def encode(self):
+    def to_bytes(self):
         return dill.dumps([
             self._tag,
             self._body
