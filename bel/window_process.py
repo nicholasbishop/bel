@@ -134,11 +134,6 @@ class WindowServer:
         else:
             raise NotImplementedError()
 
-        #mode = gl.GL_POINTS
-        logging.debug('glDrawArrays(%s, first=%d, count=%d',
-                      mode.name, first, count)
-        # TODO
-        #count = 2
         with material.bind():
             gl.glDrawArrays(mode, first, count)
 

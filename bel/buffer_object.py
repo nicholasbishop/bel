@@ -44,11 +44,6 @@ class BufferObject:
     def bind_to_attribute(self, attr_index, components, gltype,
                           normalized, stride, offset):
         with self.bind():
-            logging.debug('glVertexAttribPointer(index=%d, size=%d, type=%s, '
-                          'normalized=%r, stride=%d, pointer=%d',
-                          attr_index, components, gltype.name,
-                          normalized, stride, offset)
-
             # TODO
             gl.glBindVertexArray(self._vao)
 
