@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from threading import Thread
 
 from bel.ipc import Conn, ConnectionClosed
-from bel.msg import Msg, Tag
+from bel.msg import Msg, Tag, Message
 
 def _create_socket(path):
     sock = socket(AF_UNIX, SOCK_STREAM)
@@ -156,7 +156,7 @@ class Hub:
                         tag = msg.which()
                         if tag.startswith('wnd'):
                             logging.debug('sending wnd msg: %r', tag)
-                            self._window_child.conn.send_msg(msg)
+                            self._window_child.conn.send_msg(Message.new_message(msg))
                         continue
 
                     if msg.tag == Tag.Exit:

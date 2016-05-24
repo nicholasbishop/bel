@@ -6,6 +6,8 @@ import dill
 # TODO, naming
 from bel import messages_capnp as msg
 
+Message = msg.Message
+
 @unique
 class Tag(Enum):
     Exit = 1
