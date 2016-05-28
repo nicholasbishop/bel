@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import get_event_loop, open_unix_connection, sleep
 import logging
 import sys
 
@@ -16,27 +16,26 @@ class Handler:
 
 
 async def child(socket_path):
-    reader, writer = await asyncio.open_unix_connection(socket_path)
+    reader, writer = await open_unix_connection(socket_path)
 
     rpc = JsonRpc('child', reader, writer)
     handler = Handler(rpc)
 
     logging.info('child sleeping...')
-    await asyncio.sleep(0.5)
+    await sleep(0.5)
     logging.info('child done sleeping')
 
     await rpc.send_request(None, 'shutdown')
     rpc.stop()
 
-    asyncio.get_event_loop().stop()
-
 def main():
     socket_path = sys.argv[1]
     logging.info('starting child, socket path: %s', socket_path)
 
-    event_loop = asyncio.get_event_loop()
+    event_loop = get_event_loop()
     event_loop.run_until_complete(child(socket_path))
-    event_loop.run_forever()
+    event_loop.stop()
+    event_loop.close()
 
     logging.info('child finished')
     
