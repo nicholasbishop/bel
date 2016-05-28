@@ -83,7 +83,7 @@ class Hub:
     def launch_client(self, client_id):
         self._log.info('launch client')
         if client_id in self._clients:
-            raise KeyError('client key already exists', key)
+            raise KeyError('client key already exists', client_id)
         else:
             proc_task = self._event_loop.create_task(self._run_client())
             self._clients[client_id] = Client(client_id, proc_task)

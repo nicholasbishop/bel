@@ -10,7 +10,7 @@ class Handler:
         rpc.set_handler(self)
         self._rpc = rpc
 
-    async def hello_from_hub(self, *args, **kwargs):
+    async def hello_from_hub(self):
         logging.info('hello received')
         return 'and hello from child!'
 
@@ -38,7 +38,7 @@ def main():
     event_loop.close()
 
     logging.info('child finished')
-    
+
 
 if __name__ == '__main__':
     log.configure('child', logging.DEBUG)

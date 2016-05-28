@@ -12,7 +12,7 @@ def main():
     if False:
         from asyncio import get_event_loop
         get_event_loop().set_debug(True)
-        
+
     hub = Hub()
     hub.launch_client('child')
     hub.run()

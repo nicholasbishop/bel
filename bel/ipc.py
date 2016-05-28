@@ -3,9 +3,10 @@ import json
 import logging
 
 class JsonRpcFormatter:
-    def __init__(self, name):
+    def __init__(self, name, version='2.0'):
         self._name = name
         self._next_request_id = 1
+        self._version = version
 
     @property
     def name(self):
@@ -18,7 +19,7 @@ class JsonRpcFormatter:
 
     def request(self, method, params):
         return {
-            'jsonrpc': '2.0',
+            'jsonrpc': self._version,
             'method': method,
             'params': params,
             'id': self._take_request_id()
@@ -26,14 +27,14 @@ class JsonRpcFormatter:
 
     def response(self, result, request_id):
         return {
-            'jsonrpc': '2.0',
+            'jsonrpc': self._version,
             'result': result,
             'id': request_id
         }
 
     def error(self, code, message, request_id):
         return {
-            'jsonrpc': '2.0',
+            'jsonrpc': self._version,
             'error': {
                 'code': code,
                 'message': message
@@ -89,6 +90,7 @@ class JsonRpc:
         self._formatter = JsonRpcFormatter(name)
         self._callbacks = {}
         self._running = True
+        self._handler = None
 
         if event_loop is None:
             event_loop = get_event_loop()
@@ -157,7 +159,7 @@ class JsonRpc:
         logging.debug('reporting identity as "%s"', identity)
         resp = self._formatter.response(identity, request_id)
         return await self._writer.write(resp)
-        
+
     async def send_request(self, callback, method, *args):
         logging.info('send_request: %s(%r)', method, args)
         req = self._formatter.request(method, args)
