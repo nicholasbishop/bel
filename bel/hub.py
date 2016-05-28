@@ -102,4 +102,6 @@ class Hub:
 
             # TODO
             #self.shutdown()
+
+            self._event_loop.close()
         self._socket_path = None

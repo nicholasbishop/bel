@@ -28,17 +28,6 @@ async def child(socket_path):
     await rpc.send_request(None, 'shutdown')
     rpc.stop()
 
-    # request = await rpc.read()
-    # logging.info(request)
-
-    # print('Send: %r' % message)
-    # writer.write(message.encode())
-
-    # data = yield from reader.read(100)
-    # print('Received: %r' % data.decode())
-
-    #await writer.drain()
-    #writer.close()
     asyncio.get_event_loop().stop()
 
 def main():
@@ -49,31 +38,6 @@ def main():
     event_loop.run_until_complete(child(socket_path))
     event_loop.run_forever()
 
-    # reader = asyncio.StreamReader()
-    # protocol_factory = lambda: asyncio.StreamReaderProtocol(reader)
-
-    # async def connect_read():
-    #     transport, protocol = await event_loop.connect_read_pipe(
-    #         protocol_factory, sys.stdin)
-
-    # event_loop.run_until_complete(connect_read())
-
-    # def stdin_callback():
-    #     reader = JsonStreamReader(transport)
-    #     yield from reader.read()
-    #     event_loop.stop()
-
-    
-    # #event_loop.add_reader(sys.stdin.fileno(), stdin_callback)
-
-    # event_loop.run_until_complete(stdin_callback())
-
-    # event_loop.run_forever()
-    
-
-    # #print('the end:', out)
-
-    # event_loop.close()
     logging.info('child finished')
     
 
