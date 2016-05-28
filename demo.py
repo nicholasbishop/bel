@@ -65,5 +65,15 @@ def main():
     
 
 if __name__ == '__main__':
+    # TODO
+    #asyncio.get_event_loop().set_debug(True)
+
     log.configure('demo', logging.DEBUG)
-    main()
+    from bel.hub import Hub
+    hub = Hub()
+    hub.launch_client('child')
+    hub.run()
+
+    asyncio.get_event_loop().close()
+    
+    #main()

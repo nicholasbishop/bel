@@ -7,6 +7,10 @@ class JsonRpcFormatter:
         self._name = name
         self._next_request_id = 1
 
+    @property
+    def name(self):
+        return self._name
+
     def _take_request_id(self):
         request_id = '{}-{}'.format(self._name, self._next_request_id)
         self._next_request_id += 1
@@ -88,19 +92,16 @@ class JsonRpc:
 
         if event_loop is None:
             event_loop = get_event_loop()
-        event_loop.create_task(self._listen_forever())
+        self._listen_task = event_loop.create_task(self._listen())
 
     def stop(self):
         self._running = False
+        self._listen_task.cancel()
 
     def set_handler(self, handler):
         self._handler = handler
 
-    async def _listen_forever(self):
-        while self._running:
-            await self._listen_one()
-
-    async def _listen_one(self):
+    async def _listen(self):
         msg = await self._reader.read()
         if msg['jsonrpc'] != '2.0':
             # TODO
@@ -120,31 +121,46 @@ class JsonRpc:
             params = msg.get('params', [])
             logging.info('method call: %s(%r)', method_name, params)
 
-            method = getattr(self._handler, method_name, None)
-            if method is None:
-                # TODO
-                print('unhandled request', msg)
+            if method_name == '__identify':
+                get_event_loop().create_task(self._report_identity(mid))
             else:
-                get_event_loop().create_task(self.call_method(mid, method,
-                                                              params))
+                method = getattr(self._handler, method_name, None)
+                if method is None:
+                    # TODO
+                    print('unhandled request', msg)
+                else:
+                    get_event_loop().create_task(self.call_method(mid, method,
+                                                                  params))
         elif result is not None:
             self._handle_response(result, mid)
         elif error is not None:
             # TODO
             print('received error', msg)
 
+        # TODO, exception handling
+
+        if self._running:
+            self._listen_task = get_event_loop().create_task(self._listen())
+
     def _handle_response(self, result, mid):
         callback = self._callbacks[mid]
         callback(result)
 
     async def call_method(self, request_id, method, params):
+        logging.debug('calling method %s', method.__name__)
         result = await method(*params)
         resp = self._formatter.response(result, request_id)
         return await self._writer.write(resp)
+
+    async def _report_identity(self, request_id):
+        identity = self._formatter.name
+        logging.debug('reporting identity as "%s"', identity)
+        resp = self._formatter.response(identity, request_id)
+        return await self._writer.write(resp)
         
-    async def send_request(self, callback, method, params):
-        logging.info('send_request: %s(%r)', method, params)
-        req = self._formatter.request(method, params)
+    async def send_request(self, callback, method, *args):
+        logging.info('send_request: %s(%r)', method, args)
+        req = self._formatter.request(method, args)
         if callback is not None:
             rid = req['id']
             if rid in self._callbacks:

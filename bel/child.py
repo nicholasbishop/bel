@@ -25,8 +25,9 @@ async def child(socket_path):
     await asyncio.sleep(0.5)
     logging.info('child done sleeping')
 
-    await rpc.send_request(None, 'shutdown', [])
+    await rpc.send_request(None, 'shutdown')
     rpc.stop()
+
     # request = await rpc.read()
     # logging.info(request)
 
@@ -38,7 +39,7 @@ async def child(socket_path):
 
     #await writer.drain()
     #writer.close()
-
+    asyncio.get_event_loop().stop()
 
 def main():
     socket_path = sys.argv[1]
