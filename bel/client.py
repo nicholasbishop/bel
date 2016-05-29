@@ -19,8 +19,10 @@ class BaseClient:
         return self._running
 
     def stop(self):
+        self._log.info('BaseClient.stop() called')
         self._running = False
         self._rpc.stop()
+        self._event_loop.stop()
 
 
 def parse_args():
