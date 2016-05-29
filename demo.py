@@ -14,7 +14,7 @@ def main():
         get_event_loop().set_debug(True)
 
     hub = Hub()
-    hub.launch_client('child')
+    hub.launch_client('bel.child')
     hub.run()
 
 

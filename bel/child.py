@@ -18,7 +18,7 @@ class Handler:
 async def child(socket_path):
     reader, writer = await open_unix_connection(socket_path)
 
-    rpc = JsonRpc('child', reader, writer)
+    rpc = JsonRpc('bel.child', reader, writer)
     handler = Handler(rpc)
 
     logging.info('child sleeping...')
@@ -41,5 +41,5 @@ def main():
 
 
 if __name__ == '__main__':
-    log.configure('child', logging.DEBUG)
+    log.configure('bel.child', logging.DEBUG)
     main()
