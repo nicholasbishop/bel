@@ -80,19 +80,21 @@ class Hub:
             await proc.wait()
         self._event_loop.stop()
 
-    async def _run_client(self, module):
-        # TODO
-        cmd = (sys.executable, '-m', module, self._socket_path)
+    async def _run_client(self, client_id, module, cls):
+        cmd = (sys.executable, '-m', 'bel.client',
+               client_id, self._socket_path, module, cls)
         proc = await create_subprocess_exec(*cmd)
         return proc
 
-    def launch_client(self, module):
+    def launch_client(self, module, cls):
         self._log.info('launch client')
-        if module in self._clients:
-            raise KeyError('client already exists', module)
+        # TODO
+        client_id = module
+        if client_id in self._clients:
+            raise KeyError('client already exists', client_id)
         else:
-            proc_task = self._event_loop.create_task(self._run_client(module))
-            self._clients[module] = Client(module, proc_task)
+            proc_task = self._event_loop.create_task(self._run_client(client_id, module, cls))
+            self._clients[module] = Client(client_id, proc_task)
 
     def run(self):
         with _create_socket_dir() as socket_dir:

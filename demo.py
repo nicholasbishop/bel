@@ -12,7 +12,7 @@ def main():
     get_event_loop().set_debug(True)
 
     hub = Hub()
-    hub.launch_client('bel.glfw_client')
+    hub.launch_client('bel.glfw_client', 'GlfwClient')
     hub.run()
 
 
