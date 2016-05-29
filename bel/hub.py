@@ -20,7 +20,7 @@ class Client:
         self._rpc = None
 
     def _proc_exited(self, task):
-        self._hub.client_exited(self, task)
+        pass #self._hub.client_exited(self, task)
 
     @property
     def rpc(self):
@@ -94,8 +94,11 @@ class Hub:
                client_id, self._socket_path, module, cls]
         # TODO
         use_gdb = False
+        use_valgrind = False
         if use_gdb:
             cmd = ['gdb', '--args'] + cmd
+        elif use_valgrind:
+            cmd = ['valgrind'] + cmd
         proc = await create_subprocess_exec(*cmd)
         return proc
 
