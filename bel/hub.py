@@ -90,8 +90,12 @@ class Hub:
         self._event_loop.stop()
 
     async def _run_client(self, client_id, module, cls):
-        cmd = (sys.executable, '-m', 'bel.client',
-               client_id, self._socket_path, module, cls)
+        cmd = [sys.executable, '-m', 'bel.client',
+               client_id, self._socket_path, module, cls]
+        # TODO
+        use_gdb = True
+        if use_gdb:
+            cmd = ['gdb', '--args'] + cmd
         proc = await create_subprocess_exec(*cmd)
         return proc
 
