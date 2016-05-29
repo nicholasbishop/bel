@@ -20,7 +20,7 @@ class GlfwClient(BaseClient):
             future = self._event_loop.call_later(delay, self.poll_glfw_events)
             self._poll_glfw_future = future
 
-    def xstop(self):
-        self._running = False
-        self._rpc.stop()
-        self._poll_glfw_future.cancel()
+    def stop(self):
+        super().stop()
+        if self._poll_glfw_future is not None:
+            self._poll_glfw_future.cancel()
