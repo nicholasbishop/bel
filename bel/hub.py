@@ -93,7 +93,7 @@ class Hub:
         cmd = [sys.executable, '-m', 'bel.client',
                client_id, self._socket_path, module, cls]
         # TODO
-        use_gdb = True
+        use_gdb = False
         if use_gdb:
             cmd = ['gdb', '--args'] + cmd
         proc = await create_subprocess_exec(*cmd)
