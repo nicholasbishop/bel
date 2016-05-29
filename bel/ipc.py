@@ -108,6 +108,8 @@ class JsonRpc:
     def _create_listen_task(self):
         self._listen_task = self._event_loop.create_task(self._listen())
         def handle_exception(task):
+            if task.cancelled():
+                return
             exc = task.exception()
             if exc is not None:
                 # TODO, handle in some way

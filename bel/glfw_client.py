@@ -57,7 +57,8 @@ class GlfwClient(BaseClient):
         glfwPollEvents()
 
         if glfwWindowShouldClose(self._window):
-            self.stop()
+            self._running = False
+            self._event_loop.create_task(self._shutdown())
 
         if self.running:
             # TODO
@@ -65,11 +66,16 @@ class GlfwClient(BaseClient):
             future = self._event_loop.call_later(delay, self._poll_glfw_events)
             self._poll_glfw_future = future
 
+    async def _shutdown(self):
+        await self._rpc.send_request(None, 'shutdown')
+        self.stop()
+
     def stop(self):
         if self._window:
             glfwDestroyWindow(self._window)
             self._window = None
 
-        super().stop()
         if self._poll_glfw_future is not None:
             self._poll_glfw_future.cancel()
+
+        super().stop()
