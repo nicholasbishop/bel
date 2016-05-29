@@ -9,7 +9,7 @@ from bel import log
 def main():
     log.configure('demo', logging.DEBUG)
 
-    get_event_loop().set_debug(True)
+    get_event_loop().set_debug(False)
 
     hub = Hub()
     hub.launch_client('bel.glfw_client', 'GlfwClient')
