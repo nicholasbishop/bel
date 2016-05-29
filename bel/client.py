@@ -18,11 +18,22 @@ class BaseClient:
     def running(self):
         return self._running
 
+    @running.setter
+    def running(self, is_running):
+        self._running = is_running
+
     def stop(self):
         self._log.info('BaseClient.stop() called')
         self._running = False
         self._rpc.stop()
         self._event_loop.stop()
+
+    async def _shutdown(self):
+        await self._rpc.send_request(None, 'shutdown')
+        self.stop()
+
+    def shutdown(self):
+        self._event_loop.create_task(self._shutdown())
 
 
 def parse_args():
