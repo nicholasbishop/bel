@@ -12,6 +12,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
 from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
                        GL_VERSION,
                        glClear,
+                       glClearColor,
                        glGetString)
 
 from bel.client import BaseClient
@@ -36,9 +37,9 @@ class GlfwClient(BaseClient):
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-        #glfwWindowHint(GLFW_OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
-        self._window = glfwCreateWindow(640, 480, "Simple Example")
+        # TODO
+        self._window = glfwCreateWindow(800, 600, 'bel')
         if self._window is None:
             raise RuntimeError('glfwCreateWindow failed')
 
@@ -48,6 +49,7 @@ class GlfwClient(BaseClient):
         self._poll_glfw_events()
 
     def _draw(self):
+        glClearColor(0.4, 0.4, 0.5, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
 
     def _poll_glfw_events(self):
