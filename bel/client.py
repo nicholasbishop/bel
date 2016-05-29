@@ -14,6 +14,10 @@ class BaseClient:
         self._running = True
         self._event_loop = event_loop
 
+    @property
+    def running(self):
+        return self._running
+
     def stop(self):
         self._running = False
         self._rpc.stop()

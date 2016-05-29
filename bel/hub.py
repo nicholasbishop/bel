@@ -11,11 +11,16 @@ def _create_socket_dir():
 
 
 class Client:
-    def __init__(self, client_id, proc_task):
+    def __init__(self, hub, client_id, proc_task):
+        proc_task.add_done_callback(self._proc_exited)
+
         self._client_id = client_id
         self._proc_task = proc_task
-        self._hub = None
+        self._hub = hub
         self._rpc = None
+
+    def _proc_exited(self, task):
+        self._hub.client_exited(self, task)
 
     @property
     def rpc(self):
@@ -48,6 +53,10 @@ class Hub:
     @property
     def event_loop(self):
         return self._event_loop
+
+    def client_exited(self, client, task):
+        self._log.info('client exited: %r', task.result())
+        # TODO, handle in some way...
 
     async def _identify_client(self, rpc):
         def match_identity(identity):
@@ -94,7 +103,7 @@ class Hub:
             raise KeyError('client already exists', client_id)
         else:
             proc_task = self._event_loop.create_task(self._run_client(client_id, module, cls))
-            self._clients[module] = Client(client_id, proc_task)
+            self._clients[module] = Client(self, client_id, proc_task)
 
     def run(self):
         with _create_socket_dir() as socket_dir:
