@@ -1,4 +1,4 @@
-from asyncio import get_event_loop, open_unix_connection, sleep
+from asyncio import get_event_loop, open_unix_connection
 import logging
 import sys
 
