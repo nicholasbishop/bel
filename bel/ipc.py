@@ -91,10 +91,17 @@ class JsonRpc:
         self._callbacks = {}
         self._running = True
         self._handler = None
+        self._event_loop = event_loop or get_event_loop()
+        self._create_listen_task()
 
-        if event_loop is None:
-            event_loop = get_event_loop()
-        self._listen_task = event_loop.create_task(self._listen())
+    def _create_listen_task(self):
+        self._listen_task = self._event_loop.create_task(self._listen())
+        def handle_exception(task):
+            exc = task.exception()
+            if exc is not None:
+                # TODO, handle in some way
+                logging.error('listen exception: %s', exc)
+        self._listen_task.add_done_callback(handle_exception)
 
     def stop(self):
         self._running = False
@@ -142,7 +149,7 @@ class JsonRpc:
         # TODO, exception handling
 
         if self._running:
-            self._listen_task = get_event_loop().create_task(self._listen())
+            self._create_listen_task()
 
     def _handle_response(self, result, mid):
         callback = self._callbacks[mid]
