@@ -72,6 +72,18 @@ class JsonStreamReader:
         return json.loads(string_msg)
 
 
+class JsonStream:
+    def __init__(self, in_stream, out_stream):
+        self._in_stream = JsonStreamReader(in_stream)
+        self._out_stream = JsonStreamWriter(out_stream)
+
+    async def read(self):
+        return await self._in_stream.read()
+
+    async def write(self, data):
+        await self._out_stream.write(data)
+
+
 def exactly_one_of(*items):
     found = False
     for item in items:
@@ -85,8 +97,7 @@ def exactly_one_of(*items):
 
 class JsonRpc:
     def __init__(self, name, reader, writer, event_loop=None):
-        self._reader = JsonStreamReader(reader)
-        self._writer = JsonStreamWriter(writer)
+        self._stream = JsonStream(reader, writer)
         self._formatter = JsonRpcFormatter(name)
         self._callbacks = {}
         self._running = True
@@ -111,7 +122,7 @@ class JsonRpc:
         self._handler = handler
 
     async def _listen(self):
-        msg = await self._reader.read()
+        msg = await self._stream.read()
         if msg['jsonrpc'] != '2.0':
             # TODO
             raise NotImplementedError(msg)
@@ -159,13 +170,13 @@ class JsonRpc:
         logging.debug('calling method %s', method.__name__)
         result = await method(*params)
         resp = self._formatter.response(result, request_id)
-        return await self._writer.write(resp)
+        return await self._stream.write(resp)
 
     async def _report_identity(self, request_id):
         identity = self._formatter.name
         logging.debug('reporting identity as "%s"', identity)
         resp = self._formatter.response(identity, request_id)
-        return await self._writer.write(resp)
+        return await self._stream.write(resp)
 
     async def send_request(self, callback, method, *args):
         logging.info('send_request: %s(%r)', method, args)
@@ -176,4 +187,4 @@ class JsonRpc:
                 # TODO
                 raise NotImplementedError(req)
             self._callbacks[rid] = callback
-        return await self._writer.write(req)
+        return await self._stream.write(req)
