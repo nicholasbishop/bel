@@ -21,7 +21,9 @@ class GlfwClient:
     def poll_glfw_events(self):
         glfwPollEvents()
         if self._running:
-            future = self._event_loop.call_soon(self.poll_glfw_events)
+            # TODO
+            delay = 1 / 120
+            future = self._event_loop.call_later(delay, self.poll_glfw_events)
             self._poll_glfw_future = future
 
     def stop(self):
@@ -35,6 +37,7 @@ async def connect(event_loop, socket_path):
 
     rpc = JsonRpc('bel.glfw_client', reader, writer)
     return GlfwClient(event_loop, rpc)
+
 
 def main():
     socket_path = sys.argv[1]
