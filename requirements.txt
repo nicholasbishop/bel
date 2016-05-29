@@ -1,1 +1,2 @@
 cerberus==0.9.2
+cyglfw3==3.1.0.2

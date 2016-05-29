@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+from asyncio import get_event_loop
 import logging
 
 from bel.hub import Hub
@@ -8,13 +9,10 @@ from bel import log
 def main():
     log.configure('demo', logging.DEBUG)
 
-    # TODO
-    if False:
-        from asyncio import get_event_loop
-        get_event_loop().set_debug(True)
+    get_event_loop().set_debug(True)
 
     hub = Hub()
-    hub.launch_client('bel.child')
+    hub.launch_client('bel.glfw_client')
     hub.run()
 
 

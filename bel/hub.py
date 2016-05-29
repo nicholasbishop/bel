@@ -17,6 +17,10 @@ class Client:
         self._hub = None
         self._rpc = None
 
+    @property
+    def rpc(self):
+        return self._rpc
+
     async def get_proc(self):
         return await self._proc_task
 
@@ -70,6 +74,8 @@ class Hub:
             await server.wait_closed()
             self._server_task = None
         for client in self._clients.values():
+            if client.rpc:
+                client.rpc.stop()
             proc = await client.get_proc()
             await proc.wait()
         self._event_loop.stop()
@@ -101,7 +107,9 @@ class Hub:
                 pass
 
             # TODO
-            #self.shutdown()
+            self._event_loop.run_until_complete(self.shutdown())
 
+            self._event_loop.stop()
+            self._event_loop.run_forever()
             self._event_loop.close()
         self._socket_path = None
