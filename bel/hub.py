@@ -84,6 +84,11 @@ class Hub:
             self._server_task = None
         for client in self._clients.values():
             if client.rpc:
+                try:
+                    await client.rpc.send_request(None, '_shutdown')
+                except ConnectionResetError:
+                    # Client has already disconnected
+                    pass
                 client.rpc.stop()
             proc = await client.get_proc()
             await proc.wait()

@@ -12,6 +12,7 @@ def main():
     get_event_loop().set_debug(False)
 
     hub = Hub()
+    hub.launch_client('bel.scene_client', 'SceneClient')
     hub.launch_client('bel.glfw_client', 'GlfwClient')
     hub.run()
 
