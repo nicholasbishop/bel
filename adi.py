@@ -6,9 +6,9 @@ from bel.color import Color
 class Adi(BaseClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        #self._scene = self._create_dispatcher('bel.scene_client')
 
-    # async def on_start(self):
+    async def on_start(self):
+        #await self.scene.set_background_color(Color.random())
+        await self.scene.set_background_color('hello')
     #     while self.running:
-    #         #await self._scene.set_background_color(Color.random())
     #         await sleep(0.5)

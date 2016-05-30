@@ -8,17 +8,19 @@ from bel.proctalk.rpc import JsonRpc
 import bel.log
 
 
-# class Dispatcher:
-#     def __init__(self, rpc, client_id):
-#         self._rpc = rpc
-#         self._client_id = client_id
-
-#     def __call__(self
-
-
-class PeerApi:
-    def __init__(self, methods):
-        pass
+def create_peer_api(rpc, client_id, api):
+        methods = {}
+        for method in api:
+            # TODO, not sure what proper way of creating dynamic
+            # methods is
+            async def dmth(self, *params):
+                return await rpc.call('_hub_dispatch', {
+                    'client_id': client_id,
+                    'method': method,
+                    'params': params
+                })
+            methods[method] = dmth
+        return type('PeerApi', (object,), methods)
 
 
 def expose(method):
@@ -77,7 +79,8 @@ class BaseClient:
                 short_name = short_name.replace('bel.', '')
                 short_name = short_name.replace('.', '-')
                 self._log.debug('short_name=%s', short_name)
-                setattr(self, short_name, PeerApi(methods))
+                peer_api = create_peer_api(self._rpc, client_id, methods)
+                setattr(self, short_name, peer_api())
 
     @expose
     async def _shutdown(self):
