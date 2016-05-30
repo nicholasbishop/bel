@@ -6,6 +6,15 @@ from logging import DEBUG, getLogger
 from bel.ipc import JsonRpc
 import bel.log
 
+
+# class Dispatcher:
+#     def __init__(self, rpc, client_id):
+#         self._rpc = rpc
+#         self._client_id = client_id
+
+#     def __call__(self
+
+
 class BaseClient:
     def __init__(self, log, event_loop, rpc):
         rpc.set_handler(self)
@@ -15,12 +24,19 @@ class BaseClient:
         self._event_loop = event_loop
 
     @property
+    def rpc(self):
+        return self._rpc
+
+    @property
     def running(self):
         return self._running
 
     @running.setter
     def running(self, is_running):
         self._running = is_running
+
+    def create_dispatcher(self, client_id):
+        return Dispatcher(self._rpc, client_id)
 
     def stop(self):
         self._log.info('BaseClient.stop() called')

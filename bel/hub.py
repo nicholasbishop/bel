@@ -117,6 +117,15 @@ class Hub:
             proc_task = self._event_loop.create_task(self._run_client(client_id, module, cls))
             self._clients[module] = Client(self, client_id, proc_task)
 
+    async def _send_start_event(self):
+        # TODO: properly wait for all clients to connect
+        from asyncio import sleep
+        await sleep(0.5)
+    
+        for client in self._clients.values():
+            await client.rpc.send_request(None, 'on_start')
+
+
     def run(self):
         with _create_socket_dir() as socket_dir:
             socket_path = os.path.join(socket_dir, 'bel.socket')
@@ -124,6 +133,9 @@ class Hub:
 
             self._server_task = self._create_server_task(socket_path)
             self._socket_path = socket_path
+
+            self._event_loop.create_task(self._send_start_event())
+
             try:
                 self._event_loop.run_forever()
             except KeyboardInterrupt:
