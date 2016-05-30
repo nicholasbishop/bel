@@ -9,6 +9,11 @@ import bel.log
 
 
 def create_peer_api(api):
+    # pylint crashes when linting this function, not sure why yet.
+    # (pylint 1.5.5, astroid 1.4.5)
+    # for now just disable all checks here
+    #
+    # pylint: disable=all
     def init(self, rpc, client_id):
         self.rpc = rpc
         self.client_id = client_id
