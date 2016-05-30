@@ -1,4 +1,4 @@
-from asyncio import CancelledError, Event, iscoroutinefunction
+from asyncio import CancelledError, Event, iscoroutine
 
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
 from bel.proctalk.future_group import FutureGroup
@@ -104,10 +104,9 @@ class JsonRpc:
 
     async def call_method(self, request_id, method, params):
         self._log.debug('calling method %s', method.__name__)
-        if iscoroutinefunction(method):
-            result = await method(*params)
-        else:
-            result = method(*params)
+        result = method(*params)
+        if iscoroutine(result):
+            result = await result
         self._log.debug('method %s result: %r', method.__name__,
                         result)
         resp = self._formatter.response(result, request_id)
