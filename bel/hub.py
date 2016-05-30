@@ -11,11 +11,6 @@ def _create_socket_dir():
     return TemporaryDirectory(prefix='bel-')
 
 
-class Dispatcher:
-    def __init__(self):
-        pass
-
-
 class Client:
     def __init__(self, hub, client_id, proc_task):
         proc_task.add_done_callback(self._proc_exited)
@@ -51,11 +46,7 @@ class Client:
         self._methods = methods
 
     @expose
-    async def _hub_dispatch(self, dct):
-        dst = dct['dst']
-        method = dct['method']
-        params = dct['params']
-
+    async def _hub_dispatch(self, dst, method, params):
         client = self._hub.get_client(dst)
         return await client.rpc.call(method, params)
 

@@ -118,19 +118,19 @@ class JsonRpc:
         resp = self._formatter.response(result, request_id)
         await self._stream.write(resp)
 
-    async def _call(self, method, *args, **kwargs):
+    async def _call(self, method, list_params, dict_params):
         self._log.debug('call: %s', method)
 
-        any_args = len(args) != 0
-        any_kwargs = len(kwargs) != 0
+        any_list_params = len(list_params) != 0
+        any_dict_params = len(dict_params) != 0
         params = None
-        if any_args and any_kwargs:
-            raise RuntimeError('cannot call with both args and kwargs',
-                               method, args, kwargs)
-        elif any_args:
-            params = args
-        elif any_kwargs:
-            params = kwargs
+        if any_list_params and any_dict_params:
+            raise RuntimeError('cannot call with both list and dict params',
+                               method, list_params, dict_params)
+        elif any_list_params:
+            params = list_params
+        elif any_dict_params:
+            params = dict_params
         
         req = self._formatter.request(method, params)
         mid = req['id']
@@ -143,9 +143,9 @@ class JsonRpc:
         await self._stream.write(req)
         return in_progress_request
 
-    async def call_ignore_result(self, method, *args, **kwargs):
-        await self._call(method, *args, **kwargs)
+    async def call_ignore_result(self, _method, *args, **kwargs):
+        await self._call(_method, args, kwargs)
 
-    async def call(self, method, *args, **kwargs):
-        in_progress_request = await self._call(method, *args, **kwargs)
+    async def call(self, _method, *args, **kwargs):
+        in_progress_request = await self._call(_method, args, kwargs)
         return await in_progress_request.wait()
