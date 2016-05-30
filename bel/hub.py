@@ -79,7 +79,7 @@ class Hub:
         self._log.debug('checking clients for connection...')
         for client in self._clients.values():
             if client.rpc is None:
-                self._log.debug('client %s has not connected yet', client._client_id)
+                self._log.debug('client %s has not connected yet', client.client_id)
                 return
         self._log.info('all clients (%d) have connected', len(self._clients))
         self._all_clients_connected.set()
