@@ -4,6 +4,11 @@ from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
 from bel.proctalk.future_group import FutureGroup
 
 
+def expose(method):
+    method.expose = True
+    return method
+
+
 class InProgressRequest:
     def __init__(self):
         self._event = Event()
@@ -54,6 +59,8 @@ class JsonRpc:
         method = getattr(self._handler, method_name, None)
         if method is None:
             self._log.info('unhandled request: %s', method_name)
+        elif getattr(method, 'expose', False) is not True:
+            self._log.error('method is not exposed: %s', method_name)
         else:
             await self.call_method(mid, method, params)
 

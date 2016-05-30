@@ -4,14 +4,9 @@ from importlib import import_module
 from logging import DEBUG, getLogger
 from inspect import getmembers, ismethod
 
-from bel.proctalk.rpc import JsonRpc
+from bel.proctalk.rpc import JsonRpc, expose
 from bel.proctalk.peer_api import create_peer_api
 import bel.log
-
-
-def expose(method):
-    method.expose = True
-    return method
 
 
 class BaseClient:
@@ -66,6 +61,7 @@ class BaseClient:
         await self._rpc.call_ignore_result('shutdown')
         self.stop()
 
+    @expose
     def shutdown(self):
         self._event_loop.create_task(self._shutdown())
 

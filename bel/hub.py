@@ -5,7 +5,7 @@ import os
 import sys
 from tempfile import TemporaryDirectory
 
-from bel.proctalk.rpc import JsonRpc
+from bel.proctalk.rpc import JsonRpc, expose
 
 def _create_socket_dir():
     return TemporaryDirectory(prefix='bel-')
@@ -50,6 +50,7 @@ class Client:
         self._rpc.set_handler(self)
         self._methods = methods
 
+    @expose
     async def shutdown(self):
         self._rpc.stop()
         self._rpc = None
