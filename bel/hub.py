@@ -19,6 +19,7 @@ class Client:
         self._proc_task = proc_task
         self._hub = hub
         self._rpc = None
+        self._methods = None
 
     def _proc_exited(self, task):
         pass #self._hub.client_exited(self, task)
@@ -30,10 +31,11 @@ class Client:
     async def get_proc(self):
         return await self._proc_task
 
-    def connect(self, hub, rpc):
+    def connect(self, hub, rpc, methods):
         self._hub = hub
         self._rpc = rpc
         self._rpc.set_handler(self)
+        self._methods = methods
 
     async def shutdown(self):
         self._rpc.stop()
@@ -73,9 +75,10 @@ class Hub:
     async def _identify_client(self, rpc):
         dct = await rpc.call('_identify')
         client_id = dct['client_id']
+        methods = dct['methods']
         self._log.info('identity: %s', client_id)
         if client_id in self._clients:
-            self._clients[client_id].connect(self, rpc)
+            self._clients[client_id].connect(self, rpc, methods)
         else:
             self._log.error('unknown client: %s', client)
         self._check_if_all_clients_have_connected()
