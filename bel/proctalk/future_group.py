@@ -10,7 +10,7 @@ class FutureGroup:
             exc = future.exception()
             if exc is not None:
                 # TODO(nicholasbishop): handle in some way?
-                self._log.error('listen exception: %s', exc)
+                self._log.error('future exception: %r', exc)
 
     def cancel_all(self):
         for future in self._futures:

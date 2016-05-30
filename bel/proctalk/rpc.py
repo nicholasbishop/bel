@@ -1,4 +1,5 @@
 from asyncio import CancelledError, Event, iscoroutine
+from collections.abc import Mapping
 
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
 from bel.proctalk.future_group import FutureGroup
@@ -54,7 +55,7 @@ class JsonRpc:
                 raise KeyError('invalid key in request', key)
         method_name = msg['method']
         mid = msg['id']
-        params = msg['params']
+        params = msg.get('params')
         self._log.info('method call: %s(%r)', method_name, params)
         method = getattr(self._handler, method_name, None)
         if method is None:
@@ -104,7 +105,12 @@ class JsonRpc:
 
     async def call_method(self, request_id, method, params):
         self._log.debug('calling method %s', method.__name__)
-        result = method(*params)
+        if params is None:
+            result = method()
+        elif isinstance(params, Mapping):
+            result = method(**params)
+        else:
+            result = method(*params)
         if iscoroutine(result):
             result = await result
         self._log.debug('method %s result: %r', method.__name__,
@@ -112,9 +118,21 @@ class JsonRpc:
         resp = self._formatter.response(result, request_id)
         await self._stream.write(resp)
 
-    async def _call(self, method, *args):
-        self._log.info('call: %s(%r)', method, args)
-        req = self._formatter.request(method, args)
+    async def _call(self, method, *args, **kwargs):
+        self._log.debug('call: %s', method)
+
+        any_args = len(args) != 0
+        any_kwargs = len(kwargs) != 0
+        params = None
+        if any_args and any_kwargs:
+            raise RuntimeError('cannot call with both args and kwargs',
+                               method, args, kwargs)
+        elif any_args:
+            params = args
+        elif any_kwargs:
+            params = kwargs
+        
+        req = self._formatter.request(method, params)
         mid = req['id']
         if mid in self._in_progress_requests:
             # TODO
@@ -125,9 +143,9 @@ class JsonRpc:
         await self._stream.write(req)
         return in_progress_request
 
-    async def call_ignore_result(self, method, *args):
-        await self._call(method, *args)
+    async def call_ignore_result(self, method, *args, **kwargs):
+        await self._call(method, *args, **kwargs)
 
-    async def call(self, method, *args):
-        in_progress_request = await self._call(method, *args)
+    async def call(self, method, *args, **kwargs):
+        in_progress_request = await self._call(method, *args, **kwargs)
         return await in_progress_request.wait()

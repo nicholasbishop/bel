@@ -16,12 +16,14 @@ class JsonRpcFormatter:
         return request_id
 
     def request(self, method, params):
-        return {
+        dct = {
             'jsonrpc': self._version,
             'method': method,
-            'params': params,
             'id': self._take_request_id()
         }
+        if params is not None:
+            dct['params'] = params
+        return dct
 
     def response(self, result, request_id):
         return {
