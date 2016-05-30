@@ -95,7 +95,7 @@ class JsonRpc:
         mid = msg['id']
         in_progress_request = self._in_progress_requests.get(mid)
         if in_progress_request is None:
-            logging.error('response to unknown request', msg)
+            logging.error('response to unknown request: %r', msg)
         else:
             in_progress_request.response_received(result)
 
@@ -110,12 +110,7 @@ class JsonRpc:
         resp = self._formatter.response(result, request_id)
         return await self._stream.write(resp)
 
-    async def call_ignore_result(self, method, *args):
-        logging.info('call_ignore_result: %s(%r)', method, args)
-        req = self._formatter.request(method, args)
-        await self._stream.write(req)
-
-    async def call(self, method, *args):
+    async def _call(self, method, *args):
         logging.info('call: %s(%r)', method, args)
         req = self._formatter.request(method, args)
         mid = req['id']
@@ -126,4 +121,11 @@ class JsonRpc:
         in_progress_request = InProgressRequest()
         self._in_progress_requests[mid] = in_progress_request
         await self._stream.write(req)
+        return in_progress_request
+
+    async def call_ignore_result(self, method, *args):
+        await self._call(method, *args)
+
+    async def call(self, method, *args):
+        in_progress_request = await self._call(method, *args)
         return await in_progress_request.wait()

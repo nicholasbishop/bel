@@ -16,6 +16,11 @@ import bel.log
 #     def __call__(self
 
 
+class PeerApi:
+    def __init__(self, methods):
+        pass
+
+
 def expose(method):
     method.expose = True
     return method
@@ -29,7 +34,6 @@ class BaseClient:
         self._running = True
         self._event_loop = event_loop
         self._client_id = client_id
-        self._peers = None
 
     @property
     def rpc(self):
@@ -63,10 +67,17 @@ class BaseClient:
             'methods': methods
         }
 
-    # TODO, better name
     @expose
+    # TODO, better name
     def _tell_peers(self, peers):
-        self._peers = peers
+        for client_id, methods in peers.items():
+            if client_id != self._client_id:
+                # TODO, formalize this better
+                short_name = client_id.replace('_client', '')
+                short_name = short_name.replace('bel.', '')
+                short_name = short_name.replace('.', '-')
+                self._log.debug('short_name=%s', short_name)
+                setattr(self, short_name, PeerApi(methods))
 
     @expose
     async def _shutdown(self):
