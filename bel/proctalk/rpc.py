@@ -1,4 +1,4 @@
-from asyncio import Event, get_event_loop, iscoroutinefunction
+from asyncio import CancelledError, Event, get_event_loop, iscoroutinefunction
 import logging
 
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
@@ -18,6 +18,31 @@ class InProgressRequest:
         return self._result
 
 
+# TODO, separate file probably
+class FutureGroup:
+    def __init__(self, event_loop):
+        self._event_loop = event_loop
+        self._futures = []
+
+    def _cb_done(self, future):
+        self._futures.remove(future)
+        if not future.cancelled():
+            exc = future.exception()
+            if exc is not None:
+                # TODO(nicholasbishop): handle in some way?
+                logging.error('listen exception: %s', exc)
+
+    def cancel_all(self):
+        for future in self._futures:
+            future.cancel()
+
+    def create_task(self, coro):
+        task = self._event_loop.create_task(coro)
+        task.add_done_callback(self._cb_done)
+        self._futures.append(task)
+        return task
+
+
 class JsonRpc:
     # TODO: remove name
     def __init__(self, name, reader, writer, event_loop=None):
@@ -27,22 +52,17 @@ class JsonRpc:
         self._running = True
         self._handler = None
         self._event_loop = event_loop or get_event_loop()
+        self._future_group = FutureGroup(self._event_loop)
+
         self._create_listen_task()
 
     def _create_listen_task(self):
-        self._listen_task = self._event_loop.create_task(self._listen())
-        def handle_exception(task):
-            if task.cancelled():
-                return
-            exc = task.exception()
-            if exc is not None:
-                # TODO, handle in some way
-                logging.error('listen exception: %s', exc)
-        self._listen_task.add_done_callback(handle_exception)
+        if self._running:
+            self._future_group.create_task(self._listen())
 
     def stop(self):
         self._running = False
-        self._listen_task.cancel()
+        self._future_group.cancel_all()
 
     def set_handler(self, handler):
         self._handler = handler
@@ -60,11 +80,16 @@ class JsonRpc:
             # TODO
             print('unhandled request', msg)
         else:
-            get_event_loop().create_task(self.call_method(mid, method,
-                                                          params))
+            await self.call_method(mid, method, params)
 
     async def _listen(self):
         msg = await self._stream.read()
+
+        # Immediately create the new listen task, then proceed to
+        # handle the current message. This allows the rest of the
+        # message handling to block without also blocking new
+        # messages.
+        self._create_listen_task()
 
         try:
             if msg.get('jsonrpc') != '2.0':
@@ -80,12 +105,8 @@ class JsonRpc:
             else:
                 # TODO
                 logging.error('invalid message: %r', msg)
-        except Exception:
-            logging.exception('unhandled exception')
-            raise
-        finally:
-            if self._running:
-                self._create_listen_task()
+        except CancelledError:
+            logging.info('rpc listen canceled')
 
     def _handle_response(self, msg):
         for key in msg:
@@ -108,7 +129,7 @@ class JsonRpc:
         logging.debug('method %s result: %r', method.__name__,
                       result)
         resp = self._formatter.response(result, request_id)
-        return await self._stream.write(resp)
+        await self._stream.write(resp)
 
     async def _call(self, method, *args):
         logging.info('call: %s(%r)', method, args)
