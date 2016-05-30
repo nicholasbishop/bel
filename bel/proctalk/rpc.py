@@ -53,8 +53,7 @@ class JsonRpc:
         logging.info('method call: %s(%r)', method_name, params)
         method = getattr(self._handler, method_name, None)
         if method is None:
-            # TODO
-            print('unhandled request', msg)
+            logging.info('unhandled request: %s', method_name)
         else:
             await self.call_method(mid, method, params)
 
@@ -77,7 +76,7 @@ class JsonRpc:
                 self._handle_response(msg)
             elif 'error' in msg:
                 # TODO
-                print('received error', msg)
+                logging.error('received error: %r', msg)
             else:
                 # TODO
                 logging.error('invalid message: %r', msg)
