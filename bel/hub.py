@@ -51,12 +51,20 @@ class Client:
         self._methods = methods
 
     @expose
+    async def _hub_dispatch(self, dct):
+        dst = dct['dst']
+        method = dct['method']
+        params = dct['params']
+
+        client = self._hub.get_client(dst)
+        return await client.rpc.call(method, params)
+
+    @expose
     async def shutdown(self):
         self._rpc.stop()
         self._rpc = None
         self._hub.event_loop.create_task(self._hub.shutdown())
         self._hub = None
-
 
 
 class Hub:
@@ -67,6 +75,9 @@ class Hub:
         self._clients = {}
         self._server_task = None
         self._all_clients_connected = Event()
+
+    def get_client(self, client_id):
+        return self._clients[client_id]
 
     @property
     def event_loop(self):

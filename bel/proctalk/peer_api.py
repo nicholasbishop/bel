@@ -7,7 +7,7 @@
 def make_method(method_name):
     async def method(self, *params):
         return await self.rpc.call('_hub_dispatch', {
-            'client_id': self.client_id,
+            'dst': self.client_id,
             'method': method_name,
             'params': params
         })
