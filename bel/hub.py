@@ -11,6 +11,11 @@ def _create_socket_dir():
     return TemporaryDirectory(prefix='bel-')
 
 
+class Dispatcher:
+    def __init__(self):
+        pass
+
+
 class Client:
     def __init__(self, hub, client_id, proc_task):
         proc_task.add_done_callback(self._proc_exited)
@@ -20,6 +25,14 @@ class Client:
         self._hub = hub
         self._rpc = None
         self._methods = None
+
+    @property
+    def methods(self):
+        return self._methods
+
+    @property
+    def client_id(self):
+        return self._client_id
 
     def _proc_exited(self, task):
         pass #self._hub.client_exited(self, task)
@@ -134,12 +147,19 @@ class Hub:
             proc_task = self._event_loop.create_task(self._run_client(client_id, module, cls))
             self._clients[module] = Client(self, client_id, proc_task)
 
+    async def _broadcast_ignore_result(self, method, *params):
+        for client in self._clients.values():
+            await client.rpc.call_ignore_result(method, *params)
+
     async def _send_start_event(self):
         await self._all_clients_connected.wait()
 
+        peers = {}
         for client in self._clients.values():
-            await client.rpc.call_ignore_result('on_start')
+            peers[client.client_id] = client.methods
 
+        await self._broadcast_ignore_result('_tell_peers', peers)
+        await self._broadcast_ignore_result('on_start')
 
     def run(self):
         with _create_socket_dir() as socket_dir:

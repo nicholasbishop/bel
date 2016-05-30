@@ -29,6 +29,7 @@ class BaseClient:
         self._running = True
         self._event_loop = event_loop
         self._client_id = client_id
+        self._peers = None
 
     @property
     def rpc(self):
@@ -61,6 +62,11 @@ class BaseClient:
             'client_id': self._client_id,
             'methods': methods
         }
+
+    # TODO, better name
+    @expose
+    def _tell_peers(self, peers):
+        self._peers = peers
 
     @expose
     async def _shutdown(self):
