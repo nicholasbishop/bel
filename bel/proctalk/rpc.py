@@ -1,5 +1,4 @@
 from asyncio import CancelledError, Event, iscoroutinefunction
-import logging
 
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
 from bel.proctalk.future_group import FutureGroup
@@ -21,14 +20,15 @@ class InProgressRequest:
 
 class JsonRpc:
     # TODO: remove name
-    def __init__(self, name, reader, writer, event_loop):
+    def __init__(self, name, reader, writer, event_loop, log):
+        self._log = log
         self._stream = JsonStream(reader, writer)
         self._formatter = JsonRpcFormatter(name)
         self._in_progress_requests = {}
         self._running = True
         self._handler = None
         self._event_loop = event_loop
-        self._future_group = FutureGroup(self._event_loop)
+        self._future_group = FutureGroup(self._event_loop, self._log)
 
         self._create_listen_task()
 
@@ -50,10 +50,10 @@ class JsonRpc:
         method_name = msg['method']
         mid = msg['id']
         params = msg['params']
-        logging.info('method call: %s(%r)', method_name, params)
+        self._log.info('method call: %s(%r)', method_name, params)
         method = getattr(self._handler, method_name, None)
         if method is None:
-            logging.info('unhandled request: %s', method_name)
+            self._log.info('unhandled request: %s', method_name)
         else:
             await self.call_method(mid, method, params)
 
@@ -68,7 +68,7 @@ class JsonRpc:
 
         try:
             if msg.get('jsonrpc') != '2.0':
-                logging.error('invalid message type: %r', msg)
+                self._log.error('invalid message type: %r', msg)
 
             if 'method' in msg:
                 await self._handle_request(msg)
@@ -76,12 +76,12 @@ class JsonRpc:
                 self._handle_response(msg)
             elif 'error' in msg:
                 # TODO
-                logging.error('received error: %r', msg)
+                self._log.error('received error: %r', msg)
             else:
                 # TODO
-                logging.error('invalid message: %r', msg)
+                self._log.error('invalid message: %r', msg)
         except CancelledError:
-            logging.info('rpc listen canceled')
+            self._log.info('rpc listen canceled')
 
     def _handle_response(self, msg):
         for key in msg:
@@ -91,23 +91,23 @@ class JsonRpc:
         mid = msg['id']
         in_progress_request = self._in_progress_requests.get(mid)
         if in_progress_request is None:
-            logging.error('response to unknown request: %r', msg)
+            self._log.error('response to unknown request: %r', msg)
         else:
             in_progress_request.response_received(result)
 
     async def call_method(self, request_id, method, params):
-        logging.debug('calling method %s', method.__name__)
+        self._log.debug('calling method %s', method.__name__)
         if iscoroutinefunction(method):
             result = await method(*params)
         else:
             result = method(*params)
-        logging.debug('method %s result: %r', method.__name__,
+        self._log.debug('method %s result: %r', method.__name__,
                       result)
         resp = self._formatter.response(result, request_id)
         await self._stream.write(resp)
 
     async def _call(self, method, *args):
-        logging.info('call: %s(%r)', method, args)
+        self._log.info('call: %s(%r)', method, args)
         req = self._formatter.request(method, args)
         mid = req['id']
         if mid in self._in_progress_requests:

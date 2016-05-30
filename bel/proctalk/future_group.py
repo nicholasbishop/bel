@@ -1,6 +1,7 @@
 class FutureGroup:
-    def __init__(self, event_loop):
+    def __init__(self, event_loop, log):
         self._event_loop = event_loop
+        self._log = log
         self._futures = []
 
     def _cb_done(self, future):
@@ -9,7 +10,7 @@ class FutureGroup:
             exc = future.exception()
             if exc is not None:
                 # TODO(nicholasbishop): handle in some way?
-                logging.error('listen exception: %s', exc)
+                self._log.error('listen exception: %s', exc)
 
     def cancel_all(self):
         for future in self._futures:
