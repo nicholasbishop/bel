@@ -102,7 +102,7 @@ class JsonRpc:
         else:
             result = method(*params)
         self._log.debug('method %s result: %r', method.__name__,
-                      result)
+                        result)
         resp = self._formatter.response(result, request_id)
         await self._stream.write(resp)
 
