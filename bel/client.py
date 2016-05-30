@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from asyncio import get_event_loop, open_unix_connection
 from importlib import import_module
 from logging import DEBUG, getLogger
+from inspect import getmembers, ismethod
 
 from bel.proctalk.rpc import JsonRpc
 import bel.log
@@ -52,7 +53,14 @@ class BaseClient:
 
     @expose
     def _identify(self):
-        return self._client_id
+        methods = []
+        for method_name, method in getmembers(self, ismethod):
+            if getattr(method, 'expose', False) is True:
+                methods.append(method_name)
+        return {
+            'client_id': self._client_id,
+            'methods': methods
+        }
 
     @expose
     async def _shutdown(self):

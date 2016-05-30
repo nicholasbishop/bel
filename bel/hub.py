@@ -71,12 +71,13 @@ class Hub:
         self._all_clients_connected.set()
 
     async def _identify_client(self, rpc):
-        identity = await rpc.call('_identify')
-        self._log.info('identity: %s', identity)
-        if identity in self._clients:
-            self._clients[identity].connect(self, rpc)
+        dct = await rpc.call('_identify')
+        client_id = dct['client_id']
+        self._log.info('identity: %s', client_id)
+        if client_id in self._clients:
+            self._clients[client_id].connect(self, rpc)
         else:
-            self._log.error('unknown client: %s', identity)
+            self._log.error('unknown client: %s', client)
         self._check_if_all_clients_have_connected()
 
     def _on_client_connect(self, reader, writer):
