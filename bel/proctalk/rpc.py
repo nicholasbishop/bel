@@ -68,7 +68,7 @@ class JsonRpc:
 
         try:
             if msg.get('jsonrpc') != '2.0':
-                logging.error('invalid message type', msg)
+                logging.error('invalid message type: %r', msg)
 
             if 'method' in msg:
                 await self._handle_request(msg)
@@ -79,7 +79,7 @@ class JsonRpc:
                 print('received error', msg)
             else:
                 # TODO
-                logging.error('invalid message', msg)
+                logging.error('invalid message: %r', msg)
         except Exception:
             logging.exception('unhandled exception')
             raise
