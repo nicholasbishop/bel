@@ -11,6 +11,9 @@ class FutureGroup:
             if exc is not None:
                 # TODO(nicholasbishop): handle in some way?
                 self._log.error('future exception: %r', exc)
+                print_stack = getattr(future, 'print_stack', None)
+                if print_stack is not None:
+                    print_stack()
 
     def cancel_all(self):
         for future in self._futures:
