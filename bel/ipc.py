@@ -1,4 +1,4 @@
-from asyncio import get_event_loop
+from asyncio import get_event_loop, iscoroutinefunction
 import json
 import logging
 
@@ -143,16 +143,13 @@ class JsonRpc:
             params = msg.get('params', [])
             logging.info('method call: %s(%r)', method_name, params)
 
-            if method_name == '__identify':
-                get_event_loop().create_task(self._report_identity(mid))
+            method = getattr(self._handler, method_name, None)
+            if method is None:
+                # TODO
+                print('unhandled request', msg)
             else:
-                method = getattr(self._handler, method_name, None)
-                if method is None:
-                    # TODO
-                    print('unhandled request', msg)
-                else:
-                    get_event_loop().create_task(self.call_method(mid, method,
-                                                                  params))
+                get_event_loop().create_task(self.call_method(mid, method,
+                                                              params))
         elif result is not None:
             self._handle_response(result, mid)
         elif error is not None:
@@ -170,14 +167,13 @@ class JsonRpc:
 
     async def call_method(self, request_id, method, params):
         logging.debug('calling method %s', method.__name__)
-        result = await method(*params)
+        if iscoroutinefunction(method):
+            result = await method(*params)
+        else:
+            result = method(*params)
+        logging.debug('method %s result: %r', method.__name__,
+                      result)
         resp = self._formatter.response(result, request_id)
-        return await self._stream.write(resp)
-
-    async def _report_identity(self, request_id):
-        identity = self._formatter.name
-        logging.debug('reporting identity as "%s"', identity)
-        resp = self._formatter.response(identity, request_id)
         return await self._stream.write(resp)
 
     async def send_request(self, callback, method, *args):

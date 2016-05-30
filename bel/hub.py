@@ -64,7 +64,7 @@ class Hub:
                 self._clients[identity].connect(self, rpc)
             else:
                 self._log.error('unknown client: %s', identity)
-        await rpc.send_request(match_identity, '__identify')
+        await rpc.send_request(match_identity, '_identify')
 
     def _on_client_connect(self, reader, writer):
         self._log.info('client connected')
@@ -120,7 +120,7 @@ class Hub:
     async def _send_start_event(self):
         # TODO: properly wait for all clients to connect
         from asyncio import sleep
-        await sleep(0.5)
+        await sleep(2.0)
     
         for client in self._clients.values():
             await client.rpc.send_request(None, 'on_start')

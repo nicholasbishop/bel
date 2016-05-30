@@ -15,13 +15,19 @@ import bel.log
 #     def __call__(self
 
 
+def expose(method):
+    method.expose = True
+    return method
+
+
 class BaseClient:
-    def __init__(self, log, event_loop, rpc):
+    def __init__(self, log, event_loop, rpc, client_id):
         rpc.set_handler(self)
         self._log = log
         self._rpc = rpc
         self._running = True
         self._event_loop = event_loop
+        self._client_id = client_id
 
     @property
     def rpc(self):
@@ -44,6 +50,11 @@ class BaseClient:
         self._rpc.stop()
         self._event_loop.stop()
 
+    @expose
+    def _identify(self):
+        return self._client_id
+
+    @expose
     async def _shutdown(self):
         await self._rpc.send_request(None, 'shutdown')
         self.stop()
@@ -65,10 +76,11 @@ def parse_args():
 async def connect(log, event_loop, cli_args):
     reader, writer = await open_unix_connection(cli_args.socket_path)
 
+    # TODO: removing client_id from JsonRpc
     rpc = JsonRpc(cli_args.client_id, reader, writer)
     mod = import_module(cli_args.module)
     cls = getattr(mod, cli_args.cls)
-    return cls(log, event_loop, rpc)
+    return cls(log, event_loop, rpc, cli_args.client_id)
 
 
 def main():
