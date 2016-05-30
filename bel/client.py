@@ -108,7 +108,7 @@ async def connect(log, event_loop, cli_args):
     reader, writer = await open_unix_connection(cli_args.socket_path)
 
     # TODO: removing client_id from JsonRpc
-    rpc = JsonRpc(cli_args.client_id, reader, writer)
+    rpc = JsonRpc(cli_args.client_id, reader, writer, event_loop)
     mod = import_module(cli_args.module)
     cls = getattr(mod, cli_args.cls)
     return cls(log, event_loop, rpc, cli_args.client_id)

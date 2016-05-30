@@ -1,4 +1,4 @@
-from asyncio import CancelledError, Event, get_event_loop, iscoroutinefunction
+from asyncio import CancelledError, Event, iscoroutinefunction
 import logging
 
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
@@ -21,13 +21,13 @@ class InProgressRequest:
 
 class JsonRpc:
     # TODO: remove name
-    def __init__(self, name, reader, writer, event_loop=None):
+    def __init__(self, name, reader, writer, event_loop):
         self._stream = JsonStream(reader, writer)
         self._formatter = JsonRpcFormatter(name)
         self._in_progress_requests = {}
         self._running = True
         self._handler = None
-        self._event_loop = event_loop or get_event_loop()
+        self._event_loop = event_loop
         self._future_group = FutureGroup(self._event_loop)
 
         self._create_listen_task()

@@ -98,7 +98,7 @@ class Hub:
 
     def _on_client_connect(self, reader, writer):
         self._log.info('client connected')
-        rpc = JsonRpc('hub', reader, writer)
+        rpc = JsonRpc('hub', reader, writer, self._event_loop)
         self._event_loop.create_task(self._identify_client(rpc))
 
     def _create_server_task(self, socket_path):
