@@ -8,19 +8,24 @@ from bel.proctalk.rpc import JsonRpc
 import bel.log
 
 
-def create_peer_api(rpc, client_id, api):
-        methods = {}
-        for method in api:
-            # TODO, not sure what proper way of creating dynamic
-            # methods is
-            async def dmth(self, *params):
-                return await rpc.call('_hub_dispatch', {
-                    'client_id': client_id,
-                    'method': method,
-                    'params': params
-                })
-            methods[method] = dmth
-        return type('PeerApi', (object,), methods)
+def create_peer_api(api):
+    def init(self, rpc, client_id):
+        self.rpc = rpc
+        self.client_id = client_id
+
+    def make_method(method_name):
+        async def method(self, *params):
+            return await self.rpc.call('_hub_dispatch', {
+                'client_id': self.client_id,
+                'method': method_name,
+                'params': params
+            })
+        return method
+
+    members = {'__init__': init}
+    for method_name in api:
+        members[method_name] = make_method(method_name)
+    return type('PeerApi', (object,), members)
 
 
 def expose(method):
@@ -49,9 +54,6 @@ class BaseClient:
     def running(self, is_running):
         self._running = is_running
 
-    def create_dispatcher(self, client_id):
-        return Dispatcher(self._rpc, client_id)
-
     def stop(self):
         self._log.info('BaseClient.stop() called')
         self._running = False
@@ -79,8 +81,8 @@ class BaseClient:
                 short_name = short_name.replace('bel.', '')
                 short_name = short_name.replace('.', '-')
                 self._log.debug('short_name=%s', short_name)
-                peer_api = create_peer_api(self._rpc, client_id, methods)
-                setattr(self, short_name, peer_api())
+                peer_api = create_peer_api(methods)
+                setattr(self, short_name, peer_api(self._rpc, client_id))
 
     @expose
     async def _shutdown(self):
