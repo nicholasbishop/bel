@@ -41,6 +41,7 @@ class BaseClient:
         self._running = True
         self._event_loop = event_loop
         self._client_id = client_id
+        self._peers = {}
 
     @property
     def rpc(self):
@@ -76,13 +77,8 @@ class BaseClient:
     def _tell_peers(self, peers):
         for client_id, methods in peers.items():
             if client_id != self._client_id:
-                # TODO, formalize this better
-                short_name = client_id.replace('_client', '')
-                short_name = short_name.replace('bel.', '')
-                short_name = short_name.replace('.', '-')
-                self._log.debug('short_name=%s', short_name)
                 peer_api = create_peer_api(methods)
-                setattr(self, short_name, peer_api(self._rpc, client_id))
+                self._peers[client_id] = peer_api(self._rpc, client_id)
 
     @expose
     async def _shutdown(self):
