@@ -1,4 +1,5 @@
-from asyncio import create_subprocess_exec, get_event_loop, start_unix_server
+from asyncio import (Event, create_subprocess_exec, get_event_loop,
+                     start_unix_server)
 from logging import getLogger
 import os
 import sys
@@ -49,6 +50,7 @@ class Hub:
         self._socket_path = None
         self._clients = {}
         self._server_task = None
+        self._all_clients_connected = Event()
 
     @property
     def event_loop(self):
@@ -58,12 +60,24 @@ class Hub:
         self._log.info('client exited: %r', task.result())
         # TODO, handle in some way...
 
+    # TODO, name
+    def _check_if_all_clients_have_connected(self):
+        self._log.debug('checking clients for connection...')
+        for client in self._clients.values():
+            if client.rpc is None:
+                self._log.debug('client %s has not connected yet', client._client_id)
+                return
+        self._log.info('all clients (%d) have connected', len(self._clients))
+        self._all_clients_connected.set()
+
     async def _identify_client(self, rpc):
         def match_identity(identity):
+            self._log.info('identity: %s', identity)
             if identity in self._clients:
                 self._clients[identity].connect(self, rpc)
             else:
                 self._log.error('unknown client: %s', identity)
+            self._check_if_all_clients_have_connected()
         await rpc.send_request(match_identity, '_identify')
 
     def _on_client_connect(self, reader, writer):
@@ -118,9 +132,7 @@ class Hub:
             self._clients[module] = Client(self, client_id, proc_task)
 
     async def _send_start_event(self):
-        # TODO: properly wait for all clients to connect
-        from asyncio import sleep
-        await sleep(2.0)
+        await self._all_clients_connected.wait()
     
         for client in self._clients.values():
             await client.rpc.send_request(None, 'on_start')
