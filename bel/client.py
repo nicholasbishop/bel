@@ -56,7 +56,7 @@ class BaseClient:
 
     @expose
     async def _shutdown(self):
-        await self._rpc.send_request(None, 'shutdown')
+        await self._rpc.call_ignore_result('shutdown')
         self.stop()
 
     def shutdown(self):

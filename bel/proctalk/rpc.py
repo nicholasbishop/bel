@@ -1,14 +1,29 @@
-from asyncio import get_event_loop, iscoroutinefunction
+from asyncio import Event, get_event_loop, iscoroutinefunction
 import logging
 
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
 
 
+class InProgressRequest:
+    def __init__(self):
+        self._event = Event()
+        self._result = None
+
+    def response_received(self, result):
+        self._result = result
+        self._event.set()
+
+    async def wait(self):
+        await self._event.wait()
+        return self._result
+
+
 class JsonRpc:
+    # TODO: remove name
     def __init__(self, name, reader, writer, event_loop=None):
         self._stream = JsonStream(reader, writer)
         self._formatter = JsonRpcFormatter(name)
-        self._callbacks = {}
+        self._in_progress_requests = {}
         self._running = True
         self._handler = None
         self._event_loop = event_loop or get_event_loop()
@@ -78,8 +93,11 @@ class JsonRpc:
                 raise KeyError('invalid key in request', key)
         result = msg['result']
         mid = msg['id']
-        callback = self._callbacks[mid]
-        callback(result)
+        in_progress_request = self._in_progress_requests.get(mid)
+        if in_progress_request is None:
+            logging.error('response to unknown request', msg)
+        else:
+            in_progress_request.response_received(result)
 
     async def call_method(self, request_id, method, params):
         logging.debug('calling method %s', method.__name__)
@@ -92,13 +110,20 @@ class JsonRpc:
         resp = self._formatter.response(result, request_id)
         return await self._stream.write(resp)
 
-    async def send_request(self, callback, method, *args):
-        logging.info('send_request: %s(%r)', method, args)
+    async def call_ignore_result(self, method, *args):
+        logging.info('call_ignore_result: %s(%r)', method, args)
         req = self._formatter.request(method, args)
-        if callback is not None:
-            rid = req['id']
-            if rid in self._callbacks:
-                # TODO
-                raise NotImplementedError(req)
-            self._callbacks[rid] = callback
-        return await self._stream.write(req)
+        await self._stream.write(req)
+
+    async def call(self, method, *args):
+        logging.info('call: %s(%r)', method, args)
+        req = self._formatter.request(method, args)
+        mid = req['id']
+        if mid in self._in_progress_requests:
+            # TODO
+            raise NotImplementedError(req)
+
+        in_progress_request = InProgressRequest()
+        self._in_progress_requests[mid] = in_progress_request
+        await self._stream.write(req)
+        return await in_progress_request.wait()

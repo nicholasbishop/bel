@@ -71,14 +71,13 @@ class Hub:
         self._all_clients_connected.set()
 
     async def _identify_client(self, rpc):
-        def match_identity(identity):
-            self._log.info('identity: %s', identity)
-            if identity in self._clients:
-                self._clients[identity].connect(self, rpc)
-            else:
-                self._log.error('unknown client: %s', identity)
-            self._check_if_all_clients_have_connected()
-        await rpc.send_request(match_identity, '_identify')
+        identity = await rpc.call('_identify')
+        self._log.info('identity: %s', identity)
+        if identity in self._clients:
+            self._clients[identity].connect(self, rpc)
+        else:
+            self._log.error('unknown client: %s', identity)
+        self._check_if_all_clients_have_connected()
 
     def _on_client_connect(self, reader, writer):
         self._log.info('client connected')
@@ -99,7 +98,7 @@ class Hub:
         for client in self._clients.values():
             if client.rpc:
                 try:
-                    await client.rpc.send_request(None, '_shutdown')
+                    await client.rpc.call_ignore_result('_shutdown')
                 except ConnectionResetError:
                     # Client has already disconnected
                     pass
@@ -135,7 +134,7 @@ class Hub:
         await self._all_clients_connected.wait()
 
         for client in self._clients.values():
-            await client.rpc.send_request(None, 'on_start')
+            await client.rpc.call_ignore_result('on_start')
 
 
     def run(self):
