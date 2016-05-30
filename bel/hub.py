@@ -75,8 +75,7 @@ class Hub:
         self._log.info('client exited: %r', task.result())
         # TODO, handle in some way...
 
-    # TODO, name
-    def _check_if_all_clients_have_connected(self):
+    def _check_all_clients_connected(self):
         self._log.debug('checking clients for connection...')
         for client in self._clients.values():
             if client.rpc is None:
@@ -94,7 +93,7 @@ class Hub:
             self._clients[client_id].connect(self, rpc, methods)
         else:
             self._log.error('unknown client: %s', client)
-        self._check_if_all_clients_have_connected()
+        self._check_all_clients_connected()
 
     def _on_client_connect(self, reader, writer):
         self._log.info('client connected')
