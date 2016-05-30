@@ -1,19 +1,7 @@
 from asyncio import get_event_loop, iscoroutinefunction
 import logging
 
-
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
-
-
-def exactly_one_of(*items):
-    found = False
-    for item in items:
-        if item is True:
-            if found is True:
-                return False
-            else:
-                found = True
-    return found
 
 
 class JsonRpc:
@@ -44,45 +32,52 @@ class JsonRpc:
     def set_handler(self, handler):
         self._handler = handler
 
+    async def _handle_request(self, msg):
+        for key in msg:
+            if key not in ('id', 'jsonrpc', 'method', 'params'):
+                raise KeyError('invalid key in request', key)
+        method_name = msg['method']
+        mid = msg['id']
+        params = msg['params']
+        logging.info('method call: %s(%r)', method_name, params)
+        method = getattr(self._handler, method_name, None)
+        if method is None:
+            # TODO
+            print('unhandled request', msg)
+        else:
+            get_event_loop().create_task(self.call_method(mid, method,
+                                                          params))
+
     async def _listen(self):
         msg = await self._stream.read()
-        if msg['jsonrpc'] != '2.0':
-            # TODO
-            raise NotImplementedError(msg)
-        method_name = msg.get('method')
-        result = msg.get('result')
-        error = msg.get('error')
 
-        if not exactly_one_of('method' in msg,
-                              'result' in msg,
-                              'error' in msg):
-            # TODO
-            raise NotImplementedError(msg)
+        try:
+            if msg.get('jsonrpc') != '2.0':
+                logging.error('invalid message type', msg)
 
-        mid = msg.get('id')
-        if method_name is not None:
-            params = msg.get('params', [])
-            logging.info('method call: %s(%r)', method_name, params)
-
-            method = getattr(self._handler, method_name, None)
-            if method is None:
+            if 'method' in msg:
+                await self._handle_request(msg)
+            elif 'result' in msg:
+                self._handle_response(msg)
+            elif 'error' in msg:
                 # TODO
-                print('unhandled request', msg)
+                print('received error', msg)
             else:
-                get_event_loop().create_task(self.call_method(mid, method,
-                                                              params))
-        elif result is not None:
-            self._handle_response(result, mid)
-        elif error is not None:
-            # TODO
-            print('received error', msg)
+                # TODO
+                logging.error('invalid message', msg)
+        except Exception:
+            logging.exception('unhandled exception')
+            raise
+        finally:
+            if self._running:
+                self._create_listen_task()
 
-        # TODO, exception handling
-
-        if self._running:
-            self._create_listen_task()
-
-    def _handle_response(self, result, mid):
+    def _handle_response(self, msg):
+        for key in msg:
+            if key not in ('id', 'jsonrpc', 'result'):
+                raise KeyError('invalid key in request', key)
+        result = msg['result']
+        mid = msg['id']
         callback = self._callbacks[mid]
         callback(result)
 
