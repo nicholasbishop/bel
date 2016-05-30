@@ -5,7 +5,7 @@ import os
 import sys
 from tempfile import TemporaryDirectory
 
-from bel.ipc import JsonRpc
+from bel.proctalk.rpc import JsonRpc
 
 def _create_socket_dir():
     return TemporaryDirectory(prefix='bel-')
@@ -133,7 +133,7 @@ class Hub:
 
     async def _send_start_event(self):
         await self._all_clients_connected.wait()
-    
+
         for client in self._clients.values():
             await client.rpc.send_request(None, 'on_start')
 

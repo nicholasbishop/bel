@@ -3,7 +3,7 @@ from asyncio import get_event_loop, open_unix_connection
 from importlib import import_module
 from logging import DEBUG, getLogger
 
-from bel.ipc import JsonRpc
+from bel.proctalk.rpc import JsonRpc
 import bel.log
 
 
