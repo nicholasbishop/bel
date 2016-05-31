@@ -79,10 +79,8 @@ class Hub:
         self._log.info('client %s exited: %r', client.client_id, task.result())
 
     def _check_all_clients_connected(self):
-        self._log.debug('checking clients for connection...')
         for client in self._clients.values():
             if client.rpc is None:
-                self._log.debug('client %s has not connected yet', client.client_id)
                 return
         self._log.info('all clients (%d) have connected', len(self._clients))
         self._all_clients_connected.set()
@@ -91,7 +89,6 @@ class Hub:
         dct = await rpc.call('_identify')
         client_id = dct['client_id']
         methods = dct['methods']
-        self._log.info('identity: %s', client_id)
         if client_id in self._clients:
             self._clients[client_id].connect(self, rpc, methods)
         else:
