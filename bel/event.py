@@ -1,12 +1,12 @@
-from enum import Enum, unique
+from enum import IntEnum, unique
 
 @unique
-class ButtonAction(Enum):
+class ButtonAction(IntEnum):
     Press = 0,
     Release = 1
 
 @unique
-class Button(Enum):
+class Button(IntEnum):
     Left = 0,
     Middle = 1,
     Right = 2
@@ -26,7 +26,8 @@ class MouseButtonEvent:
         return self._action
 
     def serialize(self):
-        return (self._button, self._action)
+        return (self._button.value, self._action.value)
 
-    def deserialize(self, seq):
+    @classmethod
+    def deserialize(cls, seq):
         return MouseButtonEvent(*seq)
