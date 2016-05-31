@@ -65,6 +65,22 @@ class JsonRpc:
         else:
             await self.call_method(mid, method, params)
 
+    def _handle_response(self, msg):
+        for key in msg:
+            if key not in ('id', 'jsonrpc', 'result'):
+                raise KeyError('invalid key in request', key)
+        result = msg['result']
+        mid = msg['id']
+        in_progress_request = self._in_progress_requests.get(mid)
+        if in_progress_request is None:
+            self._log.error('response to unknown request: %r', msg)
+        else:
+            in_progress_request.response_received(result)
+
+    def _handle_error(self, msg):
+        # TODO
+        self._log.error('received error: %r', msg)
+
     async def _listen(self):
         msg = await self._stream.read()
 
@@ -83,25 +99,11 @@ class JsonRpc:
             elif 'result' in msg:
                 self._handle_response(msg)
             elif 'error' in msg:
-                # TODO
-                self._log.error('received error: %r', msg)
+                self._handle_error(msg)
             else:
-                # TODO
                 self._log.error('invalid message: %r', msg)
         except CancelledError:
             self._log.info('rpc listen canceled')
-
-    def _handle_response(self, msg):
-        for key in msg:
-            if key not in ('id', 'jsonrpc', 'result'):
-                raise KeyError('invalid key in request', key)
-        result = msg['result']
-        mid = msg['id']
-        in_progress_request = self._in_progress_requests.get(mid)
-        if in_progress_request is None:
-            self._log.error('response to unknown request: %r', msg)
-        else:
-            in_progress_request.response_received(result)
 
     async def call_method(self, request_id, method, params):
         self._log.debug('calling method %s', method.__name__)
