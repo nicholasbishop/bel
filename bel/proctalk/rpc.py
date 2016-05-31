@@ -49,6 +49,18 @@ class JsonRpc:
     def set_handler(self, handler):
         self._handler = handler
 
+    async def _call_method(self, request_id, method, params):
+        self._log.debug('calling method %s', method.__name__)
+
+        result = deserialize_and_call(method, params)
+        if iscoroutine(result):
+            result = await result
+
+        self._log.debug('method %s result: %r', method.__name__,
+                        result)
+        resp = self._formatter.response(result, request_id)
+        await self._stream.write(resp)
+
     async def _handle_request(self, msg):
         for key in msg:
             if key not in ('id', 'jsonrpc', 'method', 'params'):
@@ -63,7 +75,7 @@ class JsonRpc:
         elif getattr(method, 'expose', False) is not True:
             self._log.error('method is not exposed: %s', method_name)
         else:
-            await self.call_method(mid, method, params)
+            await self._call_method(mid, method, params)
 
     def _handle_response(self, msg):
         for key in msg:
@@ -104,18 +116,6 @@ class JsonRpc:
                 self._log.error('invalid message: %r', msg)
         except CancelledError:
             self._log.info('rpc listen canceled')
-
-    async def call_method(self, request_id, method, params):
-        self._log.debug('calling method %s', method.__name__)
-
-        result = deserialize_and_call(method, params)
-        if iscoroutine(result):
-            result = await result
-
-        self._log.debug('method %s result: %r', method.__name__,
-                        result)
-        resp = self._formatter.response(result, request_id)
-        await self._stream.write(resp)
 
     async def _call(self, method, list_params, dict_params):
         any_list_params = len(list_params) != 0
