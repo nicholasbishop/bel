@@ -15,13 +15,20 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
                        glClearColor,
                        glGetString)
 
-from bel.client import BaseClient
+from bel.client import BaseClient, expose
+from bel.color import Color
+
+class DrawState:
+    def __init__(self):
+        self.clear_color = Color(0.4, 0.4, 0.5, 1.0)
+
 
 class GlfwClient(BaseClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._poll_glfw_future = None
         self._window = None
+        self._draw_state = DrawState()
 
         self._init_glfw()
 
@@ -48,8 +55,12 @@ class GlfwClient(BaseClient):
 
         self._poll_glfw_events()
 
+    @expose
+    def set_clear_color(self, color):
+        self._draw_state.clear_color = color
+
     def _draw(self):
-        glClearColor(0.4, 0.4, 0.5, 1.0)
+        glClearColor(*self._draw_state.clear_color)
         glClear(GL_COLOR_BUFFER_BIT)
 
     def _poll_glfw_events(self):
