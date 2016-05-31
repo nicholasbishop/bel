@@ -1,21 +1,27 @@
-from collections.abc import Sequence
 from random import random as randfloat
 
-class Color(Sequence):
+class Color:
     def __init__(self, red=0.0, green=0.0, blue=0.0, alpha=0.0):
         self.red = red
         self.green = green
         self.blue = blue
         self.alpha = alpha
 
-    def __getitem__(self, index):
-        return (self.red, self.green, self.blue, self.alpha)[index]
+    def __eq__(self, them):
+        return (self.red == them.red and
+                self.green == them.green and
+                self.blue == them.blue and
+                self.alpha == them.alpha)
 
-    def __len__(self):
-        return 4
+    def as_tuple(self):
+        return (self.red, self.green, self.blue, self.alpha)
 
     def serialize(self):
-        return (self.red, self.green, self.blue, self.alpha)
+        return self.as_tuple()
+
+    @classmethod
+    def deserialize(cls, seq):
+        return cls(*seq)
 
     @classmethod
     def random(cls):

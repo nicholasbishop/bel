@@ -3,7 +3,7 @@ from collections.abc import Mapping
 
 from bel.proctalk.json_stream import JsonStream, JsonRpcFormatter
 from bel.proctalk.future_group import FutureGroup
-
+from bel.proctalk.typetrans import deserialize_and_call
 
 def expose(method):
     method.expose = True
@@ -56,7 +56,7 @@ class JsonRpc:
         method_name = msg['method']
         mid = msg['id']
         params = msg.get('params')
-        self._log.info('method call: %s(%r)', method_name, params)
+        self._log.info('method call: %s %r', method_name, params)
         method = getattr(self._handler, method_name, None)
         if method is None:
             self._log.info('unhandled request: %s', method_name)
@@ -105,22 +105,17 @@ class JsonRpc:
 
     async def call_method(self, request_id, method, params):
         self._log.debug('calling method %s', method.__name__)
-        if params is None:
-            result = method()
-        elif isinstance(params, Mapping):
-            result = method(**params)
-        else:
-            result = method(*params)
+
+        result = deserialize_and_call(method, params)
         if iscoroutine(result):
             result = await result
+
         self._log.debug('method %s result: %r', method.__name__,
                         result)
         resp = self._formatter.response(result, request_id)
         await self._stream.write(resp)
 
     async def _call(self, method, list_params, dict_params):
-        self._log.debug('call: %s', method)
-
         any_list_params = len(list_params) != 0
         any_dict_params = len(dict_params) != 0
         params = None
@@ -132,6 +127,8 @@ class JsonRpc:
         elif any_dict_params:
             params = dict_params
         
+        self._log.debug('send request: %s %r', method, params)
+
         req = self._formatter.request(method, params)
         mid = req['id']
         if mid in self._in_progress_requests:
@@ -142,6 +139,17 @@ class JsonRpc:
         self._in_progress_requests[mid] = in_progress_request
         await self._stream.write(req)
         return in_progress_request
+
+    # TODO, API gets a bit complex, should simplify
+    async def call_with_params(self, _method, params):
+        if isinstance(params, Mapping):
+            args = []
+            kwargs = params
+        else:
+            args = params
+            kwargs = {}
+        
+        await self._call(_method, args, kwargs)
 
     async def call_ignore_result(self, _method, *args, **kwargs):
         await self._call(_method, args, kwargs)

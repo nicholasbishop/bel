@@ -48,7 +48,7 @@ class Client:
     @expose
     async def _hub_dispatch(self, dst, method, params):
         client = self._hub.get_client(dst)
-        return await client.rpc.call(method, params)
+        return await client.rpc.call_with_params(method, params)
 
     @expose
     async def shutdown(self):

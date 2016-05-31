@@ -14,6 +14,5 @@ class Adi(BaseClient):
         self.scene = self._peers['bel.scene_client']
 
         while self.running:
-            #await self.scene.set_background_color(Color.random())
-            await self.scene.set_background_color('hello')
+            await self.scene.set_background_color(Color.random())
             await sleep(0.5)

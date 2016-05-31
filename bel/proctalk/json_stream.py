@@ -46,12 +46,21 @@ class JsonRpcFormatter:
 SIZE_FIELD_IN_BYTES = 8
 
 
+class JsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        serialize = getattr(obj, 'serialize', None)
+        if serialize is None:
+            return super().default(obj)
+        else:
+            return serialize()
+
+
 class JsonStreamWriter:
     def __init__(self, stream):
         self._stream = stream
 
     async def write(self, data):
-        string = json.dumps(data)
+        string = json.dumps(data, cls=JsonEncoder)
         encoded = string.encode()
         pad = '{:0' + str(SIZE_FIELD_IN_BYTES) + '}'
         size_field = pad.format(len(encoded)).encode()

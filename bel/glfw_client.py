@@ -56,11 +56,11 @@ class GlfwClient(BaseClient):
         self._poll_glfw_events()
 
     @expose
-    def set_clear_color(self, color):
+    def set_clear_color(self, color: Color):
         self._draw_state.clear_color = color
 
     def _draw(self):
-        glClearColor(*self._draw_state.clear_color)
+        glClearColor(*self._draw_state.clear_color.as_tuple())
         glClear(GL_COLOR_BUFFER_BIT)
 
     def _poll_glfw_events(self):
