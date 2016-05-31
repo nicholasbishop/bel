@@ -123,7 +123,7 @@ class JsonRpc:
             params = list_params
         elif any_dict_params:
             params = dict_params
-        
+
         req = self._formatter.request(method, params)
         mid = req['id']
         if mid in self._in_progress_requests:
@@ -143,7 +143,7 @@ class JsonRpc:
         else:
             args = params
             kwargs = {}
-        
+
         await self._call(_method, args, kwargs)
 
     async def call_ignore_result(self, _method, *args, **kwargs):
