@@ -3,8 +3,12 @@ from bel.client import BaseClient, expose
 class SceneClient(BaseClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._view = None
 
     @expose
-    def set_background_color(self, color):
-        # TODO
-        self._log.info('set_background_color called: %r', color)
+    def on_start(self):
+        self._view = self._peers['bel.glfw_client']
+
+    @expose
+    async def set_background_color(self, color):
+        await self._view.set_clear_color(color)
