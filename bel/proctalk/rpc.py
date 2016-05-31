@@ -50,14 +50,10 @@ class JsonRpc:
         self._handler = handler
 
     async def _call_method(self, request_id, method, params):
-        self._log.debug('calling method %s', method.__name__)
-
         result = deserialize_and_call(method, params)
         if iscoroutine(result):
             result = await result
 
-        self._log.debug('method %s result: %r', method.__name__,
-                        result)
         resp = self._formatter.response(result, request_id)
         await self._stream.write(resp)
 
@@ -68,7 +64,6 @@ class JsonRpc:
         method_name = msg['method']
         mid = msg['id']
         params = msg.get('params')
-        self._log.info('method call: %s %r', method_name, params)
         method = getattr(self._handler, method_name, None)
         if method is None:
             self._log.info('unhandled request: %s', method_name)
@@ -129,8 +124,6 @@ class JsonRpc:
         elif any_dict_params:
             params = dict_params
         
-        self._log.debug('send request: %s %r', method, params)
-
         req = self._formatter.request(method, params)
         mid = req['id']
         if mid in self._in_progress_requests:
