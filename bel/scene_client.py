@@ -1,4 +1,5 @@
 from bel.client import BaseClient, expose
+from bel.event import MouseButtonEvent
 
 class SceneClient(BaseClient):
     def __init__(self, *args, **kwargs):
@@ -15,4 +16,8 @@ class SceneClient(BaseClient):
 
     @expose
     def cursor_pos_event(self, xpos, ypos):
+        pass
+
+    @expose
+    def mouse_button_event(self, event: MouseButtonEvent):
         pass

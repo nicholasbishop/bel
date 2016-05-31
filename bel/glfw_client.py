@@ -1,5 +1,10 @@
 from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 GLFW_CONTEXT_VERSION_MINOR,
+                                GLFW_MOUSE_BUTTON_LEFT,
+                                GLFW_MOUSE_BUTTON_MIDDLE,
+                                GLFW_MOUSE_BUTTON_RIGHT,
+                                GLFW_PRESS,
+                                GLFW_RELEASE,
                                 glfwCreateWindow,
                                 glfwDestroyWindow,
                                 glfwInit,
@@ -7,6 +12,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwPollEvents,
                                 glfwSetCursorPosCallback,
                                 glfwSetErrorCallback,
+                                glfwSetMouseButtonCallback,
                                 glfwSwapBuffers,
                                 glfwWindowHint,
                                 glfwWindowShouldClose)
@@ -18,11 +24,32 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
 
 from bel.client import BaseClient, expose
 from bel.color import Color
+from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.proctalk.future_group import FutureGroup
 
 class DrawState:
     def __init__(self):
         self.clear_color = Color(0.4, 0.4, 0.5, 1.0)
+
+
+def button_from_glfw(glfw_button):
+    if glfw_button == GLFW_MOUSE_BUTTON_LEFT:
+        return Button.Left
+    elif glfw_button == GLFW_MOUSE_BUTTON_MIDDLE:
+        return Button.Middle
+    elif glfw_button == GLFW_MOUSE_BUTTON_RIGHT:
+        return Button.Right
+    else:
+        raise NotImplementedError('unknown button type', glfw_button)
+
+
+def button_action_from_glfw(glfw_button_action):
+    if glfw_button_action == GLFW_PRESS:
+        return ButtonAction.Press
+    elif glfw_button_action == GLFW_RELEASE:
+        return ButtonAction.Release
+    else:
+        raise ValueError('invalid action', glfw_button_action)
 
 
 class GlfwClient(BaseClient):
@@ -46,6 +73,11 @@ class GlfwClient(BaseClient):
     def _cb_cursor_pos(self, window, xpos, ypos):
         self._future_group.create_task(self._scene.cursor_pos_event(xpos, ypos))
 
+    def _cb_mouse_button(self, window, gbutton, gaction, gmods):
+        button = MouseButtonEvent(button_from_glfw(gbutton),
+                                  button_action_from_glfw(gaction))
+        self._future_group.create_task(self._scene.mouse_button_event(button))
+
     def _init_glfw(self):
         if not glfwInit():
             raise RuntimeError('glfwInit failed')
@@ -61,6 +93,7 @@ class GlfwClient(BaseClient):
             raise RuntimeError('glfwCreateWindow failed')
 
         glfwSetCursorPosCallback(self._window, self._cb_cursor_pos)
+        glfwSetMouseButtonCallback(self._window, self._cb_mouse_button)
 
         glfwMakeContextCurrent(self._window)
         self._log.info('GL_VERSION: %s', glGetString(GL_VERSION))
