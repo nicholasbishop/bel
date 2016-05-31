@@ -5,6 +5,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwInit,
                                 glfwMakeContextCurrent,
                                 glfwPollEvents,
+                                glfwSetCursorPosCallback,
                                 glfwSetErrorCallback,
                                 glfwSwapBuffers,
                                 glfwWindowHint,
@@ -17,6 +18,7 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
 
 from bel.client import BaseClient, expose
 from bel.color import Color
+from bel.proctalk.future_group import FutureGroup
 
 class DrawState:
     def __init__(self):
@@ -29,12 +31,20 @@ class GlfwClient(BaseClient):
         self._poll_glfw_future = None
         self._window = None
         self._draw_state = DrawState()
+        self._scene = None
+        self._future_group = FutureGroup(self._event_loop, self._log)
 
         self._init_glfw()
 
+    @expose
+    def on_start(self):
+        self._scene = self._peers['bel.scene_client']
+
     def _cb_glfw_error(self, error, description):
-        # TODO
         self._log.error('GLFW error: %d %s', error, description)
+
+    def _cb_cursor_pos(self, window, xpos, ypos):
+        self._future_group.create_task(self._scene.cursor_pos_event(xpos, ypos))
 
     def _init_glfw(self):
         if not glfwInit():
@@ -49,6 +59,8 @@ class GlfwClient(BaseClient):
         self._window = glfwCreateWindow(800, 600, 'bel')
         if self._window is None:
             raise RuntimeError('glfwCreateWindow failed')
+
+        glfwSetCursorPosCallback(self._window, self._cb_cursor_pos)
 
         glfwMakeContextCurrent(self._window)
         self._log.info('GL_VERSION: %s', glGetString(GL_VERSION))
@@ -84,7 +96,10 @@ class GlfwClient(BaseClient):
             glfwDestroyWindow(self._window)
             self._window = None
 
+        # TODO, move to fgroup
         if self._poll_glfw_future is not None:
             self._poll_glfw_future.cancel()
+
+        self._future_group.cancel_all()
 
         super().stop()

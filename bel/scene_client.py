@@ -12,3 +12,7 @@ class SceneClient(BaseClient):
     @expose
     async def set_background_color(self, color):
         await self._view.set_clear_color(color)
+
+    @expose
+    def cursor_pos_event(self, xpos, ypos):
+        pass
