@@ -13,6 +13,8 @@ class Adi(BaseClient):
     async def on_start(self):
         self.scene = self._peers['bel.scene_client']
 
+        await self.scene.load_obj('examples/xyz-text.obj')
+
         # while self.running:
         #     await self.scene.set_background_color(Color.random())
         #     await sleep(0.5)
