@@ -1,4 +1,7 @@
+from base64 import b64encode
 import json
+
+import numpy
 
 class JsonRpcFormatter:
     def __init__(self, name, version='2.0'):
@@ -47,7 +50,11 @@ SIZE_FIELD_IN_BYTES = 8
 
 
 class JsonEncoder(json.JSONEncoder):
+    # pylint: disable=method-hidden
     def default(self, obj):
+        if isinstance(obj, numpy.ndarray):
+            return str(b64encode(obj))
+
         serialize = getattr(obj, 'serialize', None)
         if serialize is None:
             return super().default(obj)

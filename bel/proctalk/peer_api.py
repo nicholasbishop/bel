@@ -13,6 +13,9 @@ def make_method(method_name):
     return method
 
 
+# TODO(nicholasbishop): make |api| a class that includes both methods
+# and type name, then give that name instead of 'PeerApi' for better
+# error messages
 def create_peer_api(api):
     def init(self, rpc, client_id):
         self.rpc = rpc

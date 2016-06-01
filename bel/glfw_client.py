@@ -22,15 +22,12 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
                        glClearColor,
                        glGetString)
 
+from bel.buffer_object import ArrayBufferObject
 from bel.client import BaseClient, expose
 from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.proctalk.future_group import FutureGroup
-
-class DrawState:
-    def __init__(self):
-        self.clear_color = Color(0.4, 0.4, 0.5, 1.0)
-
+from bel.gldraw import DrawState
 
 def button_from_glfw(glfw_button):
     if glfw_button == GLFW_MOUSE_BUTTON_LEFT:
@@ -103,6 +100,17 @@ class GlfwClient(BaseClient):
     @expose
     def set_clear_color(self, color: Color):
         self._draw_state.clear_color = color
+
+    @expose
+    def update_buffer(self, buffer_uid, array):
+        glfwMakeContextCurrent(self._window)
+        if buffer_uid not in self._draw_state.buffer_objects:
+            self._draw_state.buffer_objects[buffer_uid] = ArrayBufferObject()
+        self._draw_state.buffer_objects[buffer_uid].set_data(array)
+
+    @expose
+    def update_draw_command(self, draw_command):
+        self._draw_state.draw_commands[draw_command['uid']] = draw_command
 
     def _draw(self):
         glClearColor(*self._draw_state.clear_color.as_tuple())

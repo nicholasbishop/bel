@@ -1,14 +1,14 @@
 from bel.client import BaseClient, expose
 from bel.event import MouseButtonEvent
 from bel.mesh import Mesh
-from bel.future_group import FutureGroup
+from bel.proctalk.future_group import FutureGroup
 
 class SceneClient(BaseClient):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._view = None
         self._mesh = None
-        self._future_group = FutureGroup()
+        self._future_group = FutureGroup(self._event_loop, self._log)
 
     def _create_flush_task(self):
         self._future_group.create_task(self._flush())
@@ -27,8 +27,9 @@ class SceneClient(BaseClient):
         self._view = self._peers['bel.glfw_client']
 
     @expose
-    def load_obj(self, path):
+    async def load_obj(self, path):
         self._mesh = Mesh.load_obj(path)
+        await self._mesh.flush_updates(self._view)
 
     @expose
     async def set_background_color(self, color):

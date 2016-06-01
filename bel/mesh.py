@@ -100,6 +100,43 @@ class Mesh:
             'primitive': 'triangles'
         }))
 
+    async def flush_updates(self, view):
+        vert_nors = self.create_draw_array()
+        num_triangles = len(vert_nors) // 6
+        bytes_per_float32 = 4
+
+        await view.update_buffer(self._vert_buf_uid, vert_nors)
+        await view.update_draw_command(
+            {
+            'uid': self._draw_cmd_uid,
+            'material': 'default',
+            'attributes': {
+                'vert_loc': {
+                    'buffer': self._vert_buf_uid,
+                    'components': 3,
+                    'gltype': 'float',
+                    'normalized': False,
+                    'offset': 0,
+                    'stride': bytes_per_float32 * 6
+                },
+                'vert_nor': {
+                    'buffer': self._vert_buf_uid,
+                    'components': 3,
+                    'gltype': 'float',
+                    'normalized': False,
+                    'offset': bytes_per_float32 * 3,
+                    'stride': bytes_per_float32 * 6
+                }
+            },
+            'uniforms': {
+                'model_view':
+                None # TODO MatrixUniform(self._transform.matrix())
+            },
+            'range': (0, num_triangles),
+            'primitive': 'triangles'
+            }
+        )
+
     @classmethod
     def load_obj(cls, path):
         with open(path) as rfile:
