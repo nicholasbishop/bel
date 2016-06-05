@@ -22,7 +22,7 @@ class Transform:
 
     @classmethod
     def deserialize(cls, dct):
-        transform = Transform()
+        transform = cls()
         transform.set_translation(Vector3(dct['translation']))
         # TODO
         return transform

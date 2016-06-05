@@ -1,5 +1,5 @@
 [MESSAGES CONTROL]
-disable=too-few-public-methods
+disable=locally-disabled,too-few-public-methods
 
 [TYPECHECK]
 ignored-modules=cyglfw3.compatible

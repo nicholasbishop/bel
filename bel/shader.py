@@ -8,10 +8,9 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
                        glAttachShader, glCompileShader,
                        glCreateProgram, glCreateShader,
                        glDeleteShader, glEnableVertexAttribArray,
-                       glGetAttribLocation, glGetProgramInfoLog,
-                       glGetUniformLocation, glGetShaderInfoLog,
-                       glGetShaderiv, glLinkProgram, glShaderSource,
-                       glUseProgram)
+                       glGetProgramInfoLog, glGetUniformLocation,
+                       glGetShaderInfoLog, glGetShaderiv,
+                       glLinkProgram, glShaderSource, glUseProgram)
 
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
@@ -29,7 +28,7 @@ def extract_links(source, keyword):
     for line in source.splitlines():
         parts = line.split()
         if (len(parts) >= 4 and parts[-3] == keyword and
-              parts[0].startswith('layout')):
+                parts[0].startswith('layout')):
             layout = ''.join(parts[0:-3])
             layout = layout.replace('\t', '')
             layout = layout.replace(' ', '')
@@ -67,6 +66,7 @@ class Shader:
         return self._hnd
 
     def _alloc(self):
+        # pylint: disable=assignment-from-no-return
         self._hnd = glCreateShader(self._kind)
         logging.info('glCreateShader(%s) -> %d', self._kind.name, self._hnd)
         if self._hnd == 0:
@@ -114,6 +114,7 @@ class ShaderProgram:
         self._alloc()
 
     def _alloc(self):
+        # pylint: disable=assignment-from-no-return
         self._hnd = glCreateProgram()
         logging.info('glCreateProgram() -> %d', self._hnd)
         if self._hnd == 0:

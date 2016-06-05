@@ -1,6 +1,6 @@
-import numpy
-
 from base64 import b64encode, b64decode
+
+import numpy
 
 
 class BufferData:
@@ -23,9 +23,9 @@ class BufferData:
         )
 
     @classmethod
-    def deserialize(self, dct):
+    def deserialize(cls, dct):
         array = b64decode(dct['array'].encode('ascii'))
-        return BufferData(
+        return cls(
             uid=dct['uid'],
             array=numpy.frombuffer(array, dtype=numpy.float32)
         )
