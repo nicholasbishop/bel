@@ -21,8 +21,7 @@ from bel.uniform import MatrixUniform
 class DrawState:
     def __init__(self):
         self._log = getLogger(__name__)
-        self.width = 0
-        self.height = 0
+        self.fb_size = (0, 0)
         self.clear_color = Color(0.4, 0.4, 0.5, 1.0)
         self.buffer_objects = {}
         self.draw_commands = {}
@@ -70,8 +69,15 @@ class DrawState:
         with material.bind():
             glDrawArrays(mode, first, count)
 
+    def _aspect_ratio(self):
+        height = self.fb_size[1]
+        if height == 0:
+            return 0
+        else:
+            return self.fb_size[0] / height
+
     def draw_all(self):
-        glViewport(0, 0, self.width, self.height)
+        glViewport(0, 0, *self.fb_size)
 
         glClearColor(*self.clear_color.as_tuple())
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -79,7 +85,7 @@ class DrawState:
 
         # TODO
         fovy = 90
-        aspect = self.width / self.height
+        aspect = self._aspect_ratio()
         near = 0.01
         far = 100
         proj_matrix = create_perspective_projection_matrix(

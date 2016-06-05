@@ -138,8 +138,7 @@ class GlfwClient(BaseClient):
         self._draw_state.draw_commands[draw_command['uid']] = draw_command
 
     def _draw(self):
-        self._draw_state.width, self._draw_state.height = \
-            glfwGetFramebufferSize(self._window)
+        self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
 
         self._draw_state.draw_all()
 
