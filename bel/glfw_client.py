@@ -25,6 +25,7 @@ from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.proctalk.future_group import FutureGroup
 from bel.gldraw import DrawState
+from bel.msg import BufferData
 from bel.shader import ShaderProgram
 
 def button_from_glfw(glfw_button):
@@ -117,11 +118,11 @@ class GlfwClient(BaseClient):
         self._draw_state.clear_color = color
 
     @expose
-    def update_buffer(self, buffer_uid, array):
+    def update_buffer(self, data: BufferData):
         glfwMakeContextCurrent(self._window)
-        if buffer_uid not in self._draw_state.buffer_objects:
-            self._draw_state.buffer_objects[buffer_uid] = ArrayBufferObject()
-        self._draw_state.buffer_objects[buffer_uid].set_data(array)
+        if data.uid not in self._draw_state.buffer_objects:
+            self._draw_state.buffer_objects[data.uid] = ArrayBufferObject()
+        self._draw_state.buffer_objects[data.uid].set_data(data.array)
 
     @expose
     def update_draw_command(self, draw_command):

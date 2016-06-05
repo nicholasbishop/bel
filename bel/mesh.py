@@ -3,6 +3,7 @@ from pyrr import Vector3
 from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
+from bel.msg import BufferData
 
 def _obj_remove_comment(line):
     ind = line.find('#')
@@ -66,7 +67,13 @@ class Mesh:
         num_triangles = len(vert_nors) // 6
         bytes_per_float32 = 4
 
-        await view.update_buffer(self._vert_buf_uid, vert_nors)
+        await view.update_buffer(
+            BufferData(
+                self._vert_buf_uid,
+                vert_nors
+            )
+        )
+
         await view.update_draw_command({
             'uid': self._draw_cmd_uid,
             'material': 'default',
