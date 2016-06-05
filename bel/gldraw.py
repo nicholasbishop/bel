@@ -8,6 +8,7 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
                        glClearColor,
                        glDrawArrays,
                        glViewport)
+from pyrr import Matrix44, Vector3
 from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel.color import Color
@@ -76,8 +77,11 @@ class DrawState:
             far,
         )
 
+        # TODO, not actually a builtin
+        model_view = Matrix44.from_translation(Vector3((0, -2, -2)))
         builtin_uniforms = {
-            'projection': MatrixUniform(proj_matrix)
+            'projection': MatrixUniform(proj_matrix),
+            'model_view': MatrixUniform(model_view),
         }
 
         for comm in self.draw_commands.values():
