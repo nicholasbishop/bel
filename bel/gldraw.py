@@ -1,3 +1,5 @@
+from bel.color import Color
+
 class DrawState:
     def __init__(self):
         self.clear_color = Color(0.4, 0.4, 0.5, 1.0)

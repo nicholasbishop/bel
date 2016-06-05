@@ -1,5 +1,5 @@
 import numpy
-from pyrr import Matrix44, Quaternion, Vector3, Vector4, vector
+from pyrr import Vector3
 from pyrr.vector3 import generate_normals
 
 from bel.auto_name import auto_name
@@ -14,7 +14,7 @@ def _obj_remove_comment(line):
 class Vert:
     def __init__(self, loc):
         self.loc = loc
-        
+
 
 class Face:
     def __init__(self, indices):
@@ -61,53 +61,13 @@ class Mesh:
                     out += 6
         return verts
 
-    # TODO, name
-    def send_draw_stuff(self, conn):
-        vert_nors = self.create_draw_array()
-        num_triangles = len(vert_nors) // 6
-        bytes_per_float32 = 4
-
-        conn.send_msg(Msg(Tag.WND_UpdateBuffer, {
-            'uid': self._vert_buf_uid,
-            'array': vert_nors
-        }))
-        conn.send_msg(Msg(Tag.WND_UpdateDrawCommand, {
-            'uid': self._draw_cmd_uid,
-            'material': 'default',
-            'attributes': {
-                'vert_loc': {
-                    'buffer': self._vert_buf_uid,
-                    'components': 3,
-                    'gltype': 'float',
-                    'normalized': False,
-                    'offset': 0,
-                    'stride': bytes_per_float32 * 6
-                },
-                'vert_nor': {
-                    'buffer': self._vert_buf_uid,
-                    'components': 3,
-                    'gltype': 'float',
-                    'normalized': False,
-                    'offset': bytes_per_float32 * 3,
-                    'stride': bytes_per_float32 * 6
-                }
-            },
-            'uniforms': {
-                'model_view':
-                MatrixUniform(self._transform.matrix())
-            },
-            'range': (0, num_triangles),
-            'primitive': 'triangles'
-        }))
-
     async def flush_updates(self, view):
         vert_nors = self.create_draw_array()
         num_triangles = len(vert_nors) // 6
         bytes_per_float32 = 4
 
         await view.update_buffer(self._vert_buf_uid, vert_nors)
-        await view.update_draw_command(
-            {
+        await view.update_draw_command({
             'uid': self._draw_cmd_uid,
             'material': 'default',
             'attributes': {
@@ -134,8 +94,7 @@ class Mesh:
             },
             'range': (0, num_triangles),
             'primitive': 'triangles'
-            }
-        )
+        })
 
     @classmethod
     def load_obj(cls, path):
