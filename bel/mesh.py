@@ -96,7 +96,7 @@ class Mesh:
                 }
             },
             'uniforms': {
-                'model_view':
+                'model':
                 None # TODO MatrixUniform(self._transform.matrix())
             },
             'range': (0, num_triangles),

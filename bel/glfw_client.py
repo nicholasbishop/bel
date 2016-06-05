@@ -27,6 +27,8 @@ from bel.proctalk.future_group import FutureGroup
 from bel.gldraw import DrawState
 from bel.msg import BufferData
 from bel.shader import ShaderProgram
+from bel.transform import Transform
+from bel.uniform import MatrixUniform
 
 def button_from_glfw(glfw_button):
     if glfw_button == GLFW_MOUSE_BUTTON_LEFT:
@@ -116,6 +118,13 @@ class GlfwClient(BaseClient):
     @expose
     def set_clear_color(self, color: Color):
         self._draw_state.clear_color = color
+
+    @expose
+    def update_camera(self, transform: Transform):
+        self._draw_state.update_uniform(
+            'camera',
+            MatrixUniform(transform.matrix())
+        )
 
     @expose
     def update_buffer(self, data: BufferData):

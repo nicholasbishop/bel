@@ -27,12 +27,16 @@ class DrawState:
         self.buffer_objects = {}
         self.draw_commands = {}
         self.materials = {}
+        self._uniforms = {}
 
     # TODO(nicholasbishop): actually update instead of add
     def update_shader_program(self, uid, shader_program):
         if uid in self.materials:
             raise NotImplementedError()
         self.materials[uid] = shader_program
+
+    def update_uniform(self, uid, uniform):
+        self._uniforms[uid] = uniform
 
     def _draw_one(self, item, builtin_uniforms):
         material_uid = item['material']
@@ -44,7 +48,11 @@ class DrawState:
         with material.bind():
             material.bind_attributes(self.buffer_objects, item['attributes'])
             uniforms = dict(item['uniforms'])
+            # TODO
             uniforms.update(builtin_uniforms)
+            uniforms.update(self._uniforms)
+            # TODO
+            uniforms['model'] = MatrixUniform(Matrix44.identity())
             material.bind_uniforms(uniforms)
 
         first, count = item['range']
@@ -81,11 +89,9 @@ class DrawState:
             far,
         )
 
-        # TODO, not actually a builtin
-        model_view = Matrix44.from_translation(Vector3((0, 0, -2)))
+        # TODO
         builtin_uniforms = {
             'projection': MatrixUniform(proj_matrix),
-            'model_view': MatrixUniform(model_view),
         }
 
         for comm in self.draw_commands.values():
