@@ -1,7 +1,5 @@
 import math
 
-import numpy
-
 from pyrr import Matrix44, Quaternion, Vector3
 
 class Transform:

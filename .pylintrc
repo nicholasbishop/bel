@@ -2,6 +2,7 @@
 disable=locally-disabled,too-few-public-methods
 
 [TYPECHECK]
+generated-members=numpy.float32
 ignored-modules=cyglfw3.compatible
 
 [REPORTS]
