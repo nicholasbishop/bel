@@ -7,6 +7,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 GLFW_RELEASE,
                                 glfwCreateWindow,
                                 glfwDestroyWindow,
+                                glfwGetFramebufferSize,
                                 glfwInit,
                                 glfwMakeContextCurrent,
                                 glfwPollEvents,
@@ -16,11 +17,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwSwapBuffers,
                                 glfwWindowHint,
                                 glfwWindowShouldClose)
-from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
-                       GL_VERSION,
-                       glClear,
-                       glClearColor,
-                       glGetString)
+from OpenGL.GL import GL_VERSION, glGetString
 
 from bel.buffer_object import ArrayBufferObject
 from bel.client import BaseClient, expose
@@ -28,6 +25,7 @@ from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.proctalk.future_group import FutureGroup
 from bel.gldraw import DrawState
+from bel.shader import ShaderProgram
 
 def button_from_glfw(glfw_button):
     if glfw_button == GLFW_MOUSE_BUTTON_LEFT:
@@ -95,7 +93,24 @@ class GlfwClient(BaseClient):
         glfwMakeContextCurrent(self._window)
         self._log.info('GL_VERSION: %s', glGetString(GL_VERSION))
 
+        self._add_default_materials()
+
         self._poll_glfw_events()
+
+    def _add_default_materials(self):
+        # TODO
+        default = ShaderProgram()
+        default.update({
+            'vert_shader_paths': ['shaders/vert.glsl'],
+            'frag_shader_paths': ['shaders/frag.glsl'],
+        })
+        flat = ShaderProgram()
+        flat.update({
+            'vert_shader_paths': ['shaders/flat.vert.glsl'],
+            'frag_shader_paths': ['shaders/flat.frag.glsl'],
+        })
+        self._draw_state.update_shader_program('default', default)
+        self._draw_state.update_shader_program('flat', flat)
 
     @expose
     def set_clear_color(self, color: Color):
@@ -113,8 +128,10 @@ class GlfwClient(BaseClient):
         self._draw_state.draw_commands[draw_command['uid']] = draw_command
 
     def _draw(self):
-        glClearColor(*self._draw_state.clear_color.as_tuple())
-        glClear(GL_COLOR_BUFFER_BIT)
+        self._draw_state.width, self._draw_state.height = \
+            glfwGetFramebufferSize(self._window)
+
+        self._draw_state.draw_all()
 
     def _poll_glfw_events(self):
         glfwMakeContextCurrent(self._window)
