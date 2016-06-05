@@ -1,12 +1,15 @@
 from logging import getLogger
 
 from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
+                       GL_DEPTH_BUFFER_BIT,
+                       GL_DEPTH_TEST,
                        GL_LINES,
                        GL_POINTS,
                        GL_TRIANGLES,
                        glClear,
                        glClearColor,
                        glDrawArrays,
+                       glEnable,
                        glViewport)
 from pyrr import Matrix44, Vector3
 from pyrr.matrix44 import create_perspective_projection_matrix
@@ -63,7 +66,8 @@ class DrawState:
         glViewport(0, 0, self.width, self.height)
 
         glClearColor(*self.clear_color.as_tuple())
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glEnable(GL_DEPTH_TEST)
 
         # TODO
         fovy = 90
@@ -78,7 +82,7 @@ class DrawState:
         )
 
         # TODO, not actually a builtin
-        model_view = Matrix44.from_translation(Vector3((0, -2, -2)))
+        model_view = Matrix44.from_translation(Vector3((0, 0, -2)))
         builtin_uniforms = {
             'projection': MatrixUniform(proj_matrix),
             'model_view': MatrixUniform(model_view),
