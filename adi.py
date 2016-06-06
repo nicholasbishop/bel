@@ -1,4 +1,4 @@
-from bel.client import BaseClient
+from bel.proctalk.client import BaseClient
 from bel.proctalk.rpc import expose
 
 class Adi(BaseClient):

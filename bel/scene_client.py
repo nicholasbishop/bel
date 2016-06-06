@@ -1,9 +1,9 @@
 from pyrr import Vector3
 
 from bel.camera import Camera
-from bel.client import BaseClient, expose
 from bel.event import MouseButtonEvent
 from bel.mesh import Mesh
+from bel.proctalk.client import BaseClient, expose
 from bel.proctalk.future_group import FutureGroup
 
 class SceneClient(BaseClient):

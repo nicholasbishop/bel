@@ -21,9 +21,9 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
 from OpenGL.GL import GL_VERSION, glGetString
 
 from bel.buffer_object import ArrayBufferObject
-from bel.client import BaseClient, expose
 from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
+from bel.proctalk.client import BaseClient, expose
 from bel.proctalk.future_group import FutureGroup
 from bel.gldraw import DrawState
 from bel.msg import BufferData
