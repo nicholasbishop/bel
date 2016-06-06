@@ -12,6 +12,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwMakeContextCurrent,
                                 glfwPollEvents,
                                 glfwSetCursorPosCallback,
+                                glfwSetKeyCallback,
                                 glfwSetErrorCallback,
                                 glfwSetMouseButtonCallback,
                                 glfwSwapBuffers,
@@ -71,6 +72,10 @@ class GlfwClient(BaseClient):
     def _cb_cursor_pos(self, window, xpos, ypos):
         self._future_group.create_task(self._scene.cursor_pos_event(xpos, ypos))
 
+    def _cb_key(self, window, key, scancode, action, mods):
+        # TODO, send the full event
+        self._future_group.create_task(self._scene.key_event(key))
+
     def _cb_mouse_button(self, window, gbutton, gaction, gmods):
         button = MouseButtonEvent(button_from_glfw(gbutton),
                                   button_action_from_glfw(gaction))
@@ -91,6 +96,7 @@ class GlfwClient(BaseClient):
             raise RuntimeError('glfwCreateWindow failed')
 
         glfwSetCursorPosCallback(self._window, self._cb_cursor_pos)
+        glfwSetKeyCallback(self._window, self._cb_key)
         glfwSetMouseButtonCallback(self._window, self._cb_mouse_button)
 
         glfwMakeContextCurrent(self._window)

@@ -1,3 +1,5 @@
+from pyrr import Vector3
+
 from bel.camera import Camera
 from bel.client import BaseClient, expose
 from bel.event import MouseButtonEvent
@@ -37,6 +39,21 @@ class SceneClient(BaseClient):
     @expose
     async def set_background_color(self, color):
         await self._view.set_clear_color(color)
+
+    # TODO: args
+    @expose
+    async def key_event(self, key):
+        translate = None
+        delta = 0.01
+        if key == ord('A'):
+            translate = (delta, 0, 0)
+        elif key == ord('D'):
+            translate = (-delta, 0, 0)
+
+        if translate is not None:
+            self._camera.transform.translate(Vector3(translate))
+            # TODO
+            await self._camera.flush_updates(self._view)
 
     @expose
     def cursor_pos_event(self, xpos, ypos):
