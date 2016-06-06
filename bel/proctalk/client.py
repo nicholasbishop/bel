@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from asyncio import get_event_loop, open_unix_connection
 from importlib import import_module
-from logging import DEBUG, getLogger
+from logging import INFO, getLogger
 from inspect import getmembers, ismethod
 
 from bel.proctalk.rpc import JsonRpc, expose
@@ -88,7 +88,7 @@ async def connect(log, event_loop, cli_args):
 
 def main():
     args = parse_args()
-    bel.log.configure(args.client_id, DEBUG)
+    bel.log.configure(args.client_id, INFO)
 
     log = getLogger(__name__)
     log.info('client_id=%s, socket_path=%s, module=%s, cls=%s',
