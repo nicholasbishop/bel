@@ -3,7 +3,7 @@
 from asyncio import get_event_loop
 import logging
 
-from bel.hub import Hub
+from bel.proctalk.hub import Hub
 from bel import log
 
 def main():
