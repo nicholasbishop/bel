@@ -1,3 +1,6 @@
+from cgmath.vector import vec3f
+from cgmath.quaternion import quat4f
+
 class Transform(object):
     def __init__(self):
         self._loc = vec3f()
