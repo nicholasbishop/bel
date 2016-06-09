@@ -57,11 +57,9 @@ class Window:
     def __init__(self, *args, **kwargs):
         self._window = None
         self._draw_state = DrawState()
-        self._draw_func = None
         self._init_glfw()
-
-    def set_draw(self, draw_func):
-        self._draw_func = draw_func
+        self.on_draw = None
+        self.on_start = None
 
     def _cb_glfw_error(self, error, description):
         LOG.error('GLFW error: %d %s', error, description)
@@ -141,6 +139,7 @@ class Window:
         self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
 
         self._draw_state.draw_all()
+        #self.on_draw()
 
     def run(self):
         running = True
