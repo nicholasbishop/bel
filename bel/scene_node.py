@@ -13,5 +13,5 @@ class SceneNode(object):
     def children(self):
         return self._children
 
-    def draw(self):
+    def draw(self, view):
         pass

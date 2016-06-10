@@ -139,7 +139,7 @@ class Window:
         self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
 
         self._draw_state.draw_all()
-        #self.on_draw()
+        self.on_draw()
 
     def run(self):
         running = True

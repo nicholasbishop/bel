@@ -15,6 +15,6 @@ class Scene(object):
             stack += node.children
             yield node
 
-    def draw(self):
+    def draw(self, view):
         for node in self.iter_nodes():
-            node.draw()
+            node.draw(view)
