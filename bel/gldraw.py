@@ -61,8 +61,8 @@ class DrawState:
             raise NotImplementedError()
         self._materials[uid] = shader_program
 
-    def update_uniform(self, uid, uniform):
-        self._uniforms[uid] = uniform
+    def update_matrix_uniform(self, uid, matrix):
+        self._uniforms[uid] = MatrixUniform(matrix.numpy_matrix)
 
     def _draw_one(self, item, builtin_uniforms):
         material_uid = item['material']

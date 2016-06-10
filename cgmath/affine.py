@@ -1,3 +1,4 @@
+from cgmath.matrix import mat4f
 from cgmath.vector import vec3f
 from cgmath.quaternion import quat4f
 
@@ -34,6 +35,9 @@ class Transform(object):
     def scale(self, val):
         self._scale = val
 
-    @property
     def matrix(self):
-        raise NotImplementedError
+        # TODO
+        return mat4f(1, 0, 0, self._loc.x,
+                     0, 1, 0, self._loc.y,
+                     0, 0, 1, self._loc.z,
+                     0, 0, 0, 0)

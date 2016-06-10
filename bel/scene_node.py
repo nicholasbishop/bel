@@ -10,8 +10,12 @@ class SceneNode(object):
         return child
 
     @property
+    def transform(self):
+        return self._transform
+
+    @property
     def children(self):
         return self._children
 
-    def draw(self, view):
+    def draw(self, draw_state):
         pass

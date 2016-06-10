@@ -1,8 +1,10 @@
+from bel.camera_node import CameraNode
 from bel.scene_node import SceneNode
 
 class Scene(object):
     def __init__(self):
         self._root = SceneNode()
+        self._camera = self._root.add_child(CameraNode())
 
     @property
     def root(self):
