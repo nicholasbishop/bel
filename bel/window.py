@@ -54,14 +54,15 @@ def button_action_from_glfw(glfw_button_action):
 
 
 class Window:
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self._window = None
         self._draw_state = DrawState()
         self._init_glfw()
         self.on_draw = None
         self.on_start = None
 
-    def _cb_glfw_error(self, error, description):
+    @staticmethod
+    def _cb_glfw_error(error, description):
         LOG.error('GLFW error: %d %s', error, description)
 
     def _cb_cursor_pos(self, window, xpos, ypos):
@@ -77,7 +78,6 @@ class Window:
         button = MouseButtonEvent(button_from_glfw(gbutton),
                                   button_action_from_glfw(gaction))
         #self._future_group.create_task(self._scene.mouse_button_event(button))
-        pass
 
     def _init_glfw(self):
         if not glfwInit():
@@ -143,7 +143,7 @@ class Window:
 
     def run(self):
         running = True
-        while(running):
+        while running:
             glfwMakeContextCurrent(self._window)
             self._draw()
             glfwSwapBuffers(self._window)
