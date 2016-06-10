@@ -19,19 +19,22 @@ class MeshNode(SceneNode):
         fac = elem_per_vert * vert_per_tri
 
         num_triangles = 0
-        for face in self._faces:
+        for face in self._mesh.faces:
             num_triangles += len(face.indices) - 2
 
         verts = numpy.empty(num_triangles * fac, numpy.float32)
         out = 0
 
-        for face in self._faces:
+        for face in self._mesh.faces:
             vi0 = face.indices[-1]
             for i in range(len(face.indices) - 2):
                 vi1 = face.indices[i]
                 vi2 = face.indices[i + 1]
 
-                locs = [self._verts[vit].loc for vit in (vi0, vi1, vi2)]
+                locs = [
+                    self._mesh.verts[vit].loc
+                    for vit in (vi0, vi1, vi2)
+                ]
                 nor = triangle_normal(*locs)
 
                 for loc in locs:
@@ -44,15 +47,14 @@ class MeshNode(SceneNode):
                     out += 6
         return num_triangles, verts
 
-    def draw(self, view):
+    def draw(self, draw_state):
         if not self._view_needs_update:
             return
 
         bytes_per_float32 = 4
-        num_triangles, vert_nors = self.create_draw_array()
-        view.update_buffer(self._vert_buf_uid, vert_nors)
-        view.update_draw_command({
-            'uid': self._draw_cmd_uid,
+        num_triangles, vert_nors = self._create_draw_array()
+        draw_state.update_buffer(self._vert_buf_uid, vert_nors)
+        draw_state.update_draw_command(self._draw_cmd_uid, {
             'material': 'default',
             'attributes': {
                 'vert_loc': {
@@ -79,3 +81,5 @@ class MeshNode(SceneNode):
             'range': (0, num_triangles),
             'primitive': 'triangles'
         })
+
+        self._view_needs_update = False

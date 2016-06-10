@@ -56,11 +56,11 @@ class Vec3f(object):
         return self.dot(self)
 
     def length(self):
-        return sqrt(self.length_squared)
+        return sqrt(self.length_squared())
 
     def normalized(self):
-        length = self.length
-        return Vec3f(self._array / length)
+        fac = 1.0 / self.length()
+        return Vec3f(self._array * fac)
 
     def cross(self, other):
         return vec3f(self.y * other.z - self.z * other.y,
