@@ -1,5 +1,4 @@
-from pyrr import Vector3
-from pyrr.vector3 import generate_normals
+from cgmath.vector import vec3f
 
 def _obj_remove_comment(line):
     ind = line.find('#')
@@ -19,11 +18,10 @@ class Face:
 
 
 class Mesh:
-    # TODO, worker thread
-    def __init__(self):
-        self._original_path = None
-        self._verts = []
-        self._faces = []
+    def __init__(self, verts, faces, path):
+        self._original_path = path
+        self._verts = verts
+        self._faces = faces
 
     @property
     def verts(self):
@@ -45,7 +43,7 @@ class Mesh:
                     continue
                 tok = parts[0]
                 if tok == 'v':
-                    vec = Vector3()
+                    vec = vec3f()
                     if len(parts) > 1:
                         vec.x = float(parts[1])
                     if len(parts) > 2:
@@ -57,8 +55,4 @@ class Mesh:
                     indices = [int(ind) - 1 for ind in parts[1:]]
                     faces.append(Face(indices))
 
-        mesh = Mesh()
-        mesh._original_path = path
-        mesh._verts = verts
-        mesh._faces = faces
-        return mesh
+        return Mesh(verts, faces, path)

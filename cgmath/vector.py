@@ -52,18 +52,19 @@ class Vec3f(object):
     def dot(self, other):
         return numpy.dot(self._array, other.array)
 
-    @property
     def length_squared(self):
         return self.dot(self)
 
-    @property
     def length(self):
         return sqrt(self.length_squared)
 
-    @property
     def normalized(self):
         length = self.length
         return Vec3f(self._array / length)
+
+    def cross(self):
+        # TODO
+        pass
 
     def __add__(self, other):
         return Vec3f(self._array + other.array)

@@ -2,6 +2,7 @@ import numpy
 
 from bel.auto_name import auto_name
 from bel.scene_node import SceneNode
+from cgmath.normal import triangle_normal
 
 class MeshNode(SceneNode):
     def __init__(self, mesh):
@@ -31,7 +32,7 @@ class MeshNode(SceneNode):
                 vi2 = face.indices[i + 1]
 
                 locs = [self._verts[vit].loc for vit in (vi0, vi1, vi2)]
-                nor = Vector3(generate_normals(*locs))
+                nor = triangle_normal(*locs)
 
                 for loc in locs:
                     verts[out + 0] = loc.x
