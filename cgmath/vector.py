@@ -62,9 +62,10 @@ class Vec3f(object):
         length = self.length
         return Vec3f(self._array / length)
 
-    def cross(self):
-        # TODO
-        pass
+    def cross(self, other):
+        return vec3f(self.y * other.z - self.z * other.y,
+                     self.z * other.x - self.x * other.z,
+                     self.x * other.y - self.y * other.x)
 
     def __add__(self, other):
         return Vec3f(self._array + other.array)

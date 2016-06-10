@@ -11,7 +11,3 @@ class Camera:
     @property
     def transform(self):
         return self._transform
-
-    # TODO
-    async def flush_updates(self, view):
-        await view.update_camera(self._transform)
