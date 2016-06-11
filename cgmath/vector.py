@@ -56,22 +56,25 @@ class Vec3f(object):
         return self.dot(self)
 
     def length(self):
-        return sqrt(self.length_squared())
+        return numpy.linalg.norm(self._array)
 
     def normalized(self):
-        fac = 1.0 / self.length()
-        return Vec3f(self._array * fac)
+        return Vec3f(self._array / self.length())
 
     def cross(self, other):
-        return vec3f(self.y * other.z - self.z * other.y,
-                     self.z * other.x - self.x * other.z,
-                     self.x * other.y - self.y * other.x)
+        return Vec3f(numpy.cross(self._array, other._array))
 
     def __add__(self, other):
         return Vec3f(self._array + other.array)
 
     def __sub__(self, other):
         return Vec3f(self._array - other.array)
+
+    def __repr__(self):
+        return 'Vec3f({: 9.3}, {: 9.3}, {: 9.3})'.format(
+            self._array[0],
+            self._array[1],
+            self._array[2])
 
 
 def vec3f(x=0.0, y=0.0, z=0.0):
