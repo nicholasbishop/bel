@@ -13,7 +13,7 @@ class Demo:
         self._scene = Scene()
         self._window = Window()
         self._window.on_draw = self.on_draw
-        self._mesh = Mesh.load_obj('examples/cube.obj')
+        self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
 
     def on_draw(self):
