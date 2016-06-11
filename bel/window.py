@@ -12,12 +12,12 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwGetFramebufferSize,
                                 glfwInit,
                                 glfwMakeContextCurrent,
-                                glfwPollEvents,
                                 glfwSetCursorPosCallback,
                                 glfwSetKeyCallback,
                                 glfwSetErrorCallback,
                                 glfwSetMouseButtonCallback,
                                 glfwSwapBuffers,
+                                glfwWaitEvents,
                                 glfwWindowHint,
                                 glfwWindowShouldClose)
 from OpenGL.GL import GL_VERSION, glGetString
@@ -151,7 +151,7 @@ class Window:
             glfwMakeContextCurrent(self._window)
             self._draw()
             glfwSwapBuffers(self._window)
-            glfwPollEvents()
+            glfwWaitEvents()
 
             if glfwWindowShouldClose(self._window):
                 running = False
