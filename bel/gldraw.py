@@ -30,6 +30,14 @@ class DrawState:
         self._materials = {}
         self._uniforms = {}
 
+    @property
+    def fb_size(self):
+        return self._fb_size
+
+    @fb_size.setter
+    def fb_size(self, pair):
+        self._fb_size = pair
+
     def _add_default_materials(self):
         # TODO
         default = ShaderProgram()

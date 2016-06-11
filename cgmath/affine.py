@@ -40,4 +40,4 @@ class Transform(object):
         return mat4f(1, 0, 0, self._loc.x,
                      0, 1, 0, self._loc.y,
                      0, 0, 1, self._loc.z,
-                     0, 0, 0, 0)
+                     0, 0, 0, 1)

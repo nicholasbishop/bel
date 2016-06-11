@@ -61,6 +61,10 @@ class Window:
         self.on_draw = None
         self.on_start = None
 
+    @property
+    def draw_state(self):
+        return self._draw_state
+
     @staticmethod
     def _cb_glfw_error(error, description):
         LOG.error('GLFW error: %d %s', error, description)
@@ -137,9 +141,9 @@ class Window:
 
     def _draw(self):
         self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
+        self.on_draw()
 
         self._draw_state.draw_all()
-        self.on_draw()
 
     def run(self):
         running = True
