@@ -78,7 +78,7 @@ class MeshNode(SceneNode):
                 'model':
                 None # TODO MatrixUniform(self._transform.matrix())
             },
-            'range': (0, num_triangles),
+            'range': (0, num_triangles * 3),
             'primitive': 'triangles'
         })
 
