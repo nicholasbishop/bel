@@ -12,9 +12,26 @@ class Vert:
         self.loc = loc
 
 
+class Edge:
+    def __init__(self, vert_indices, face_indices):
+        self.vert_indices = vert_indices
+        self.face_indices = face_indices
+
+
 class Face:
-    def __init__(self, indices):
-        self.indices = indices
+    def __init__(self, vert_indices):
+        self.vert_indices = vert_indices
+        self.edge_indices = None
+
+    def iter_vert_pairs(self):
+        num_verts = len(self.vert_indices)
+        for corner_index, vert_index in enumerate(self.vert_indices):
+            next_corner_index = corner_index + 1
+            if next_corner_index == num_verts:
+                next_corner_index = 0
+
+            next_vert_index = self.vert_indices[next_corner_index]
+            yield (vert_index, next_vert_index)
 
 
 class Mesh:
@@ -22,14 +39,45 @@ class Mesh:
         self._original_path = path
         self._verts = verts
         self._faces = faces
+        self._edges = None
+        self._update_edges()
 
     @property
     def verts(self):
         return self._verts
 
     @property
+    def edges(self):
+        assert self._edges != None
+        return self._edges
+
+    @property
     def faces(self):
         return self._faces
+
+    def _update_edges(self):
+        self._edges = {}
+        for face_index, face in enumerate(self._faces):
+            for vi0, vi1 in face.iter_vert_pairs():
+                assert vi0 != vi1
+                vi0, vi1 = sorted((vi0, vi1))
+
+                edges = self._edges.get(vi0)
+                if edges is None:
+                    edges = []
+                    self._edges[vi0] = edges
+
+                edge = None
+                for candidate_edge in edges:
+                    assert candidate_edge.vert_indices[0] == vi0
+                    if candidate_edge.vert_indices[1] == vi1:
+                        edge = candidate_edge
+
+                if edge is None:
+                    edges.append(Edge((vi0, vi1), [face_index]))
+                else:
+                    edge.face_indices.append(face_index)
+
 
     @classmethod
     def load_obj(cls, path):

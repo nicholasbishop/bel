@@ -20,16 +20,16 @@ class MeshNode(SceneNode):
 
         num_triangles = 0
         for face in self._mesh.faces:
-            num_triangles += len(face.indices) - 2
+            num_triangles += len(face.vert_indices) - 2
 
         verts = numpy.empty(num_triangles * fac, numpy.float32)
         out = 0
 
         for face in self._mesh.faces:
-            vi0 = face.indices[-1]
-            for i in range(len(face.indices) - 2):
-                vi1 = face.indices[i]
-                vi2 = face.indices[i + 1]
+            vi0 = face.vert_indices[-1]
+            for i in range(len(face.vert_indices) - 2):
+                vi1 = face.vert_indices[i]
+                vi2 = face.vert_indices[i + 1]
 
                 locs = [
                     self._mesh.verts[vit].loc
