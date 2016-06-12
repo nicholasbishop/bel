@@ -18,6 +18,13 @@ class Edge:
         self.vert_indices = (vi0, vi1)
         self.face_indices = face_indices
 
+    def other_vert_index(self, vi0):
+        assert vi0 in self.vert_indices
+        if self.vert_indices[0] == vi0:
+            return self.vert_indices[1]
+        else:
+            return self.vert_indices[0]
+
     def __eq__(self, other):
         return (self.vert_indices == other.vert_indices and
                 self.face_indices == other.face_indices)
@@ -63,6 +70,14 @@ class Mesh:
     def faces(self):
         return self._faces
 
+    def adj_vert_edge(self, vi0):
+        for ei0 in self.vert(vi0).edge_indices:
+            yield self.edge(ei0)
+
+    def adj_vert_vert(self, vi0):
+        for edge in self.adj_vert_edge(vi0):
+            yield edge.other_vert_index(vi0)
+
     def _update_edges(self):
         self._edges = []
         for face_index, face in enumerate(self._faces):
@@ -90,6 +105,9 @@ class Mesh:
 
     def vert(self, vert_index):
         return self._verts[vert_index]
+
+    def edge(self, edge_index):
+        return self._edges[edge_index]
 
     @classmethod
     def load_obj(cls, path):
