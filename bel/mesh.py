@@ -10,6 +10,7 @@ def _obj_remove_comment(line):
 class Vert:
     def __init__(self, loc=None):
         self.loc = loc or vec3f(0, 0, 0)
+        self.edge_indices = []
 
 
 class Edge:
@@ -63,28 +64,32 @@ class Mesh:
         return self._faces
 
     def _update_edges(self):
-        self._edges = {}
+        self._edges = []
         for face_index, face in enumerate(self._faces):
             for vi0, vi1 in face.iter_vert_pairs():
                 assert vi0 != vi1
                 vi0, vi1 = sorted((vi0, vi1))
 
-                edges = self._edges.get(vi0)
-                if edges is None:
-                    edges = []
-                    self._edges[vi0] = edges
+                edge_indices = self.vert(vi0).edge_indices
 
+                found = False
                 edge = None
-                for candidate_edge in edges:
-                    assert candidate_edge.vert_indices[0] == vi0
-                    if candidate_edge.vert_indices[1] == vi1:
-                        edge = candidate_edge
+                for ei0 in edge_indices:
+                    edge = self._edges[ei0]
+                    if edge.vert_indices == (vi0, vi1):
+                        found = True
+                        break
 
-                if edge is None:
-                    edges.append(Edge(vi0, vi1, [face_index]))
-                else:
+                if found:
                     edge.face_indices.append(face_index)
+                else:
+                    ei1 = len(self._edges)
+                    self.vert(vi0).edge_indices.append(ei1)
+                    self.vert(vi1).edge_indices.append(ei1)
+                    self._edges.append(Edge(vi0, vi1, [face_index]))
 
+    def vert(self, vert_index):
+        return self._verts[vert_index]
 
     @classmethod
     def load_obj(cls, path):

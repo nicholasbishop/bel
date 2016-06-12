@@ -21,18 +21,12 @@ class TestMesh(TestCase):
             )
         )
 
-        expected_edges = {
-            0: [
-                Edge(0, 1, [0]),
-                Edge(0, 2, [0, 1]),
-                Edge(0, 3, [1]),
-            ],
-            1: [
-                Edge(1, 2, [0]),
-            ],
-            2: [
-                Edge(2, 3, [1]),
-            ],
-        }
+        expected_edges = [
+            Edge(0, 1, [0]),
+            Edge(1, 2, [0]),
+            Edge(0, 2, [0, 1]),
+            Edge(2, 3, [1]),
+            Edge(0, 3, [1]),
+        ]
 
         self.assertEqual(mesh.edges, expected_edges)
