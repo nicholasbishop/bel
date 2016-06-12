@@ -8,20 +8,27 @@ def _obj_remove_comment(line):
 
 
 class Vert:
-    def __init__(self, loc):
-        self.loc = loc
+    def __init__(self, loc=None):
+        self.loc = loc or vec3f(0, 0, 0)
 
 
 class Edge:
-    def __init__(self, vert_indices, face_indices):
-        self.vert_indices = vert_indices
+    def __init__(self, vi0, vi1, face_indices):
+        self.vert_indices = (vi0, vi1)
         self.face_indices = face_indices
+
+    def __eq__(self, other):
+        return (self.vert_indices == other.vert_indices and
+                self.face_indices == other.face_indices)
+
+    def __repr__(self):
+        return 'Edge({}, {})'.format(self.vert_indices[0],
+                                     self.vert_indices[1])
 
 
 class Face:
     def __init__(self, vert_indices):
         self.vert_indices = vert_indices
-        self.edge_indices = None
 
     def iter_vert_pairs(self):
         num_verts = len(self.vert_indices)
@@ -35,7 +42,7 @@ class Face:
 
 
 class Mesh:
-    def __init__(self, verts, faces, path):
+    def __init__(self, verts, faces, path=None):
         self._original_path = path
         self._verts = verts
         self._faces = faces
@@ -74,7 +81,7 @@ class Mesh:
                         edge = candidate_edge
 
                 if edge is None:
-                    edges.append(Edge((vi0, vi1), [face_index]))
+                    edges.append(Edge(vi0, vi1, [face_index]))
                 else:
                     edge.face_indices.append(face_index)
 
