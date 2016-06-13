@@ -14,9 +14,10 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwInit,
                                 glfwMakeContextCurrent,
                                 glfwSetCursorPosCallback,
-                                glfwSetKeyCallback,
                                 glfwSetErrorCallback,
+                                glfwSetKeyCallback,
                                 glfwSetMouseButtonCallback,
+                                glfwSetWindowShouldClose,
                                 glfwSwapBuffers,
                                 glfwWaitEvents,
                                 glfwWindowHint,
@@ -63,6 +64,10 @@ class Window:
         self.on_draw = None
         self.on_start = None
         self.on_cursor_pos = None
+        self.on_key = None
+
+    def close(self):
+        glfwSetWindowShouldClose(self._window, True)
 
     @property
     def draw_state(self):
@@ -79,9 +84,9 @@ class Window:
             self.on_cursor_pos(loc)
 
     def _cb_key(self, window, key, scancode, action, mods):
-        # TODO, send the full event
-        #self._future_group.create_task(self._scene.key_event(key))
-        pass
+        if self.on_key is None:
+            return
+        self.on_key(key, scancode, action, mods)
 
     def _cb_mouse_button(self, window, gbutton, gaction, gmods):
         button = MouseButtonEvent(button_from_glfw(gbutton),

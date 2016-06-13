@@ -2,6 +2,8 @@
 
 import logging
 
+from cyglfw3.compatible import GLFW_KEY_ESCAPE
+
 from bel import log
 from bel.mesh import Mesh
 from bel.mesh_node import MeshNode
@@ -17,6 +19,7 @@ class Demo:
 
         self._window.on_draw = self.on_draw
         self._window.on_cursor_pos = self.on_cursor_pos
+        self._window.on_key = self.on_key
 
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
@@ -30,6 +33,10 @@ class Demo:
         transf.loc.x = loc.x
         transf.loc.y = -loc.y
         self._mouse_node._draw_cmd_dirty = True
+
+    def on_key(self, key, scancode, action, mods):
+        if key == GLFW_KEY_ESCAPE:
+            self._window.close()
 
     def on_draw(self):
         self._scene.draw(self._window.draw_state)
