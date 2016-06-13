@@ -8,7 +8,9 @@ class MeshNode(SceneNode):
     def __init__(self, mesh):
         super().__init__()
         self._mesh = mesh
-        self._view_needs_update = True
+        self._vert_buf_dirty = True
+        self._draw_cmd_dirty = True
+        self._num_draw_triangles = 0
         self._vert_buf_uid = auto_name('vertbuf')
         self._draw_cmd_uid = auto_name('drawcmd')
         self._material_uid = 'default'
@@ -47,13 +49,13 @@ class MeshNode(SceneNode):
                     out += 6
         return num_triangles, verts
 
-    def draw(self, draw_state):
-        if not self._view_needs_update:
-            return
-
-        bytes_per_float32 = 4
+    def _update_vert_buf(self, draw_state):
         num_triangles, vert_nors = self._create_draw_array()
         draw_state.update_buffer(self._vert_buf_uid, vert_nors)
+        self._num_draw_triangles = num_triangles
+
+    def _update_draw_cmd(self, draw_state):
+        bytes_per_float32 = 4
         draw_state.update_draw_command(self._draw_cmd_uid, {
             'material': 'default',
             'attributes': {
@@ -78,8 +80,15 @@ class MeshNode(SceneNode):
                 'model':
                 None # TODO MatrixUniform(self._transform.matrix())
             },
-            'range': (0, num_triangles * 3),
+            'range': (0, self._num_draw_triangles * 3),
             'primitive': 'triangles'
         })
 
-        self._view_needs_update = False
+    def draw(self, draw_state):
+        if self._vert_buf_dirty:
+            self._update_vert_buf(draw_state)
+            self._vert_buf_dirty = False
+
+        if self._draw_cmd_dirty:
+            self._update_draw_cmd(draw_state)
+            self._draw_cmd_dirty = False
