@@ -19,6 +19,22 @@ class Vec2f(object):
             self._array[0],
             self._array[1])
 
+    @property
+    def x(self):
+        return self._array[0]
+
+    @x.setter
+    def x(self, val):
+        self._array[0] = val
+
+    @property
+    def y(self):
+        return self._array[1]
+
+    @y.setter
+    def y(self, val):
+        self._array[1] = val
+
 
 class Vec3f(object):
     """3-D point or vector backed by a numpy float32 array."""
