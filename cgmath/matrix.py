@@ -11,6 +11,14 @@ class Mat4f:
     def numpy_matrix(self):
         return self._matrix
 
+    def __repr__(self):
+        return ('Mat4f({: 9.3}, {: 9.3}, {: 9.3}, {: 9.3},\n'
+                '      {: 9.3}, {: 9.3}, {: 9.3}, {: 9.3},\n'
+                '      {: 9.3}, {: 9.3}, {: 9.3}, {: 9.3},\n'
+                '      {: 9.3}, {: 9.3}, {: 9.3}, {: 9.3})'
+                ).format(
+            *(self._matrix.T.item(n) for n in range(16)))
+
 
 def mat4f(*args):
     assert len(args) == 16
