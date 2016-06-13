@@ -6,7 +6,7 @@ class Transform(object):
     def __init__(self):
         self._loc = vec3f()
         self._rot = quat4f()
-        self._scale = vec3f()
+        self._scale = vec3f(1)
 
     @property
     def loc(self):
@@ -37,7 +37,7 @@ class Transform(object):
 
     def matrix(self):
         # TODO
-        return mat4f(1, 0, 0, self._loc.x,
-                     0, 1, 0, self._loc.y,
-                     0, 0, 1, self._loc.z,
+        return mat4f(self._scale.x, 0, 0, self._loc.x,
+                     0, self._scale.y, 0, self._loc.y,
+                     0, 0, self._scale.z, self._loc.z,
                      0, 0, 0, 1)

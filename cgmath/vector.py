@@ -117,5 +117,9 @@ def vec2f(x=0.0, y=0.0):
     return Vec2f(numpy.array((x, y), numpy.float32))
 
 
-def vec3f(x=0.0, y=0.0, z=0.0):
+def vec3f(x=0.0, y=None, z=None):
+    if y is None:
+        y = x
+    if z is None:
+        z = x
     return Vec3f(numpy.array((x, y, z), numpy.float32))

@@ -8,6 +8,7 @@ from bel.mesh_node import MeshNode
 from bel.scene import Scene
 from bel.solids import cube_mesh
 from bel.window import Window
+from cgmath.vector import vec3f
 
 class Demo:
     def __init__(self):
@@ -21,6 +22,7 @@ class Demo:
         self._scene.root.add_child(MeshNode(self._mesh))
         self._mouse_node = self._scene.root.add_child(
             MeshNode(cube_mesh()))
+        self._mouse_node.transform.scale = vec3f(0.1)
 
     def on_cursor_pos(self, loc):
         # TODO
