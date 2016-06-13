@@ -1,6 +1,7 @@
 """Simple but flexible Mesh data structure."""
 
 from collections import namedtuple
+from itertools import repeat
 from pqdict import minpq
 
 from cgmath.vector import vec3f
@@ -25,6 +26,10 @@ class Edge:
     def __init__(self, vi0, vi1, face_indices):
         self.vert_indices = (vi0, vi1)
         self.face_indices = face_indices
+
+    def contains(self, vi0):
+        """Return whether the edge's vertices include |vi0|."""
+        return vi0 in self.vert_indices
 
     def other_vert_index(self, vi0):
         """Get the other vertex index in the edge.
@@ -100,6 +105,19 @@ class Mesh:
         """Get the |Edge| at |edge_index|."""
         return self._edges[edge_index]
 
+    def edge_index_between(self, vi0, vi1):
+        """Get the edge index between |vi0| and |vi1|.
+
+        Returns None if no such edge is found."""
+        for ei0 in self.vert(vi0).edge_indices:
+            edge = self.edge(ei0)
+            if edge.contains(vi1):
+                return ei0
+        return None
+
+    def edge_between(self, vi0, vi1):
+        return self.edge(self.edge_index_between(vi0, vi1))
+
     def adj_vert_edge(self, vi0):
         """Edges adjacent to the vertex |vi0|."""
         for ei0 in self.vert(vi0).edge_indices:
@@ -110,7 +128,28 @@ class Mesh:
         for edge in self.adj_vert_edge(vi0):
             yield edge.other_vert_index(vi0)
 
-    DijkstraResult = namedtuple('DistPrev', ('dist', 'prev'))
+    def edge_verts(self, edge):
+        """Get the pair of |Vert|s in the edge."""
+        return (self.vert(edge.vert_indices[0]),
+                self.vert(edge.vert_indices[1]))
+
+    def edge_length(self, edge):
+        """Get the distance between the edge's vertices."""
+        pair = self.edge_verts(edge)
+        return pair[0].loc.distance(pair[1].loc)
+
+    class DijkstraResult:
+        """A list of |DijkstraResult| is returned by |dijkstra|."""
+        def __init__(self, dist=float('inf'), prev=None):
+            self.dist = dist
+            self.prev = prev
+
+        def __eq__(self, other):
+            return self.dist == other.dist and self.prev == other.prev
+
+        def __repr__(self):
+            return 'DijkstraResult(dist={}, prev={})'.format(self.dist,
+                                                             self.prev)
 
     def dijkstra(self, vi0, distance):
         """Calculate shortest path from |vi0| to all other verts.
@@ -125,26 +164,26 @@ class Mesh:
         http://pqdict.readthedocs.io/en/latest/examples.html
 
         """
-
-        dist_prev = []
+        result = []
 
         queue = minpq()
         for vi1 in range(len(self._verts)):
             queue[vi1] = float('inf')
+            result.append(self.DijkstraResult())
         queue[vi0] = 0
 
         for vi2, min_dist in queue.popitems():
-            dist_prev.dist[vi2] = self.DijkstraResult(min_dist, None)
+            result[vi2].dist = min_dist
 
             for vi3 in self.adj_vert_vert(vi2):
                 if vi3 in queue:
-                    new_score = dist_prev[vi2] + distance(vi2, vi3)
+                    new_score = result[vi2].dist + distance(vi2, vi3)
                     if new_score < queue[vi3]:
                         # pqdict update is O(log n)
                         queue[vi3] = new_score
-                        dist_prev.prev[vi3] = vi2
+                        result[vi3].prev = vi2
 
-        return dist_prev
+        return result
 
     def _update_edges(self):
         """Recalculate edge adjacency.

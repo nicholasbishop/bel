@@ -58,6 +58,9 @@ class Vec3f(object):
     def length(self):
         return numpy.linalg.norm(self._array)
 
+    def distance(self, other):
+        return (other - self).length()
+
     def normalized(self):
         return Vec3f(self._array / self.length())
 
