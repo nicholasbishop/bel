@@ -1,9 +1,12 @@
+"""Simple but flexible Mesh data structure."""
+
 from collections import namedtuple
 from pqdict import minpq
 
 from cgmath.vector import vec3f
 
 def _obj_remove_comment(line):
+    """Strip "#" comment from a line."""
     ind = line.find('#')
     if ind != -1:
         line = line[:ind].rstrip()
@@ -11,17 +14,23 @@ def _obj_remove_comment(line):
 
 
 class Vert:
+    """Mesh vertex."""
     def __init__(self, loc=None):
         self.loc = loc or vec3f(0, 0, 0)
         self.edge_indices = []
 
 
 class Edge:
+    """Mesh edge."""
     def __init__(self, vi0, vi1, face_indices):
         self.vert_indices = (vi0, vi1)
         self.face_indices = face_indices
 
     def other_vert_index(self, vi0):
+        """Get the other vertex index in the edge.
+
+        |vi0| must be one of the vertex indices in the edge.
+        """
         assert vi0 in self.vert_indices
         if self.vert_indices[0] == vi0:
             return self.vert_indices[1]
@@ -38,10 +47,16 @@ class Edge:
 
 
 class Face:
+    """Mesh polygon."""
     def __init__(self, vert_indices):
         self.vert_indices = vert_indices
 
     def iter_vert_pairs(self):
+        """Iterator of adjacent pairs of vertex indices.
+
+        For example, a triangle with indices (2, 4, 6) will yield:
+        (2, 4), (4, 6), (6, 2)
+        """
         num_verts = len(self.vert_indices)
         for corner_index, vert_index in enumerate(self.vert_indices):
             next_corner_index = corner_index + 1
@@ -53,6 +68,7 @@ class Face:
 
 
 class Mesh:
+    """Simple but flexible Mesh data structure."""
     def __init__(self, verts, faces, path=None):
         self._original_path = path
         self._verts = verts
@@ -62,22 +78,35 @@ class Mesh:
 
     @property
     def verts(self):
+        """Mesh vertices."""
         return self._verts
 
     @property
     def edges(self):
+        """Mesh edges."""
         assert self._edges != None
         return self._edges
 
     @property
     def faces(self):
+        """Mesh faces."""
         return self._faces
 
+    def vert(self, vert_index):
+        """Get the |Vert| at |vertex_index|."""
+        return self._verts[vert_index]
+
+    def edge(self, edge_index):
+        """Get the |Edge| at |edge_index|."""
+        return self._edges[edge_index]
+
     def adj_vert_edge(self, vi0):
+        """Edges adjacent to the vertex |vi0|."""
         for ei0 in self.vert(vi0).edge_indices:
             yield self.edge(ei0)
 
     def adj_vert_vert(self, vi0):
+        """Vertex indices adjacent to the vertex |vi0|."""
         for edge in self.adj_vert_edge(vi0):
             yield edge.other_vert_index(vi0)
 
@@ -118,6 +147,11 @@ class Mesh:
         return dist_prev
 
     def _update_edges(self):
+        """Recalculate edge adjacency.
+
+        TODO(nicholasbishop): this doesn't correctly handle repeated
+        calls because face/vert adjacency lists aren't cleared first.
+        """
         self._edges = []
         for face_index, face in enumerate(self._faces):
             for vi0, vi1 in face.iter_vert_pairs():
@@ -142,14 +176,9 @@ class Mesh:
                     self.vert(vi1).edge_indices.append(ei1)
                     self._edges.append(Edge(vi0, vi1, [face_index]))
 
-    def vert(self, vert_index):
-        return self._verts[vert_index]
-
-    def edge(self, edge_index):
-        return self._edges[edge_index]
-
     @classmethod
     def load_obj(cls, path):
+        """Create a |Mesh| from an obj file."""
         with open(path) as rfile:
             verts = []
             faces = []
