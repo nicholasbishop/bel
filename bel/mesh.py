@@ -258,3 +258,24 @@ class Mesh:
                     faces.append(Face(indices))
 
         return Mesh(verts, faces, path)
+
+    @classmethod
+    def cube(cls):
+        verts = [
+            Vert(vec3f(-1, -1, -1)),
+            Vert(vec3f(-1,  1, -1)),
+            Vert(vec3f( 1,  1, -1)),
+            Vert(vec3f( 1, -1, -1)),
+
+            Vert(vec3f(-1, -1,  1)),
+            Vert(vec3f(-1,  1,  1)),
+            Vert(vec3f( 1,  1,  1)),
+            Vert(vec3f( 1, -1,  1)),
+        ]
+        faces = [
+            Face([0, 1, 2, 3]),
+            Face([7, 6, 5, 4]),
+
+            # TODO(nicholasbishop): add the side faces
+        ]
+        return Mesh(verts, faces)
