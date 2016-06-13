@@ -1,12 +1,14 @@
+from numpy import ndarray
+
 from cgmath.matrix import mat4f
-from cgmath.vector import vec3f
+from cgmath.vector import vec3_from_scalar, vec3_one, vec3_zero
 from cgmath.quaternion import quat4f
 
 class Transform(object):
     def __init__(self):
-        self._loc = vec3f()
+        self._loc = vec3_zero()
         self._rot = quat4f()
-        self._scale = vec3f(1)
+        self._scale = vec3_one()
 
     @property
     def loc(self):
@@ -25,6 +27,7 @@ class Transform(object):
 
     @loc.setter
     def loc(self, val):
+        assert isinstance(val, ndarray)
         self._loc = val
 
     @rot.setter
@@ -33,11 +36,12 @@ class Transform(object):
 
     @scale.setter
     def scale(self, val):
+        assert isinstance(val, ndarray)
         self._scale = val
 
     def matrix(self):
         # TODO
-        return mat4f(self._scale.x, 0, 0, self._loc.x,
-                     0, self._scale.y, 0, self._loc.y,
-                     0, 0, self._scale.z, self._loc.z,
+        return mat4f(self._scale[0], 0, 0, self._loc[0],
+                     0, self._scale[1], 0, self._loc[1],
+                     0, 0, self._scale[2], self._loc[2],
                      0, 0, 0, 1)
