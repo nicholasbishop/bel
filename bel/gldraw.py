@@ -15,7 +15,6 @@ from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel.buffer_object import ArrayBufferObject
 from bel.color import Color
-from bel.shader import ShaderProgram
 from bel.uniform import MatrixUniform
 
 
@@ -36,21 +35,6 @@ class DrawState:
     @fb_size.setter
     def fb_size(self, pair):
         self._fb_size = pair
-
-    def _add_default_materials(self):
-        # TODO
-        default = ShaderProgram()
-        default.update({
-            'vert_shader_paths': ['shaders/vert.glsl'],
-            'frag_shader_paths': ['shaders/frag.glsl'],
-        })
-        flat = ShaderProgram()
-        flat.update({
-            'vert_shader_paths': ['shaders/flat.vert.glsl'],
-            'frag_shader_paths': ['shaders/flat.frag.glsl'],
-        })
-        self.update_shader_program('default', default)
-        self.update_shader_program('flat', flat)
 
     def update_buffer(self, uid, array):
         buffer_object = self._buffer_objects.get(uid)
@@ -110,10 +94,6 @@ class DrawState:
             return self._fb_size[0] / height
 
     def draw_all(self):
-        # TODO(nicholasbishop): better place for this call
-        if not self._materials:
-            self._add_default_materials()
-
         glViewport(0, 0, *self._fb_size)
 
         glClearColor(*self._clear_color.as_tuple())
