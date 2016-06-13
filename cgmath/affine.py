@@ -1,6 +1,6 @@
 from numpy import ndarray
 
-from cgmath.matrix import mat4f
+from cgmath.matrix import new_mat4
 from cgmath.vector import vec3_from_scalar, vec3_one, vec3_zero
 from cgmath.quaternion import quat4f
 
@@ -41,7 +41,7 @@ class Transform(object):
 
     def matrix(self):
         # TODO
-        return mat4f(self._scale[0], 0, 0, self._loc[0],
-                     0, self._scale[1], 0, self._loc[1],
-                     0, 0, self._scale[2], self._loc[2],
-                     0, 0, 0, 1)
+        return new_mat4(self._scale[0], 0, 0, self._loc[0],
+                        0, self._scale[1], 0, self._loc[1],
+                        0, 0, self._scale[2], self._loc[2],
+                        0, 0, 0, 1)

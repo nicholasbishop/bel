@@ -78,7 +78,7 @@ class MeshNode(SceneNode):
                 }
             },
             'uniforms': {
-                'model': MatrixUniform(self.transform.matrix().numpy_matrix)
+                'model': MatrixUniform(self.transform.matrix())
             },
             'range': (0, self._num_draw_triangles * 3),
             'primitive': 'triangles'
