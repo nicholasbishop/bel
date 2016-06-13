@@ -86,7 +86,6 @@ class DrawState:
             uniforms.update(builtin_uniforms)
             uniforms.update(self._uniforms)
             # TODO
-            uniforms['model'] = MatrixUniform(Matrix44.identity())
             material.bind_uniforms(uniforms)
 
         first, count = item['range']

@@ -2,6 +2,7 @@ import numpy
 
 from bel.auto_name import auto_name
 from bel.scene_node import SceneNode
+from bel.uniform import MatrixUniform
 from cgmath.normal import triangle_normal
 
 class MeshNode(SceneNode):
@@ -77,8 +78,7 @@ class MeshNode(SceneNode):
                 }
             },
             'uniforms': {
-                'model':
-                None # TODO MatrixUniform(self._transform.matrix())
+                'model': MatrixUniform(self.transform.matrix().numpy_matrix)
             },
             'range': (0, self._num_draw_triangles * 3),
             'primitive': 'triangles'

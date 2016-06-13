@@ -22,7 +22,11 @@ class Demo:
             MeshNode(Mesh.cube()))
 
     def on_cursor_pos(self, loc):
-        print(loc)
+        # TODO
+        transf = self._mouse_node.transform
+        transf.loc.x = loc.x
+        transf.loc.y = -loc.y
+        self._mouse_node._draw_cmd_dirty = True
 
     def on_draw(self):
         self._scene.draw(self._window.draw_state)
