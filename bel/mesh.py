@@ -138,6 +138,23 @@ class Mesh:
         pair = self.edge_verts(edge)
         return pair[0].loc.distance(pair[1].loc)
 
+    def nearest_vert(self, loc):
+        """Get the index of the vertex closest to |loc|.
+
+        Returns a pair of (vertex_index, distance_squared)
+
+        TODO(nicholasbishop): use a spatial hierarchy to make this
+        faster.
+        """
+        best_vert_index = None
+        best_dist_squared = float('inf')
+        for index, vert in enumerate(self._verts):
+            dist_squared = loc.distance_squared(vert.loc)
+            if dist_squared < best_dist_squared:
+                best_vert_index = index
+                best_dist_squared = dist_squared
+        return (best_vert_index, best_dist_squared)
+
     class DijkstraResult:
         """A list of |DijkstraResult| is returned by |dijkstra|."""
         def __init__(self, dist=float('inf'), prev=None):

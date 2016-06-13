@@ -61,6 +61,9 @@ class Vec3f(object):
     def distance(self, other):
         return (other - self).length()
 
+    def distance_squared(self, other):
+        return (other - self).length_squared()
+
     def normalized(self):
         return Vec3f(self._array / self.length())
 
