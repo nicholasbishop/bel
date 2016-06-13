@@ -1,3 +1,6 @@
+from collections import namedtuple
+from pqdict import minpq
+
 from cgmath.vector import vec3f
 
 def _obj_remove_comment(line):
@@ -77,6 +80,42 @@ class Mesh:
     def adj_vert_vert(self, vi0):
         for edge in self.adj_vert_edge(vi0):
             yield edge.other_vert_index(vi0)
+
+    DijkstraResult = namedtuple('DistPrev', ('dist', 'prev'))
+
+    def dijkstra(self, vi0, distance):
+        """Calculate shortest path from |vi0| to all other verts.
+
+        distance: callable that takes two adjacent vertex indices and
+                  returns a number indicating the distance between
+                  them.
+
+        Returns a list of |DijkstraResult|.
+
+        Adapted from:
+        http://pqdict.readthedocs.io/en/latest/examples.html
+
+        """
+
+        dist_prev = []
+
+        queue = minpq()
+        for vi1 in range(len(self._verts)):
+            queue[vi1] = float('inf')
+        queue[vi0] = 0
+
+        for vi2, min_dist in queue.popitems():
+            dist_prev.dist[vi2] = self.DijkstraResult(min_dist, None)
+
+            for vi3 in self.adj_vert_vert(vi2):
+                if vi3 in queue:
+                    new_score = dist_prev[vi2] + distance(vi2, vi3)
+                    if new_score < queue[vi3]:
+                        # pqdict update is O(log n)
+                        queue[vi3] = new_score
+                        dist_prev.prev[vi3] = vi2
+
+        return dist_prev
 
     def _update_edges(self):
         self._edges = []
