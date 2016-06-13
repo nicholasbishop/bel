@@ -12,11 +12,17 @@ class Demo:
     def __init__(self):
         self._scene = Scene()
         self._window = Window()
+
         self._window.on_draw = self.on_draw
+        self._window.on_cursor_pos = self.on_cursor_pos
+
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
         self._mouse_node = self._scene.root.add_child(
             MeshNode(Mesh.cube()))
+
+    def on_cursor_pos(self, loc):
+        print(loc)
 
     def on_draw(self):
         self._scene.draw(self._window.draw_state)

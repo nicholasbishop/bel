@@ -6,6 +6,20 @@ import numpy
 
 # pylint: disable=invalid-name,missing-docstring
 
+class Vec2f(object):
+    """2-D point or vector backed by a numpy float32 array."""
+
+    def __init__(self, numpy_array):
+        assert len(numpy_array) == 2
+        assert numpy_array.dtype == numpy.float32
+        self._array = numpy_array
+
+    def __repr__(self):
+        return 'Vec2f({: 9.3}, {: 9.3})'.format(
+            self._array[0],
+            self._array[1])
+
+
 class Vec3f(object):
     """3-D point or vector backed by a numpy float32 array."""
 
@@ -81,6 +95,10 @@ class Vec3f(object):
             self._array[0],
             self._array[1],
             self._array[2])
+
+
+def vec2f(x=0.0, y=0.0):
+    return Vec2f(numpy.array((x, y), numpy.float32))
 
 
 def vec3f(x=0.0, y=0.0, z=0.0):

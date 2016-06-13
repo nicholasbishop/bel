@@ -10,6 +10,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwCreateWindow,
                                 glfwDestroyWindow,
                                 glfwGetFramebufferSize,
+                                glfwGetWindowSize,
                                 glfwInit,
                                 glfwMakeContextCurrent,
                                 glfwSetCursorPosCallback,
@@ -30,6 +31,7 @@ from bel.msg import BufferData
 from bel.shader import ShaderProgram
 from bel.transform import Transform
 from bel.uniform import MatrixUniform
+from cgmath.vector import vec2f
 
 LOG = getLogger(__name__)
 
@@ -60,6 +62,7 @@ class Window:
         self._init_glfw()
         self.on_draw = None
         self.on_start = None
+        self.on_cursor_pos = None
 
     @property
     def draw_state(self):
@@ -70,8 +73,10 @@ class Window:
         LOG.error('GLFW error: %d %s', error, description)
 
     def _cb_cursor_pos(self, window, xpos, ypos):
-        #self._future_group.create_task(self._scene.cursor_pos_event(xpos, ypos))
-        pass
+        if self.on_cursor_pos is not None:
+            size = glfwGetWindowSize(window)
+            loc = vec2f(xpos / size[0], ypos / size[1])
+            self.on_cursor_pos(loc)
 
     def _cb_key(self, window, key, scancode, action, mods):
         # TODO, send the full event
