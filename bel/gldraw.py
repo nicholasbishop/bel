@@ -11,7 +11,6 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
                        glDrawArrays,
                        glEnable,
                        glViewport)
-from pyrr import Matrix44
 from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel.buffer_object import ArrayBufferObject

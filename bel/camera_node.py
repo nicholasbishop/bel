@@ -1,6 +1,5 @@
 from bel.scene_node import SceneNode
 
-from cgmath.affine import Transform
 from cgmath.vector import vec3f
 
 class CameraNode(SceneNode):

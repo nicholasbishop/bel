@@ -6,6 +6,7 @@ from bel import log
 from bel.mesh import Mesh
 from bel.mesh_node import MeshNode
 from bel.scene import Scene
+from bel.solids import cube_mesh
 from bel.window import Window
 
 class Demo:
@@ -19,7 +20,7 @@ class Demo:
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
         self._mouse_node = self._scene.root.add_child(
-            MeshNode(Mesh.cube()))
+            MeshNode(cube_mesh()))
 
     def on_cursor_pos(self, loc):
         # TODO
