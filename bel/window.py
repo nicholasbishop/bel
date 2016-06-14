@@ -114,6 +114,9 @@ class Window:
         glfwMakeContextCurrent(self._window)
         LOG.info('GL_VERSION: %s', glGetString(GL_VERSION))
 
+        # TODO
+        self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
+
         self._add_default_materials()
 
     def _add_default_materials(self):
