@@ -32,7 +32,7 @@ from bel.msg import BufferData
 from bel.shader import ShaderProgram
 from bel.transform import Transform
 from bel.uniform import MatrixUniform
-from cgmath.vector import new_vec2
+from cgmath.vector import vec2
 
 LOG = getLogger(__name__)
 
@@ -80,7 +80,7 @@ class Window:
     def _cb_cursor_pos(self, window, xpos, ypos):
         if self.on_cursor_pos is not None:
             size = glfwGetWindowSize(window)
-            loc = new_vec2(xpos / size[0], -ypos / size[1])
+            loc = vec2(xpos / size[0], -ypos / size[1])
             self.on_cursor_pos(loc)
 
     def _cb_key(self, window, key, scancode, action, mods):

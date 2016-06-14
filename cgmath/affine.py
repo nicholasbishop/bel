@@ -1,14 +1,14 @@
 from numpy import ndarray
 
 from cgmath.matrix import new_mat4
-from cgmath.vector import vec3_from_scalar, vec3_one, vec3_zero
+from cgmath.vector import vec3, vec3_from_scalar
 from cgmath.quaternion import quat4f
 
 class Transform(object):
     def __init__(self):
-        self._loc = vec3_zero()
+        self._loc = vec3()
         self._rot = quat4f()
-        self._scale = vec3_one()
+        self._scale = vec3_from_scalar(1)
 
     @property
     def loc(self):

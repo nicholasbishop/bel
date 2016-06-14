@@ -10,7 +10,7 @@ from bel.mesh_node import MeshNode
 from bel.scene import Scene
 from bel.solids import cube_mesh
 from bel.window import Window
-from cgmath.vector import copy_xy, vec3f, vec3_from_scalar
+from cgmath.vector import copy_xy, vec3_from_scalar
 
 class Demo:
     def __init__(self):

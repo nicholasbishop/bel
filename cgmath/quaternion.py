@@ -2,8 +2,6 @@
 
 import numpy
 
-from cgmath.vector import Vec3f
-
 # pylint: disable=invalid-name,missing-docstring
 
 class Quat4f(object):
@@ -25,7 +23,7 @@ class Quat4f(object):
     @property
     def vector(self):
         """The vector part of the quaternion."""
-        return Vec3f(self._array[0:3])
+        return self._array[0:3]
 
     @property
     def scalar(self):

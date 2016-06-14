@@ -4,6 +4,7 @@ from bel.auto_name import auto_name
 from bel.scene_node import SceneNode
 from bel.uniform import MatrixUniform
 from cgmath.normal import triangle_normal
+from cgmath.vector import copy_xyz
 
 class MeshNode(SceneNode):
     def __init__(self, mesh):
@@ -41,13 +42,10 @@ class MeshNode(SceneNode):
                 nor = triangle_normal(*locs)
 
                 for loc in locs:
-                    verts[out + 0] = loc.x
-                    verts[out + 1] = loc.y
-                    verts[out + 2] = loc.z
-                    verts[out + 3] = nor.x
-                    verts[out + 4] = nor.y
-                    verts[out + 5] = nor.z
-                    out += 6
+                    copy_xyz(verts[out:out+3], loc)
+                    out += 3
+                    copy_xyz(verts[out:out+3], nor)
+                    out += 3
         return num_triangles, verts
 
     def _update_vert_buf(self, draw_state):

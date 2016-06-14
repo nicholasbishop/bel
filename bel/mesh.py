@@ -2,7 +2,7 @@
 
 from pqdict import minpq
 
-from cgmath.vector import vec3f
+from cgmath.vector import vec3
 
 def _obj_remove_comment(line):
     """Strip "#" comment from a line."""
@@ -15,7 +15,7 @@ def _obj_remove_comment(line):
 class Vert:
     """Mesh vertex."""
     def __init__(self, loc=None):
-        self.loc = loc or vec3f(0, 0, 0)
+        self.loc = vec3() if loc is None else loc
         self.edge_indices = []
 
 
@@ -243,13 +243,13 @@ class Mesh:
                     continue
                 tok = parts[0]
                 if tok == 'v':
-                    vec = vec3f()
+                    vec = vec3()
                     if len(parts) > 1:
-                        vec.x = float(parts[1])
+                        vec[0] = float(parts[1])
                     if len(parts) > 2:
-                        vec.y = float(parts[2])
+                        vec[1] = float(parts[2])
                     if len(parts) > 3:
-                        vec.z = float(parts[3])
+                        vec[2] = float(parts[3])
                     verts.append(Vert(vec))
                 elif tok == 'f':
                     indices = [int(ind) - 1 for ind in parts[1:]]
