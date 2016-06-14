@@ -1,15 +1,16 @@
 import numpy
 
 from bel.auto_name import auto_name
+from bel.mesh import Mesh
 from bel.scene_node import SceneNode
 from bel.uniform import MatrixUniform
 from cgmath.normal import triangle_normal
 from cgmath.vector import copy_xyz
 
 class MeshNode(SceneNode):
-    def __init__(self, mesh):
+    def __init__(self, mesh=None):
         super().__init__()
-        self._mesh = mesh
+        self._mesh = Mesh() if mesh is None else mesh
         self._vert_buf_dirty = True
         self._draw_cmd_dirty = True
         self._num_draw_triangles = 0

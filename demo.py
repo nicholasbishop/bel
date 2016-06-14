@@ -21,6 +21,8 @@ class Demo:
         self._window.on_cursor_pos = self.on_cursor_pos
         self._window.on_key = self.on_key
 
+        self._ray_node = self._scene.root.add_child(MeshNode())
+
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
         self._mouse_node = self._scene.root.add_child(

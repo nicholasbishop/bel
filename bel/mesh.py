@@ -72,10 +72,10 @@ class Face:
 
 class Mesh:
     """Simple but flexible Mesh data structure."""
-    def __init__(self, verts, faces, path=None):
+    def __init__(self, verts=None, faces=None, path=None):
         self._original_path = path
-        self._verts = verts
-        self._faces = faces
+        self._verts = [] if verts is None else verts
+        self._faces = [] if faces is None else faces
         self._edges = None
         self._update_edges()
 
