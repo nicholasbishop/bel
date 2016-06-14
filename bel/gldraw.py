@@ -11,7 +11,6 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
                        glDrawArrays,
                        glEnable,
                        glViewport)
-from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel.buffer_object import ArrayBufferObject
 from bel.color import Color
@@ -55,7 +54,7 @@ class DrawState:
     def update_matrix_uniform(self, uid, matrix):
         self._uniforms[uid] = MatrixUniform(matrix)
 
-    def _draw_one(self, item, builtin_uniforms):
+    def _draw_one(self, item):
         material_uid = item['material']
         if material_uid not in self._materials:
             self._log.error('unknown material: %r', material_uid)
@@ -66,7 +65,6 @@ class DrawState:
             material.bind_attributes(self._buffer_objects, item['attributes'])
             uniforms = dict(item['uniforms'])
             # TODO
-            uniforms.update(builtin_uniforms)
             uniforms.update(self._uniforms)
             # TODO
             material.bind_uniforms(uniforms)
@@ -86,7 +84,7 @@ class DrawState:
         with material.bind():
             glDrawArrays(mode, first, count)
 
-    def _aspect_ratio(self):
+    def aspect_ratio(self):
         height = self._fb_size[1]
         if height == 0:
             return 0
@@ -100,22 +98,5 @@ class DrawState:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
 
-        # TODO
-        fovy = 90
-        aspect = self._aspect_ratio()
-        near = 0.01
-        far = 100
-        proj_matrix = create_perspective_projection_matrix(
-            fovy,
-            aspect,
-            near,
-            far,
-        )
-
-        # TODO
-        builtin_uniforms = {
-            'projection': MatrixUniform(proj_matrix),
-        }
-
         for comm in self._draw_commands.values():
-            self._draw_one(comm, builtin_uniforms)
+            self._draw_one(comm)

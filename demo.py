@@ -27,10 +27,14 @@ class Demo:
             MeshNode(cube_mesh()))
         self._mouse_node.transform.scale = vec3_from_scalar(0.1)
 
+        # TODO
+        self._scene.window_initialized(self._window.draw_state)
+
     def on_cursor_pos(self, loc):
         # TODO
         transf = self._mouse_node.transform
         copy_xy(transf.loc, loc)
+        ray = self._scene.ray_from_screen_coord(loc)
         self._mouse_node._draw_cmd_dirty = True
 
     def on_key(self, key, scancode, action, mods):
