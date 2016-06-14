@@ -7,20 +7,20 @@ from numpy import cross, dot
 from numpy.linalg import norm
 
 
-def magnitude_squared(self):
-    return self.dot(self)
+def magnitude_squared(vec):
+    return dot(vec, vec)
 
 
 def magnitude(vec):
     return numpy.linalg.norm(vec)
 
 
-def distance(self, other):
-    return (other - self).length()
+def distance(vec1, vec2):
+    return magnitude(vec1 - vec2)
 
 
-def distance_squared(self, other):
-    return (other - self).length_squared()
+def distance_squared(vec1, vec2):
+    return magnitude_squared(vec1 - vec2)
 
 
 def normalized(vec):

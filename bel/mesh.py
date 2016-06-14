@@ -2,7 +2,7 @@
 
 from pqdict import minpq
 
-from cgmath.vector import vec3
+from cgmath.vector import distance, vec3
 
 def _obj_remove_comment(line):
     """Strip "#" comment from a line."""
@@ -134,7 +134,7 @@ class Mesh:
     def edge_length(self, edge):
         """Get the distance between the edge's vertices."""
         pair = self.edge_verts(edge)
-        return pair[0].loc.distance(pair[1].loc)
+        return distance(pair[0].loc, pair[1].loc)
 
     def nearest_vert(self, loc):
         """Get the index of the vertex closest to |loc|.

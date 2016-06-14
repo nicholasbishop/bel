@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from bel.mesh import Edge, Face, Mesh, Vert
-from cgmath.vector import vec3f
+from cgmath.vector import vec3
 
 def mesh_two_adj_triangles():
     """
@@ -13,10 +13,10 @@ def mesh_two_adj_triangles():
     """
     return Mesh(
         (
-            Vert(vec3f(0, 0, 0)),
-            Vert(vec3f(0, 1, 0)),
-            Vert(vec3f(1, 1, 0)),
-            Vert(vec3f(2, 0, 0)),
+            Vert(vec3(0, 0, 0)),
+            Vert(vec3(0, 1, 0)),
+            Vert(vec3(1, 1, 0)),
+            Vert(vec3(2, 0, 0)),
         ),
         (
             Face((0, 1, 2)),
