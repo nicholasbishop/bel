@@ -138,14 +138,8 @@ class ShaderProgram:
             with buf.bind():
                 glEnableVertexAttribArray(attr_index)
             # TODO
-            assert data['gltype'] == 'float'
-            gltype = GL_FLOAT
             buf.bind_to_attribute(attr_index,
-                                  components=data['components'],
-                                  gltype=gltype,
-                                  normalized=data['normalized'],
-                                  offset=data['offset'],
-                                  stride=data['stride'])
+                                  data['buffer_view'])
 
     def bind_uniforms(self, uniforms):
         for uniform_name, uniform_index in self._uniforms.items():

@@ -1,10 +1,11 @@
+from collections import namedtuple
 from contextlib import contextmanager
 from ctypes import c_void_p
 import logging
 
-from OpenGL.GL import (GL_ARRAY_BUFFER, GL_STATIC_DRAW, glBindBuffer,
-                       glBufferData, glDeleteBuffers, glGenBuffers,
-                       glVertexAttribPointer)
+from OpenGL.GL import (GL_ARRAY_BUFFER, GL_FLOAT, GL_STATIC_DRAW,
+                       glBindBuffer, glBufferData, glDeleteBuffers,
+                       glGenBuffers, glVertexAttribPointer)
 import OpenGL.GL as gl
 
 class BufferObject:
@@ -41,20 +42,37 @@ class BufferObject:
             logging.info('glBufferData(buffer=%s, %s, ..., %s)', self._hnd,
                          self._kind.name, usage.name)
 
-    def bind_to_attribute(self, attr_index, components, gltype,
-                          normalized, stride, offset):
+    def bind_to_attribute(self, attr_index, buffer_view):
         with self.bind():
             # TODO
             gl.glBindVertexArray(self._vao)
 
             glVertexAttribPointer(attr_index,
-                                  components,
-                                  gltype,
-                                  normalized,
-                                  stride,
-                                  c_void_p(offset))
+                                  buffer_view.components,
+                                  buffer_view.gltype,
+                                  buffer_view.normalized,
+                                  buffer_view.stride_in_bytes,
+                                  c_void_p(buffer_view.offset_in_bytes))
 
 
 class ArrayBufferObject(BufferObject):
     def __init__(self):
         super().__init__(GL_ARRAY_BUFFER)
+
+
+ArrayBufferView = namedtuple('ArrayBufferView',
+                             ('components',
+                              'gltype',
+                              'normalized',
+                              'stride_in_bytes',
+                              'offset_in_bytes'))
+
+def float_array_buffer_view(components,
+                            stride_in_bytes,
+                            offset_in_bytes):
+    return ArrayBufferView(
+        components=components,
+        gltype=GL_FLOAT,
+        normalized=False,
+        stride_in_bytes=stride_in_bytes,
+        offset_in_bytes=offset_in_bytes)

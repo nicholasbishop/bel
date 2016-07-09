@@ -1,6 +1,7 @@
 import numpy
 
 from bel.auto_name import auto_name
+from bel.buffer_object import float_array_buffer_view
 from bel.mesh import Mesh
 from bel.scene_node import SceneNode
 from bel.uniform import MatrixUniform
@@ -61,19 +62,17 @@ class MeshNode(SceneNode):
             'attributes': {
                 'vert_loc': {
                     'buffer': self._vert_buf_uid,
-                    'components': 3,
-                    'gltype': 'float',
-                    'normalized': False,
-                    'offset': 0,
-                    'stride': bytes_per_float32 * 6
+                    'buffer_view': float_array_buffer_view(
+                        components=3,
+                        stride_in_bytes=bytes_per_float32 * 6,
+                        offset_in_bytes=0),
                 },
                 'vert_nor': {
                     'buffer': self._vert_buf_uid,
-                    'components': 3,
-                    'gltype': 'float',
-                    'normalized': False,
-                    'offset': bytes_per_float32 * 3,
-                    'stride': bytes_per_float32 * 6
+                    'buffer_view': float_array_buffer_view(
+                        components=3,
+                        stride_in_bytes=bytes_per_float32 * 6,
+                        offset_in_bytes=bytes_per_float32 * 3)
                 }
             },
             'uniforms': {
