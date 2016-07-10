@@ -4,7 +4,7 @@ import numpy
 
 from bel.auto_name import auto_name
 from bel.buffer_object import float_array_buffer_view
-from bel.draw_command import DrawCommand
+from bel.draw_command import DrawCommand, DrawCommandHandle
 from bel.mesh import Mesh
 from bel.scene_node import SceneNode
 from bel.uniform import MatrixUniform
@@ -22,8 +22,7 @@ class MeshNode(SceneNode):
         self._vert_buf_uid = auto_name('vertbuf')
 
         self._num_draw_triangles = 0
-        self._triangle_draw_cmd_uid = auto_name('drawcmd')
-        self._triangle_draw_cmd_dirty = True
+        self._triangle_draw = DrawCommandHandle()
 
         self._material_uid = 'default'
 
@@ -62,7 +61,7 @@ class MeshNode(SceneNode):
     def _update_draw_cmd(self, draw_state):
         # TODO, update instead of create
         bytes_per_float32 = 4
-        dcom = draw_state.get_or_create_draw_command(self._triangle_draw_cmd_uid)
+        dcom = draw_state.get_or_create_draw_command(self._triangle_draw)
         dcom.attributes.update({
             'vert_loc': {
                 'buffer': self._vert_buf_uid,
@@ -88,6 +87,6 @@ class MeshNode(SceneNode):
             self._update_vert_buf(draw_state)
             self._vert_buf_dirty = False
 
-        if self._triangle_draw_cmd_dirty:
+        if self._triangle_draw.needs_update:
             self._update_draw_cmd(draw_state)
-            self._triangle_draw_cmd_dirty = False
+            self._triangle_draw.needs_update = False

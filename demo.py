@@ -37,7 +37,8 @@ class Demo:
         transf = self._mouse_node.transform
         copy_xy(transf.loc, loc)
         ray = self._scene.ray_from_screen_coord(loc)
-        self._mouse_node._draw_cmd_dirty = True
+        # TODO
+        self._mouse_node._triangle_draw.needs_update = True
 
     def on_key(self, key, scancode, action, mods):
         if key == GLFW_KEY_ESCAPE:

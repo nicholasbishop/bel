@@ -1,5 +1,17 @@
 from OpenGL.GL import GL_LINES, GL_POINTS, GL_TRIANGLES
 
+from bel.auto_name import auto_name
+
+class DrawCommandHandle:
+    def __init__(self):
+        self._uid = auto_name('drawcmd')
+        self.needs_update = True
+
+    @property
+    def uid(self):
+        return self._uid
+
+
 class DrawCommand:
     Lines = GL_LINES
     Points = GL_POINTS

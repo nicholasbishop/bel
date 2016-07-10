@@ -45,11 +45,11 @@ class DrawState:
             self._buffer_objects[uid] = buffer_object
         buffer_object.set_data(array)
 
-    def get_or_create_draw_command(self, uid):
-        draw_command = self._draw_commands.get(uid)
+    def get_or_create_draw_command(self, handle):
+        draw_command = self._draw_commands.get(handle.uid)
         if draw_command is None:
             draw_command = DrawCommand()
-            self._draw_commands[uid] = draw_command
+            self._draw_commands[handle.uid] = draw_command
         return draw_command
 
     # TODO(nicholasbishop): actually update instead of add
