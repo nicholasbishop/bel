@@ -15,7 +15,7 @@ from cgmath.vector import copy_xy, vec3_from_scalar
 class Demo:
     def __init__(self):
         self._scene = Scene()
-        self._window = Window()
+        self._window = Window(1600, 1200)
 
         self._window.on_draw = self.on_draw
         self._window.on_cursor_pos = self.on_cursor_pos

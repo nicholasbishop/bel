@@ -58,10 +58,10 @@ def button_action_from_glfw(glfw_button_action):
 
 
 class Window:
-    def __init__(self):
+    def __init__(self, width=800, height=600):
         self._window = None
         self._draw_state = DrawState()
-        self._init_glfw()
+        self._init_glfw(width, height)
         self.on_draw = None
         self.on_start = None
         self.on_cursor_pos = None
@@ -94,7 +94,7 @@ class Window:
                                   button_action_from_glfw(gaction))
         #self._future_group.create_task(self._scene.mouse_button_event(button))
 
-    def _init_glfw(self):
+    def _init_glfw(self, width, height):
         if not glfwInit():
             raise RuntimeError('glfwInit failed')
 
@@ -104,7 +104,7 @@ class Window:
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
 
         # TODO
-        self._window = glfwCreateWindow(800, 600, 'bel')
+        self._window = glfwCreateWindow(width, height, 'bel')
         if self._window is None:
             raise RuntimeError('glfwCreateWindow failed')
 
