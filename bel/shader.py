@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import logging
+import re
 
 from bidict import bidict
 
@@ -14,6 +15,20 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
 
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
+
+
+# TODO, this is just what works for my driver
+def pretty_print_log(log, path):
+    # Example input line:
+    # 0:17(24): error: `gl_PositionIn' undeclared
+    #
+    # Example output line:
+    # shaders/geom.glsl:17:24: error: `gl_PositionIn' undeclared
+
+    print(re.sub(r'^(\d+):(\d+)\((\d+)\)',
+                 path + r':\2:\3',
+                 log,
+                 flags=re.MULTILINE))
 
 
 def extract_uniforms(source):
@@ -82,10 +97,14 @@ class Shader:
         logging.info('glCompileShader(%d)', self._hnd)
         glCompileShader(self._hnd)
 
-        compile_log = glGetShaderInfoLog(self._hnd)
-        logging.info('glGetShaderInfoLog(%d) -> %s', self._hnd, compile_log)
         if not glGetShaderiv(self._hnd, GL_COMPILE_STATUS):
+            logging.error('glCompileShader failed')
+            compile_log = glGetShaderInfoLog(self._hnd).decode('utf-8')
+
             glDeleteShader(self._hnd)
+
+            pretty_print_log(compile_log, self._path)
+
             raise RuntimeError('shader failed to compile', compile_log)
 
     def uniforms(self):
