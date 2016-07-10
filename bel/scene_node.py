@@ -19,3 +19,6 @@ class SceneNode(object):
 
     def draw(self, draw_state):
         pass
+
+    def ray_intersect(self, ray):
+        return None
