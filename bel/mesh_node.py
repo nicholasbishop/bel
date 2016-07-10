@@ -32,11 +32,7 @@ class MeshNode(SceneNode):
         out = 0
 
         for face in self._mesh.faces:
-            vi0 = face.vert_indices[-1]
-            for i in range(len(face.vert_indices) - 2):
-                vi1 = face.vert_indices[i]
-                vi2 = face.vert_indices[i + 1]
-
+            for vi0, vi1, vi2 in face.iter_triangle_fan():
                 locs = [
                     self._mesh.verts[vit].loc
                     for vit in (vi0, vi1, vi2)
