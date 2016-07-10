@@ -3,8 +3,9 @@ from numpy import dot
 from bel.camera_node import CameraNode
 from bel.scene_node import SceneNode
 
-from cgmath.vector import normalized, vec4_from_vec2, vec3_from_vec4
 from cgmath.matrix import inverse
+from cgmath.ray import Ray
+from cgmath.vector import normalized, vec4_from_vec2, vec3_from_vec4
 
 class Scene(object):
     def __init__(self):
@@ -37,4 +38,4 @@ class Scene(object):
         ray_eye = vec4_from_vec2(ray_eye, -1.0, 0.0)
         ray_wor = vec3_from_vec4(inverse(cam.view_matrix()).dot(ray_eye))
         ray_wor = normalized(ray_wor)
-        return ray_wor
+        return Ray(origin=cam.transform.loc, direction=ray_wor)
