@@ -178,7 +178,7 @@ class ShaderProgram:
         logging.info('glLinkProgram(%d)', self._hnd)
         glLinkProgram(self._hnd)
         logging.info('glGetProgramInfoLog(%d) -> %s', self._hnd,
-                     glGetProgramInfoLog(self._hnd))
+                     glGetProgramInfoLog(self._hnd).decode().strip())
 
         self._uniforms = {}
         self._attributes = bidict()
