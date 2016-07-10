@@ -1,4 +1,4 @@
-from OpenGL.GL import glUniformMatrix4fv, glUniform4fv
+from OpenGL.GL import glUniformMatrix4fv, glUniform2fv
 
 class MatrixUniform:
     def __init__(self, data):
@@ -16,7 +16,7 @@ class VectorUniform:
 
     def bind(self, uniform_location):
         count = 1
-        if len(self._data) == 4:
-            glUniform4fv(uniform_location, count, self._data)
+        if len(self._data) == 2:
+            glUniform2fv(uniform_location, count, self._data)
         else:
             raise NotImplementedError()

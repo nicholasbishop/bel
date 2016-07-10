@@ -29,7 +29,8 @@ from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.gldraw import DrawState
 from bel.msg import BufferData
-from bel.shader import FragmentShader, ShaderProgram, VertexShader
+from bel.shader import (FragmentShader, GeometryShader, ShaderProgram,
+                        VertexShader)
 from bel.transform import Transform
 from bel.uniform import MatrixUniform
 from cgmath.vector import vec2
@@ -124,7 +125,9 @@ class Window:
         default = ShaderProgram()
         default.update(
             VertexShader('shaders/vert.glsl'),
-            FragmentShader('shaders/frag.glsl'))
+            FragmentShader('shaders/frag.glsl'),
+            GeometryShader('shaders/geom.glsl'))
+
         flat = ShaderProgram()
         flat.update(
             VertexShader('shaders/flat.vert.glsl'),

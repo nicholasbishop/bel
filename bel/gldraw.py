@@ -14,7 +14,7 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
 
 from bel.buffer_object import ArrayBufferObject
 from bel.color import Color
-from bel.uniform import MatrixUniform
+from bel.uniform import MatrixUniform, VectorUniform
 
 
 class DrawState:
@@ -34,6 +34,8 @@ class DrawState:
     @fb_size.setter
     def fb_size(self, pair):
         self._fb_size = pair
+        self.update_vector_uniform('fb_size', self._fb_size)
+
 
     def update_buffer(self, uid, array):
         buffer_object = self._buffer_objects.get(uid)
@@ -51,8 +53,13 @@ class DrawState:
             raise NotImplementedError()
         self._materials[uid] = shader_program
 
+    # TODO(nicholasbishop): actually update instead of add
     def update_matrix_uniform(self, uid, matrix):
         self._uniforms[uid] = MatrixUniform(matrix)
+
+    # TODO(nicholasbishop): actually update instead of add
+    def update_vector_uniform(self, uid, vec):
+        self._uniforms[uid] = VectorUniform(vec)
 
     def _draw_one(self, item):
         material_uid = item['material']
