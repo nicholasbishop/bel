@@ -14,6 +14,7 @@ from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
 
 from bel.buffer_object import ArrayBufferObject
 from bel.color import Color
+from bel.draw_command import DrawCommand
 from bel.uniform import MatrixUniform, VectorUniform
 
 
@@ -44,8 +45,12 @@ class DrawState:
             self._buffer_objects[uid] = buffer_object
         buffer_object.set_data(array)
 
-    def update_draw_command(self, uid, draw_command):
-        self._draw_commands[uid] = draw_command
+    def get_or_create_draw_command(self, uid):
+        draw_command = self._draw_commands.get(uid)
+        if draw_command is None:
+            draw_command = DrawCommand()
+            self._draw_commands[uid] = draw_command
+        return draw_command
 
     # TODO(nicholasbishop): actually update instead of add
     def update_shader_program(self, uid, shader_program):
@@ -62,34 +67,24 @@ class DrawState:
         self._uniforms[uid] = VectorUniform(vec)
 
     def _draw_one(self, item):
-        material_uid = item['material']
+        material_uid = item.material_name
         if material_uid not in self._materials:
             self._log.error('unknown material: %r', material_uid)
             return
 
         material = self._materials[material_uid]
         with material.bind():
-            material.bind_attributes(self._buffer_objects, item['attributes'])
-            uniforms = dict(item['uniforms'])
+            material.bind_attributes(self._buffer_objects, item.attributes)
+            uniforms = dict(item.uniforms)
             # TODO
             uniforms.update(self._uniforms)
             # TODO
             material.bind_uniforms(uniforms)
 
-        first, count = item['range']
-        # TODO
-        primitive = item['primitive']
-        if primitive == 'triangles':
-            mode = GL_TRIANGLES
-        elif primitive == 'lines':
-            mode = GL_LINES
-        elif primitive == 'points':
-            mode = GL_POINTS
-        else:
-            raise NotImplementedError()
+        first, count = item.vert_range
 
         with material.bind():
-            glDrawArrays(mode, first, count)
+            glDrawArrays(item.primitive, first, count)
 
     def aspect_ratio(self):
         height = self._fb_size[1]

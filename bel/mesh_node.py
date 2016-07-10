@@ -2,6 +2,7 @@ import numpy
 
 from bel.auto_name import auto_name
 from bel.buffer_object import float_array_buffer_view
+from bel.draw_command import DrawCommand
 from bel.mesh import Mesh
 from bel.scene_node import SceneNode
 from bel.uniform import MatrixUniform
@@ -52,31 +53,28 @@ class MeshNode(SceneNode):
         self._num_draw_triangles = num_triangles
 
     def _update_draw_cmd(self, draw_state):
+        # TODO, update instead of create
         bytes_per_float32 = 4
-        draw_state.update_draw_command(self._draw_cmd_uid, {
-            'material': 'default',
-            'attributes': {
-                'vert_loc': {
-                    'buffer': self._vert_buf_uid,
-                    'buffer_view': float_array_buffer_view(
-                        components=3,
-                        stride_in_bytes=bytes_per_float32 * 6,
-                        offset_in_bytes=0),
-                },
-                'vert_nor': {
-                    'buffer': self._vert_buf_uid,
-                    'buffer_view': float_array_buffer_view(
-                        components=3,
-                        stride_in_bytes=bytes_per_float32 * 6,
-                        offset_in_bytes=bytes_per_float32 * 3)
-                }
+        dcom = draw_state.get_or_create_draw_command(self._draw_cmd_uid)
+        dcom.attributes.update({
+            'vert_loc': {
+                'buffer': self._vert_buf_uid,
+                'buffer_view': float_array_buffer_view(
+                    components=3,
+                    stride_in_bytes=bytes_per_float32 * 6,
+                    offset_in_bytes=0),
             },
-            'uniforms': {
-                'model': MatrixUniform(self.transform.matrix())
-            },
-            'range': (0, self._num_draw_triangles * 3),
-            'primitive': 'triangles'
+            'vert_nor': {
+                'buffer': self._vert_buf_uid,
+                'buffer_view': float_array_buffer_view(
+                    components=3,
+                    stride_in_bytes=bytes_per_float32 * 6,
+                    offset_in_bytes=bytes_per_float32 * 3)
+            }
         })
+        dcom.uniforms['model'] = MatrixUniform(self.transform.matrix())
+        dcom.vert_range = (0, self._num_draw_triangles * 3)
+        dcom.primitive = DrawCommand.Triangles
 
     def draw(self, draw_state):
         if self._vert_buf_dirty:
