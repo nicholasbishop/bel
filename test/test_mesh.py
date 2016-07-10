@@ -25,8 +25,29 @@ def mesh_two_adj_triangles():
     )
 
 
+class TestTriangleFan(TestCase):
+    def test_degenerate(self):
+        face = Face((2,))
+        fan = list(face.iter_triangle_fan())
+        self.assertEqual(fan, [])
+
+        face = Face((2, 4))
+        fan = list(face.iter_triangle_fan())
+        self.assertEqual(fan, [])
+
+    def test_triangle(self):
+        face = Face((2, 4, 6))
+        fan = list(face.iter_triangle_fan())
+        self.assertEqual(fan, [(2, 4, 6)])
+
+    def test_quad(self):
+        face = Face((2, 4, 6, 8))
+        fan = list(face.iter_triangle_fan())
+        self.assertEqual(fan, [(2, 4, 6), (2, 6, 8)])
+
+
 class TestAdjacency(TestCase):
-    def testEdges(self):
+    def test_edges(self):
         mesh = mesh_two_adj_triangles()
 
         expected_edges = [

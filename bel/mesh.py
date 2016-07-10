@@ -69,6 +69,20 @@ class Face:
             next_vert_index = self.vert_indices[next_corner_index]
             yield (vert_index, next_vert_index)
 
+    def iter_triangle_fan(self):
+        """Iterator of vert indices that define a triangle fan.
+
+        The first vertex in the face is shared between all triangles
+        in the fan.
+
+        For example, a quad with indices (2, 4, 6, 8) will yield:
+        (2, 4, 6), (2, 6, 8).
+        """
+        for corner in range(1, len(self.vert_indices) - 1):
+            yield (self.vert_indices[0],
+                   self.vert_indices[corner],
+                   self.vert_indices[corner + 1])
+
 
 class Mesh:
     """Simple but flexible Mesh data structure."""
