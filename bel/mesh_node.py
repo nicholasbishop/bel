@@ -1,3 +1,5 @@
+"""MeshNode is a SceneNode containing one Mesh."""
+
 import numpy
 
 from bel.auto_name import auto_name
@@ -10,14 +12,19 @@ from cgmath.normal import triangle_normal
 from cgmath.vector import copy_xyz
 
 class MeshNode(SceneNode):
+    """SceneNode containing one Mesh."""
+
     def __init__(self, mesh=None):
         super().__init__()
         self._mesh = Mesh() if mesh is None else mesh
+
         self._vert_buf_dirty = True
-        self._draw_cmd_dirty = True
-        self._num_draw_triangles = 0
         self._vert_buf_uid = auto_name('vertbuf')
-        self._draw_cmd_uid = auto_name('drawcmd')
+
+        self._num_draw_triangles = 0
+        self._triangle_draw_cmd_uid = auto_name('drawcmd')
+        self._triangle_draw_cmd_dirty = True
+
         self._material_uid = 'default'
 
     def _create_draw_array(self):
@@ -55,7 +62,7 @@ class MeshNode(SceneNode):
     def _update_draw_cmd(self, draw_state):
         # TODO, update instead of create
         bytes_per_float32 = 4
-        dcom = draw_state.get_or_create_draw_command(self._draw_cmd_uid)
+        dcom = draw_state.get_or_create_draw_command(self._triangle_draw_cmd_uid)
         dcom.attributes.update({
             'vert_loc': {
                 'buffer': self._vert_buf_uid,
@@ -81,6 +88,6 @@ class MeshNode(SceneNode):
             self._update_vert_buf(draw_state)
             self._vert_buf_dirty = False
 
-        if self._draw_cmd_dirty:
+        if self._triangle_draw_cmd_dirty:
             self._update_draw_cmd(draw_state)
-            self._draw_cmd_dirty = False
+            self._triangle_draw_cmd_dirty = False
