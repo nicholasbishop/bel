@@ -6,4 +6,5 @@ generated-members=numpy.float32
 ignored-modules=cyglfw3.compatible
 
 [REPORTS]
+output-format=parseable
 reports=no
