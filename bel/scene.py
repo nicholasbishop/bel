@@ -30,6 +30,19 @@ class Scene(object):
         for node in self.iter_nodes():
             node.draw(draw_state)
 
+    def ray_intersect(self, ray):
+        # TODO, implement properly
+        best_node = None
+        best_t = float('inf')
+
+        for node in self.iter_nodes():
+            t = node.ray_intersect(ray)
+            if t is not None and t < best_t:
+                best_node = node
+                best_t = t
+
+        return best_node, best_t
+
     def ray_from_screen_coord(self, screen_loc):
         # Adapted from http://antongerdelan.net/opengl/raycasting.html
         cam = self._camera
