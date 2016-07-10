@@ -5,13 +5,14 @@ import re
 from bidict import bidict
 
 from OpenGL.GL import (GL_COMPILE_STATUS, GL_FLOAT,
-                       GL_FRAGMENT_SHADER, GL_VERTEX_SHADER,
-                       glAttachShader, glCompileShader,
-                       glCreateProgram, glCreateShader,
-                       glDeleteShader, glEnableVertexAttribArray,
-                       glGetProgramInfoLog, glGetUniformLocation,
-                       glGetShaderInfoLog, glGetShaderiv,
-                       glLinkProgram, glShaderSource, glUseProgram)
+                       GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER,
+                       GL_VERTEX_SHADER, glAttachShader,
+                       glCompileShader, glCreateProgram,
+                       glCreateShader, glDeleteShader,
+                       glEnableVertexAttribArray, glGetProgramInfoLog,
+                       glGetUniformLocation, glGetShaderInfoLog,
+                       glGetShaderiv, glLinkProgram, glShaderSource,
+                       glUseProgram)
 
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
@@ -117,6 +118,11 @@ class Shader:
 class VertexShader(Shader):
     def __init__(self, path):
         super().__init__(path, GL_VERTEX_SHADER)
+
+
+class GeometryShader(Shader):
+    def __init__(self, path):
+        super().__init__(path, GL_GEOMETRY_SHADER)
 
 
 class FragmentShader(Shader):
