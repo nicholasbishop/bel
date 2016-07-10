@@ -35,6 +35,6 @@ class Scene(object):
         ray_clip = vec4_from_vec2(screen_loc, -1, 1);
         ray_eye = inverse(cam.projection_matrix).dot(ray_clip)
         ray_eye = vec4_from_vec2(ray_eye, -1.0, 0.0)
-        ray_wor = vec3_from_vec4(inverse(cam.view_matrix()) * ray_eye)
+        ray_wor = vec3_from_vec4(inverse(cam.view_matrix()).dot(ray_eye))
         ray_wor = normalized(ray_wor)
         return ray_wor
