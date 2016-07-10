@@ -168,13 +168,9 @@ class ShaderProgram:
             else:
                 uniform.bind(uniform_index)
 
-    def update(self, msg):
-        # TODO: for now this is just create, not really update
-        for path in msg['vert_shader_paths']:
-            self._shaders.append(VertexShader(path))
-
-        for path in msg['frag_shader_paths']:
-            self._shaders.append(FragmentShader(path))
+    def update(self, *shaders):
+        # TODO: for now this is actually create, not update
+        self._shaders += shaders
 
         for shader in self._shaders:
             logging.info('glAttachShader(%d, %d)', self._hnd, shader.hnd)
