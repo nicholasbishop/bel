@@ -21,9 +21,9 @@ class Vert:
 
 class Edge:
     """Mesh edge."""
-    def __init__(self, vi0, vi1, face_indices):
+    def __init__(self, vi0, vi1, face_indices=None):
         self.vert_indices = (vi0, vi1)
-        self.face_indices = face_indices
+        self.face_indices = [] if face_indices is None else face_indices
 
     def contains(self, vi0):
         """Return whether the edge's vertices include |vi0|."""
