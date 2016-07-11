@@ -2,6 +2,7 @@
 
 from pqdict import minpq
 
+from cgmath.ray_triangle_intersect import ray_triangle_intersect
 from cgmath.vector import distance, vec3
 
 def _obj_remove_comment(line):
@@ -112,6 +113,11 @@ class Mesh:
     def vert(self, vert_index):
         """Get the |Vert| at |vertex_index|."""
         return self._verts[vert_index]
+
+    def verts_from_indices(self, vert_indices):
+        """Vertex iterator for the given vertex indices.""" 
+        for vert_index in vert_indices:
+            yield self._verts[vert_index]
 
     def edge(self, edge_index):
         """Get the |Edge| at |edge_index|."""
@@ -291,3 +297,15 @@ class Mesh:
                     faces.append(Face(indices))
 
         return Mesh(verts, faces, path)
+
+    def ray_intersect(self, ray):
+        # TODO, spatial data structure
+        best_t = float('inf')
+        for face in self._faces:
+            for triangle in face.iter_triangle_fan():
+                verts = self.verts_from_indices(triangle)
+                locs = [vert.loc for vert in verts]
+                t = ray_triangle_intersect(ray, locs)
+                if t is not None and t < best_t:
+                    best_t = t
+        return best_t
