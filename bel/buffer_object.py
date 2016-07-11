@@ -66,8 +66,8 @@ ArrayBufferView = namedtuple('ArrayBufferView',
                               'offset_in_bytes'))
 
 def float_array_buffer_view(components,
-                            stride_in_bytes,
-                            offset_in_bytes):
+                            stride_in_bytes=0,
+                            offset_in_bytes=0):
     return ArrayBufferView(
         components=components,
         gltype=GL_FLOAT,
