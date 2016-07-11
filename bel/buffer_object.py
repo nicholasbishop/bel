@@ -39,8 +39,6 @@ class BufferObject:
 
         with self.bind():
             glBufferData(self._kind, data, usage)
-            logging.info('glBufferData(buffer=%s, %s, ..., %s)', self._hnd,
-                         self._kind.name, usage.name)
 
     def bind_to_attribute(self, attr_index, buffer_view):
         with self.bind():
