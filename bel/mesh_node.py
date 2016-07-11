@@ -158,3 +158,6 @@ class MeshNode(SceneNode):
         if self._triangle_draw.needs_update:
             self._update_draw_cmd(draw_state)
             self._triangle_draw.needs_update = False
+
+    def ray_intersect(self, ray):
+        return self._mesh.ray_intersect(ray)
