@@ -80,8 +80,10 @@ class Window:
 
     def _cb_cursor_pos(self, window, xpos, ypos):
         if self.on_cursor_pos is not None:
-            size = glfwGetWindowSize(window)
-            loc = vec2(xpos / size[0], -ypos / size[1])
+            # normalize cursor position: [-1, 1] in x and y
+            width, height = glfwGetWindowSize(window)
+            loc = vec2((2.0 * xpos) / width - 1.0,
+                       1.0 - (2.0 * ypos) / height)
             self.on_cursor_pos(loc)
 
     def _cb_key(self, window, key, scancode, action, mods):
