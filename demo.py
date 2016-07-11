@@ -22,6 +22,12 @@ class Demo:
         self._window.on_key = self.on_key
 
         self._ray_node = self._scene.root.add_child(MeshNode())
+        vi0 = self._ray_node.mesh.add_vert()
+        vi1 = self._ray_node.mesh.add_vert()
+        self._ray_start = self._ray_node.mesh.vert(vi0)
+        self._ray_end = self._ray_node.mesh.vert(vi1)
+        self._ray_node.mesh.add_edge(vi0, vi1)
+        self._ray_node.draw_edges = True
 
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
@@ -37,7 +43,10 @@ class Demo:
         transf = self._mouse_node.transform
         copy_xy(transf.loc, loc)
         ray = self._scene.ray_from_screen_coord(loc)
+        self._ray_start.loc = ray.origin
+        self._ray_end.loc = ray.origin + ray.direction * 1000
         # TODO
+        self._ray_node._edge_buf.dirty = True
         self._mouse_node._triangle_draw.needs_update = True
 
     def on_key(self, key, scancode, action, mods):
