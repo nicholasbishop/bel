@@ -49,6 +49,10 @@ class Demo:
         self._ray_node._edge_buf.dirty = True
         self._mouse_node._triangle_draw.needs_update = True
 
+        # TODO
+        best_node, best_t = self._scene.ray_intersect(ray)
+        #print(best_node, best_t)
+
     def on_key(self, key, scancode, action, mods):
         if key == GLFW_KEY_ESCAPE:
             self._window.close()
