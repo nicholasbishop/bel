@@ -117,6 +117,27 @@ class Mesh:
         """Get the |Edge| at |edge_index|."""
         return self._edges[edge_index]
 
+    def add_vert(self):
+        """Append a new vertex, return its index."""
+        vert_index = len(self._verts)
+        self._verts.append(Vert())
+        return vert_index
+
+    def add_edge(self, vi0, vi1, face_indices=None):
+        """Append a new edge between two vertices.
+
+        vi0, vi1: vertex indices
+
+        face_indices: adjacent face indices
+        
+        Returns the index of the new edge.
+        """
+        edge_index = self.edge_index_between(vi0, vi1)
+        if edge_index is None:
+            edge_index = len(self._edges)
+            # TODO(nicholasbishop): verify face_indices here
+            self._edges.append(Edge(vi0, vi1, face_indices))
+
     def edge_index_between(self, vi0, vi1):
         """Get the edge index between |vi0| and |vi1|.
 
