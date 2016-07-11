@@ -11,6 +11,15 @@ from bel.uniform import MatrixUniform
 from cgmath.normal import triangle_normal
 from cgmath.vector import copy_xyz
 
+
+class VertBufHandle:
+    def __init__(self):
+        self.uid = auto_name('vertbuf')
+        # TODO: this will probably need more fine-grained control,
+        # i.e. dirty ranges
+        self.dirty = True
+
+
 class MeshNode(SceneNode):
     """SceneNode containing one Mesh."""
 
@@ -18,8 +27,7 @@ class MeshNode(SceneNode):
         super().__init__()
         self._mesh = Mesh() if mesh is None else mesh
 
-        self._vert_buf_dirty = True
-        self._vert_buf_uid = auto_name('vertbuf')
+        self._triangle_buf = VertBufHandle()
 
         self._num_draw_triangles = 0
         self._triangle_draw = DrawCommandHandle()
@@ -53,10 +61,9 @@ class MeshNode(SceneNode):
                     out += 3
         return num_triangles, verts
 
-    def _update_vert_buf(self, draw_state):
-        num_triangles, vert_nors = self._create_draw_array()
-        draw_state.update_buffer(self._vert_buf_uid, vert_nors)
-        self._num_draw_triangles = num_triangles
+    def _update_triangle_buf(self, draw_state):
+        self._num_draw_triangles, vert_nors = self._create_draw_array()
+        draw_state.update_buffer(self._triangle_buf.uid, vert_nors)
 
     def _update_draw_cmd(self, draw_state):
         # TODO, update instead of create
@@ -64,14 +71,14 @@ class MeshNode(SceneNode):
         dcom = draw_state.get_or_create_draw_command(self._triangle_draw)
         dcom.attributes.update({
             'vert_loc': {
-                'buffer': self._vert_buf_uid,
+                'buffer': self._triangle_buf.uid,
                 'buffer_view': float_array_buffer_view(
                     components=3,
                     stride_in_bytes=bytes_per_float32 * 6,
                     offset_in_bytes=0),
             },
             'vert_nor': {
-                'buffer': self._vert_buf_uid,
+                'buffer': self._triangle_buf.uid,
                 'buffer_view': float_array_buffer_view(
                     components=3,
                     stride_in_bytes=bytes_per_float32 * 6,
@@ -83,9 +90,9 @@ class MeshNode(SceneNode):
         dcom.primitive = DrawCommand.Triangles
 
     def draw(self, draw_state):
-        if self._vert_buf_dirty:
-            self._update_vert_buf(draw_state)
-            self._vert_buf_dirty = False
+        if self._triangle_buf.dirty:
+            self._update_triangle_buf(draw_state)
+            self._triangle_buf.dirty = False
 
         if self._triangle_draw.needs_update:
             self._update_draw_cmd(draw_state)
