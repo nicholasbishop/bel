@@ -115,7 +115,7 @@ class Window:
         glfwSetMouseButtonCallback(self._window, self._cb_mouse_button)
 
         glfwMakeContextCurrent(self._window)
-        LOG.info('GL_VERSION: %s', glGetString(GL_VERSION))
+        LOG.info('GL_VERSION: %s', glGetString(GL_VERSION).decode())
 
         # TODO
         self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
