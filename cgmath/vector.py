@@ -35,6 +35,10 @@ def copy_xyz(dst, src):
     dst[0:3] = src[0:3]
 
 
+def copy_xyzw(dst, src):
+    dst[0:4] = src[0:4]
+
+
 def vec2(x=0.0, y=0.0):
     return numpy.array((x, y), numpy.float32)
 
