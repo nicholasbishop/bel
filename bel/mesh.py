@@ -3,7 +3,7 @@
 from pqdict import minpq
 
 from cgmath.ray_triangle_intersect import ray_triangle_intersect
-from cgmath.vector import distance, vec3
+from cgmath.vector import distance, vec3, vec4
 
 def _obj_remove_comment(line):
     """Strip "#" comment from a line."""
@@ -18,6 +18,7 @@ class Vert:
     def __init__(self, loc=None):
         self.loc = vec3() if loc is None else loc
         self.edge_indices = []
+        self.col = vec4(0.9, 0.8, 0.8, 1.0)
 
 
 class Edge:
