@@ -37,7 +37,6 @@ class DrawState:
         self._fb_size = pair
         self.update_vector_uniform('fb_size', self._fb_size)
 
-
     def update_buffer(self, uid, array):
         buffer_object = self._buffer_objects.get(uid)
         if buffer_object is None:

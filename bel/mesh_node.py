@@ -9,7 +9,7 @@ from bel.mesh import Mesh
 from bel.scene_node import SceneNode
 from bel.uniform import MatrixUniform, VectorUniform
 from cgmath.normal import triangle_normal
-from cgmath.vector import copy_xyz, vec4
+from cgmath.vector import copy_xyz, copy_xyzw, vec4
 
 
 class VertBufHandle:
@@ -53,17 +53,23 @@ class MeshNode(SceneNode):
     def _create_edge_array(self):
         num_edges = len(self._mesh.edges)
         vert_per_edge = 2
-        elem_per_vert = 3
+        elem_per_loc = 3
+        elem_per_col = 4
+        elem_per_vert = elem_per_loc + elem_per_col
         elem_per_edge = vert_per_edge * elem_per_vert
+        assert elem_per_edge == 14
         verts = numpy.empty(num_edges * elem_per_edge, numpy.float32)
 
         out_index = 0
         for edge in self._mesh.edges:
             for vert_index in edge.vert_indices:
                 vert = self._mesh.vert(vert_index)
-                copy_xyz(verts[out_index:], vert.loc)
-                out_index += elem_per_vert
 
+                copy_xyz(verts[out_index:], vert.loc)
+                out_index += elem_per_loc
+
+                copy_xyzw(verts[out_index:], vert.col)
+                out_index += elem_per_col
         return num_edges, verts
 
     def _create_draw_array(self):
@@ -133,11 +139,21 @@ class MeshNode(SceneNode):
             'vert_loc': {
                 'buffer': self._edge_buf.uid,
                 'buffer_view': float_array_buffer_view(
-                    components=3),
+                    components=3,
+                    stride_in_bytes=bytes_per_float32 * 7,
+                    offset_in_bytes=0
+                ),
+            },
+            'vert_col': {
+                'buffer': self._edge_buf.uid,
+                'buffer_view': float_array_buffer_view(
+                    components=4,
+                    stride_in_bytes=bytes_per_float32 * 7,
+                    offset_in_bytes=bytes_per_float32 * 3
+                )
             }
         })
         dcom.material_name = 'flat'
-        dcom.uniforms['flat_color'] = VectorUniform(vec4(1, 0, 0, 1))
         dcom.uniforms['model'] = MatrixUniform(self.transform.matrix())
         dcom.vert_range = (0, self._num_draw_edges * 2)
         dcom.primitive = DrawCommand.Lines

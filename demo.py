@@ -10,7 +10,26 @@ from bel.mesh_node import MeshNode
 from bel.scene import Scene
 from bel.solids import cube_mesh
 from bel.window import Window
-from cgmath.vector import copy_xy, vec3_from_scalar
+from cgmath.vector import copy_xyz, vec3_from_scalar, vec3, vec4
+
+
+class RayNode(MeshNode):
+    def __init__(self):
+        super().__init__()
+
+        vi0 = self.mesh.add_vert()
+        vi1 = self.mesh.add_vert()
+
+        self.start = self.mesh.vert(vi0)
+        self.end = self.mesh.vert(vi1)
+
+        # Green to red
+        self.start.col = vec4(0.0, 1.0, 0.0, 1.0)
+        self.end.col = vec4(1.0, 0.0, 0.0, 1.0)
+
+        self.mesh.add_edge(vi0, vi1)
+        self._draw_edges = True
+
 
 class Demo:
     def __init__(self):
@@ -21,13 +40,7 @@ class Demo:
         self._window.on_cursor_pos = self.on_cursor_pos
         self._window.on_key = self.on_key
 
-        self._ray_node = self._scene.root.add_child(MeshNode())
-        vi0 = self._ray_node.mesh.add_vert()
-        vi1 = self._ray_node.mesh.add_vert()
-        self._ray_start = self._ray_node.mesh.vert(vi0)
-        self._ray_end = self._ray_node.mesh.vert(vi1)
-        self._ray_node.mesh.add_edge(vi0, vi1)
-        self._ray_node.draw_edges = True
+        self._ray_node = self._scene.root.add_child(RayNode())
 
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
@@ -40,17 +53,26 @@ class Demo:
 
     def on_cursor_pos(self, loc):
         # TODO
-        transf = self._mouse_node.transform
-        copy_xy(transf.loc, loc)
-        ray = self._scene.ray_from_screen_coord(loc)
-        self._ray_start.loc = ray.origin
-        self._ray_end.loc = ray.origin + ray.direction * 1000
-        # TODO
-        self._ray_node._edge_buf.dirty = True
+        #copy_xy(self._mouse_node.transform.loc, loc)
         self._mouse_node._triangle_draw.needs_update = True
+
+        ray = self._scene.ray_from_screen_coord(loc)
+        ray.origin = vec3(0, 0, 1)
+        # TODO
+        self._ray_node.start.loc = ray.origin + ray.direction * 0.1
+        self._ray_node.end.loc = ray.origin + ray.direction * 2
+        self._ray_node._edge_buf.dirty = True
+
+        #print(ray, self._ray_node.end.loc)
+        #print(self._ray_node.start.loc, self._ray_node.end.loc)
 
         # TODO
         best_node, best_t = self._scene.ray_intersect(ray)
+        if best_node is not None:
+            copy_xyz(self._mouse_node.transform.loc,
+                     ray.origin + ray.direction * best_t)
+        else:
+            print(None)
         #print(best_node, best_t)
 
     def on_key(self, key, scancode, action, mods):
