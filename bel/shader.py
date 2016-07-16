@@ -178,7 +178,6 @@ class ShaderProgram:
         self._shaders += shaders
 
         for shader in self._shaders:
-            logging.info('glAttachShader(%d, %d)', self._hnd, shader.hnd)
             glAttachShader(self._hnd, shader.hnd)
         logging.info('glLinkProgram(%d)', self._hnd)
         glLinkProgram(self._hnd)
@@ -190,8 +189,6 @@ class ShaderProgram:
         for shader in self._shaders:
             for name in shader.uniforms():
                 self._uniforms[name] = glGetUniformLocation(self._hnd, name)
-                logging.info('glGetUniformLocation(%d, "%s") -> %d',
-                             self._hnd, name, self._uniforms[name])
             for name, location in shader.attributes():
                 if location in self._attributes.inv:
                     raise KeyError('duplication attribute location', location,
