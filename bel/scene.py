@@ -36,6 +36,9 @@ class Scene(object):
         best_t = float('inf')
 
         for node in self.iter_nodes():
+            if not node.pickable:
+                continue
+
             t = node.ray_intersect(ray)
             if t is not None and t < best_t:
                 best_node = node

@@ -4,6 +4,7 @@ class SceneNode(object):
     def __init__(self):
         self._transform = Transform()
         self._children = []
+        self.pickable = True
 
     def add_child(self, child):
         self._children.append(child)

@@ -90,29 +90,31 @@ class Demo:
 
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
         self._scene.root.add_child(MeshNode(self._mesh))
-        # self._mouse_node = self._scene.root.add_child(
-        #     MeshNode(cube_mesh()))
-        #self._mouse_node.transform.scale = vec3_from_scalar(0.1)
+        self._mouse_node = self._scene.root.add_child(
+            MeshNode(cube_mesh()))
+        self._mouse_node.transform.scale = vec3_from_scalar(0.1)
+        self._mouse_node.pickable = False
 
         # TODO
         self._scene.window_initialized(self._window.draw_state)
 
     def on_cursor_pos(self, loc):
-        # TODO
-        #copy_xy(self._mouse_node.transform.loc, loc)
-        #self._mouse_node._triangle_draw.needs_update = True
-
         ray = self._scene.ray_from_screen_coord(loc)
         self._ray_node.update_ray(ray)
 
         # TODO
-        # best_node, best_t = self._scene.ray_intersect(ray)
-        # if best_node is not None:
-        #     copy_xyz(self._mouse_node.transform.loc,
-        #              ray.origin + ray.direction * best_t)
-        # else:
-        #     print(None)
-        #print(best_node, best_t)
+        best_node, best_t = self._scene.ray_intersect(ray)
+        if best_node is not None:
+            hit = ray.origin + ray.direction * best_t
+            mesh = best_node.mesh
+            vert_index, _ = mesh.nearest_vert(hit)
+            
+            copy_xyz(self._mouse_node.transform.loc,
+                     mesh.vert(vert_index).loc)
+            self._mouse_node._triangle_draw.needs_update = True
+        else:
+            print(None)
+        print(best_node, best_t)
 
     def on_key(self, key, scancode, action, mods):
         if key == GLFW_KEY_ESCAPE:

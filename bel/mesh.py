@@ -3,7 +3,7 @@
 from pqdict import minpq
 
 from cgmath.ray_triangle_intersect import ray_triangle_intersect
-from cgmath.vector import distance, vec3, vec4
+from cgmath.vector import distance, distance_squared, vec3, vec4
 
 def _obj_remove_comment(line):
     """Strip "#" comment from a line."""
@@ -189,7 +189,7 @@ class Mesh:
         best_vert_index = None
         best_dist_squared = float('inf')
         for index, vert in enumerate(self._verts):
-            dist_squared = loc.distance_squared(vert.loc)
+            dist_squared = distance_squared(loc, vert.loc)
             if dist_squared < best_dist_squared:
                 best_vert_index = index
                 best_dist_squared = dist_squared
