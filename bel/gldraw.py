@@ -66,6 +66,12 @@ class DrawState:
         self._uniforms[uid] = VectorUniform(vec)
 
     def _draw_one(self, item):
+        first, count = item.vert_range
+
+        # Skip empty draws
+        if count == 0:
+            return
+
         material_uid = item.material_name
         if material_uid not in self._materials:
             self._log.error('unknown material: %r', material_uid)
@@ -79,8 +85,6 @@ class DrawState:
             uniforms.update(self._uniforms)
             # TODO
             material.bind_uniforms(uniforms)
-
-        first, count = item.vert_range
 
         with material.bind():
             glDrawArrays(item.primitive, first, count)
