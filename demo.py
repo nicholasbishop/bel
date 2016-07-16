@@ -112,9 +112,6 @@ class Demo:
             copy_xyz(self._mouse_node.transform.loc,
                      mesh.vert(vert_index).loc)
             self._mouse_node._triangle_draw.needs_update = True
-        else:
-            print(None)
-        print(best_node, best_t)
 
     def on_key(self, key, scancode, action, mods):
         if key == GLFW_KEY_ESCAPE:
