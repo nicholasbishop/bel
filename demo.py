@@ -92,7 +92,7 @@ class Demo:
         self._scene.root.add_child(MeshNode(self._mesh))
         self._mouse_node = self._scene.root.add_child(
             MeshNode(cube_mesh()))
-        self._mouse_node.transform.scale = vec3_from_scalar(0.1)
+        self._mouse_node.transform.scale = vec3_from_scalar(0.02)
         self._mouse_node.pickable = False
 
         # TODO
