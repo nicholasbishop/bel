@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from logging import getLogger
 
 from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
@@ -23,10 +24,10 @@ class DrawState:
         self._log = getLogger(__name__)
         self._fb_size = (0, 0)
         self._clear_color = Color(0.4, 0.4, 0.5, 1.0)
-        self._buffer_objects = {}
-        self._draw_commands = {}
-        self._materials = {}
-        self._uniforms = {}
+        self._buffer_objects = OrderedDict()
+        self._draw_commands = OrderedDict()
+        self._materials = OrderedDict()
+        self._uniforms = OrderedDict()
 
     @property
     def fb_size(self):
