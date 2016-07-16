@@ -160,11 +160,10 @@ class ShaderProgram:
             bufname = data['buffer']
             buf = buffer_objects[bufname]
 
-            with buf.bind():
-                glEnableVertexAttribArray(attr_index)
+            buf.bind()
+            glEnableVertexAttribArray(attr_index)
             # TODO
-            buf.bind_to_attribute(attr_index,
-                                  data['buffer_view'])
+            buf.bind_to_attribute(attr_index, data['buffer_view'])
 
     def bind_uniforms(self, uniforms):
         for uniform_name, uniform_index in self._uniforms.items():

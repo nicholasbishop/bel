@@ -1,5 +1,4 @@
 from collections import namedtuple
-from contextlib import contextmanager
 from ctypes import c_void_p
 import logging
 
@@ -9,6 +8,10 @@ from OpenGL.GL import (GL_ARRAY_BUFFER, GL_FLOAT, GL_STATIC_DRAW,
 import OpenGL.GL as gl
 
 class BufferObject:
+    _BoundBufferObjects = {
+        GL_ARRAY_BUFFER: 0
+    }
+
     def __init__(self, kind):
         self._kind = kind
         self._hnd = glGenBuffers(1)
@@ -24,33 +27,29 @@ class BufferObject:
         if self._hnd is not None:
             conn.send_msg(lambda: glDeleteBuffers(self._hnd))
 
-    @contextmanager
     def bind(self):
-        glBindBuffer(self._kind, self._hnd)
-        try:
-            yield
-        finally:
-            pass
-            #glBindBuffer(self._kind, 0)
+        if self._BoundBufferObjects[self._kind] != self._hnd:
+            glBindBuffer(self._kind, self._hnd)
+            self._BoundBufferObjects[self._kind] = self._hnd
 
     def set_data(self, data, usage=None):
         if usage is None:
             usage = GL_STATIC_DRAW
 
-        with self.bind():
-            glBufferData(self._kind, data, usage)
+        self.bind()
+        glBufferData(self._kind, data, usage)
 
     def bind_to_attribute(self, attr_index, buffer_view):
-        with self.bind():
-            # TODO
-            gl.glBindVertexArray(self._vao)
+        self.bind()
+        # TODO
+        gl.glBindVertexArray(self._vao)
 
-            glVertexAttribPointer(attr_index,
-                                  buffer_view.components,
-                                  buffer_view.gltype,
-                                  buffer_view.normalized,
-                                  buffer_view.stride_in_bytes,
-                                  c_void_p(buffer_view.offset_in_bytes))
+        glVertexAttribPointer(attr_index,
+                              buffer_view.components,
+                              buffer_view.gltype,
+                              buffer_view.normalized,
+                              buffer_view.stride_in_bytes,
+                              c_void_p(buffer_view.offset_in_bytes))
 
 
 class ArrayBufferObject(BufferObject):
