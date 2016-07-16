@@ -5,7 +5,6 @@ import logging
 from OpenGL.GL import (GL_ARRAY_BUFFER, GL_FLOAT, GL_STATIC_DRAW,
                        glBindBuffer, glBufferData, glDeleteBuffers,
                        glGenBuffers, glVertexAttribPointer)
-import OpenGL.GL as gl
 
 class BufferObject:
     _BoundBufferObjects = {
@@ -15,9 +14,6 @@ class BufferObject:
     def __init__(self, kind):
         self._kind = kind
         self._hnd = glGenBuffers(1)
-
-        # TODO
-        self._vao = gl.glGenVertexArrays(1)
 
         logging.info('glGenBuffers(1) -> %d', self._hnd)
         if self._hnd == 0:
@@ -41,8 +37,6 @@ class BufferObject:
 
     def bind_to_attribute(self, attr_index, buffer_view):
         self.bind()
-        # TODO
-        gl.glBindVertexArray(self._vao)
 
         glVertexAttribPointer(attr_index,
                               buffer_view.components,

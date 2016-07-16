@@ -73,6 +73,8 @@ class DrawState:
         if count == 0:
             return
 
+        item.vao.bind()
+
         material_uid = item.material_name
         if material_uid not in self._materials:
             self._log.error('unknown material: %r', material_uid)

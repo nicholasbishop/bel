@@ -1,6 +1,7 @@
 from OpenGL.GL import GL_LINES, GL_POINTS, GL_TRIANGLES
 
 from bel.auto_name import auto_name
+from bel.vertex_array_object import VertexArrayObject
 
 class DrawCommandHandle:
     def __init__(self):
@@ -23,3 +24,4 @@ class DrawCommand:
         self.uniforms = {}
         self.vert_range = (0, 0)
         self.primitive = self.Points
+        self.vao = VertexArrayObject()
