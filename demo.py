@@ -5,6 +5,7 @@ import logging
 from cyglfw3.compatible import GLFW_KEY_ESCAPE
 
 from bel import log
+from bel.event import ButtonAction
 from bel.mesh import Mesh
 from bel.mesh_node import MeshNode
 from bel.scene import Scene
@@ -85,11 +86,13 @@ class Demo:
         self._window.on_draw = self.on_draw
         self._window.on_cursor_pos = self.on_cursor_pos
         self._window.on_key = self.on_key
+        self._window.on_mouse_button = self.on_mouse_button
 
         self._ray_node = self._scene.root.add_child(RayNode())
+        self._selected_vert_index = None
 
         self._mesh = Mesh.load_obj('examples/xyz-text.obj')
-        self._scene.root.add_child(MeshNode(self._mesh))
+        self._mesh_node = self._scene.root.add_child(MeshNode(self._mesh))
         self._mouse_node = self._scene.root.add_child(
             MeshNode(cube_mesh()))
         self._mouse_node.transform.scale = vec3_from_scalar(0.02)
@@ -97,6 +100,24 @@ class Demo:
 
         # TODO
         self._scene.window_initialized(self._window.draw_state)
+
+    def on_mouse_button(self, event):
+        if event.action != ButtonAction.Release:
+            return
+
+        if self._selected_vert_index is None:
+            return
+
+        mesh = self._mesh
+        vert = mesh.vert(self._selected_vert_index)
+        dist = lambda vi0, vi1: mesh.edge_length(mesh.edge_between(vi0, vi1))
+        results = mesh.dijkstra(self._selected_vert_index, dist)
+        for dijk, vert in zip(results, mesh.verts):
+            if dijk.dist > 99999:
+                vert.col[0] = -1
+            else:
+                vert.col[0] = dijk.dist
+        self._mesh_node._triangle_buf.dirty = True
 
     def on_cursor_pos(self, loc):
         ray = self._scene.ray_from_screen_coord(loc)
@@ -108,10 +129,13 @@ class Demo:
             hit = ray.origin + ray.direction * best_t
             mesh = best_node.mesh
             vert_index, _ = mesh.nearest_vert(hit)
+            self._selected_vert_index = vert_index
             
             copy_xyz(self._mouse_node.transform.loc,
                      mesh.vert(vert_index).loc)
             self._mouse_node._triangle_draw.needs_update = True
+        else:
+            self._selected_vert_index = None
 
     def on_key(self, key, scancode, action, mods):
         if key == GLFW_KEY_ESCAPE:

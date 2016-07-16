@@ -69,6 +69,7 @@ class Window:
         self.on_start = None
         self.on_cursor_pos = None
         self.on_key = None
+        self.on_mouse_button = None
 
     def close(self):
         glfwSetWindowShouldClose(self._window, True)
@@ -94,10 +95,14 @@ class Window:
             return
         self.on_key(key, scancode, action, mods)
 
-    def _cb_mouse_button(self, window, gbutton, gaction, gmods):
-        button = MouseButtonEvent(button_from_glfw(gbutton),
-                                  button_action_from_glfw(gaction))
-        #self._future_group.create_task(self._scene.mouse_button_event(button))
+    def _cb_mouse_button(self, window, button, action, mods):
+        if self.on_mouse_button is None:
+            return
+
+        event = MouseButtonEvent(button_from_glfw(button),
+                                 button_action_from_glfw(action))
+
+        self.on_mouse_button(event)
 
     def _init_glfw(self, width, height):
         if not glfwInit():

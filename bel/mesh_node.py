@@ -73,7 +73,7 @@ class MeshNode(SceneNode):
         return num_edges, verts
 
     def _create_draw_array(self):
-        elem_per_vert = 6
+        elem_per_vert = 10
         vert_per_tri = 3
         fac = elem_per_vert * vert_per_tri
 
@@ -86,17 +86,19 @@ class MeshNode(SceneNode):
 
         for face in self._mesh.faces:
             for vi0, vi1, vi2 in face.iter_triangle_fan():
-                locs = [
-                    self._mesh.verts[vit].loc
+                loc_col = [
+                    (self._mesh.verts[vit].loc, self._mesh.verts[vit].col)
                     for vit in (vi0, vi1, vi2)
                 ]
-                nor = triangle_normal(*locs)
+                nor = triangle_normal(*(loc for loc, _ in loc_col))
 
-                for loc in locs:
+                for loc, col in loc_col:
                     copy_xyz(verts[out:out+3], loc)
                     out += 3
                     copy_xyz(verts[out:out+3], nor)
                     out += 3
+                    copy_xyzw(verts[out:out+6], col)
+                    out += 4
         return num_triangles, verts
 
     def _update_triangle_buf(self, draw_state):
@@ -116,15 +118,23 @@ class MeshNode(SceneNode):
                 'buffer': self._triangle_buf.uid,
                 'buffer_view': float_array_buffer_view(
                     components=3,
-                    stride_in_bytes=bytes_per_float32 * 6,
+                    stride_in_bytes=bytes_per_float32 * 10,
                     offset_in_bytes=0),
             },
             'vert_nor': {
                 'buffer': self._triangle_buf.uid,
                 'buffer_view': float_array_buffer_view(
                     components=3,
-                    stride_in_bytes=bytes_per_float32 * 6,
+                    stride_in_bytes=bytes_per_float32 * 10,
                     offset_in_bytes=bytes_per_float32 * 3)
+            },
+            'vert_col': {
+                'buffer': self._triangle_buf.uid,
+                'buffer_view': float_array_buffer_view(
+                    components=4,
+                    stride_in_bytes=bytes_per_float32 * 10,
+                    offset_in_bytes=bytes_per_float32 * 6
+                )
             }
         })
         dcom.uniforms['model'] = MatrixUniform(self.transform.matrix())

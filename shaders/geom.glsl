@@ -12,9 +12,11 @@ uniform vec2 fb_size;
 in VsOut {
     vec3 vert_loc;
 	vec3 vert_nor;
+	vec4 vert_col;
 } vs_out[];
 
 out vec3 surface_normal;
+out vec4 surface_color;
 noperspective out vec3 dist;
 
 void main() {
@@ -30,16 +32,19 @@ void main() {
 
     dist = vec3(area / length(v0), 0, 0);
     surface_normal = vs_out[0].vert_nor;
+	surface_color = vs_out[0].vert_col;
     gl_Position = gl_in[0].gl_Position;
     EmitVertex();
 
     dist = vec3(0, area / length(v1), 0);
     surface_normal = vs_out[1].vert_nor;
+	surface_color = vs_out[1].vert_col;
     gl_Position = gl_in[1].gl_Position;
     EmitVertex();
 
     dist = vec3(0, 0, area / length(v2));
     surface_normal = vs_out[2].vert_nor;
+	surface_color = vs_out[2].vert_col;
     gl_Position = gl_in[2].gl_Position;
     EmitVertex();
 
