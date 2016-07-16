@@ -2,6 +2,8 @@ from logging import getLogger
 
 from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 GLFW_CONTEXT_VERSION_MINOR,
+                                GLFW_CURSOR,
+                                GLFW_CURSOR_HIDDEN,
                                 GLFW_MOUSE_BUTTON_LEFT,
                                 GLFW_MOUSE_BUTTON_MIDDLE,
                                 GLFW_MOUSE_BUTTON_RIGHT,
@@ -16,6 +18,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwSetCursorPosCallback,
                                 glfwSetErrorCallback,
                                 glfwSetKeyCallback,
+                                glfwSetInputMode,
                                 glfwSetMouseButtonCallback,
                                 glfwSetWindowShouldClose,
                                 glfwSwapBuffers,
@@ -121,6 +124,12 @@ class Window:
         self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
 
         self._add_default_materials()
+
+        # Hide mouse cursor (TODO)
+        if False:
+            glfwSetInputMode(self._window,
+                             GLFW_CURSOR,
+                             GLFW_CURSOR_HIDDEN)
 
     def _add_default_materials(self):
         # TODO

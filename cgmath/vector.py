@@ -24,6 +24,8 @@ def distance_squared(vec1, vec2):
 
 
 def normalized(vec):
+    # TODO
+    assert magnitude(vec) != 0.0
     return vec / magnitude(vec)
 
 

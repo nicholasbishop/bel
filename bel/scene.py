@@ -51,4 +51,4 @@ class Scene(object):
         ray_eye = vec4_from_vec2(ray_eye, -1.0, 0.0)
         ray_wor = vec3_from_vec4(inverse(cam.view_matrix()).dot(ray_eye))
         ray_wor = normalized(ray_wor)
-        return Ray(origin=cam.transform.loc, direction=ray_wor)
+        return Ray(origin=cam.transform.loc.copy(), direction=ray_wor)
