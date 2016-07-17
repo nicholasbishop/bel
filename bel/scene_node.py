@@ -22,4 +22,5 @@ class SceneNode(object):
         pass
 
     def ray_intersect(self, ray):
+        # pylint: disable=no-self-use,unused-argument
         return None

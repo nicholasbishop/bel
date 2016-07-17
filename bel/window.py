@@ -2,8 +2,6 @@ from logging import getLogger
 
 from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 GLFW_CONTEXT_VERSION_MINOR,
-                                GLFW_CURSOR,
-                                GLFW_CURSOR_HIDDEN,
                                 GLFW_MOUSE_BUTTON_LEFT,
                                 GLFW_MOUSE_BUTTON_MIDDLE,
                                 GLFW_MOUSE_BUTTON_RIGHT,
@@ -63,13 +61,13 @@ def button_action_from_glfw(glfw_button_action):
 class Window:
     def __init__(self, width=800, height=600):
         self._window = None
+        self.on_draw = lambda *args: None
+        self.on_start = lambda *args: None
+        self.on_cursor_pos = lambda *args: None
+        self.on_key = lambda *args: None
+        self.on_mouse_button = lambda *args: None
         self._draw_state = DrawState()
         self._init_glfw(width, height)
-        self.on_draw = None
-        self.on_start = None
-        self.on_cursor_pos = None
-        self.on_key = None
-        self.on_mouse_button = None
 
     def close(self):
         glfwSetWindowShouldClose(self._window, True)
@@ -83,22 +81,16 @@ class Window:
         LOG.error('GLFW error: %d %s', error, description)
 
     def _cb_cursor_pos(self, window, xpos, ypos):
-        if self.on_cursor_pos is not None:
-            # normalize cursor position: [-1, 1] in x and y
-            width, height = glfwGetWindowSize(window)
-            loc = vec2((2.0 * xpos) / width - 1.0,
-                       1.0 - (2.0 * ypos) / height)
-            self.on_cursor_pos(loc)
+        # normalize cursor position: [-1, 1] in x and y
+        width, height = glfwGetWindowSize(window)
+        loc = vec2((2.0 * xpos) / width - 1.0,
+                   1.0 - (2.0 * ypos) / height)
+        self.on_cursor_pos(loc)
 
     def _cb_key(self, window, key, scancode, action, mods):
-        if self.on_key is None:
-            return
         self.on_key(key, scancode, action, mods)
 
     def _cb_mouse_button(self, window, button, action, mods):
-        if self.on_mouse_button is None:
-            return
-
         event = MouseButtonEvent(button_from_glfw(button),
                                  button_action_from_glfw(action))
 
@@ -130,12 +122,6 @@ class Window:
 
         self._add_default_materials()
 
-        # Hide mouse cursor (TODO)
-        if False:
-            glfwSetInputMode(self._window,
-                             GLFW_CURSOR,
-                             GLFW_CURSOR_HIDDEN)
-
     def _add_default_materials(self):
         # TODO
         default = ShaderProgram()
@@ -153,12 +139,6 @@ class Window:
 
     def set_clear_color(self, color: Color):
         self._draw_state.clear_color = color
-
-    def update_camera(self, transform: Transform):
-        self._draw_state.update_uniform(
-            'camera',
-            MatrixUniform(transform.matrix())
-        )
 
     def update_buffer(self, data: BufferData):
         glfwMakeContextCurrent(self._window)

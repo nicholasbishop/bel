@@ -7,11 +7,11 @@ class VertexArrayObject:
         self._hnd = glGenVertexArrays(1)
 
     def bind(self):
-        if self._hnd != self._BoundVertexArrayObject:
+        if self._hnd != VertexArrayObject._BoundVertexArrayObject:
             glBindVertexArray(self._hnd)
-            self._BoundVertexArrayObject = self._hnd
+            VertexArrayObject._BoundVertexArrayObject = self._hnd
 
     @classmethod
-    def unbind(self):
+    def unbind(cls):
         glBindVertexArray(0)
-        self._BoundVertexArrayObject = None
+        cls._BoundVertexArrayObject = None
