@@ -3,19 +3,8 @@ import numpy
 from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel.scene_node import SceneNode
-from cgmath.matrix import new_mat4
+from cgmath.matrix import new_mat4, mat4_look_at
 from cgmath.vector import cross, dot, normalized, vec3
-
-def look_at_matrix(eye, target, up):
-    forward = normalized(eye - target)
-    side = normalized(cross(up, forward))
-    up = normalized(cross(forward, side))
-
-    return new_mat4(   side[0],    side[1],    side[2], -dot(side, eye),
-                         up[0],      up[1],      up[2], -dot(up, eye),
-                    forward[0], forward[1], forward[2], -dot(forward, eye),
-                             0,          0,          0,  1)
-
 
 class CameraNode(SceneNode):
     def __init__(self):
@@ -49,9 +38,9 @@ class CameraNode(SceneNode):
     # node transforms
     def view_matrix(self):
         # TODO, cache?
-        return look_at_matrix(self.transform.loc,
-                              self._target,
-                              vec3(0, 1, 0))
+        return mat4_look_at(self.transform.loc,
+                            self._target,
+                            vec3(0, 1, 0))
 
     def draw(self, draw_state):
         draw_state.update_matrix_uniform('projection',
