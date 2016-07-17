@@ -14,8 +14,16 @@ uniform mat4 projection;
 uniform mat4 camera;
 uniform mat4 model;
 
+vec4 perspective_projection(const mat4 projection,
+                            const mat4 camera,
+                            const mat4 model,
+                            const vec3 point);
+
 void main() {
-    gl_Position = projection * camera * model * vec4(vert_loc, 1.0f);
+    gl_Position = perspective_projection(projection,
+										 camera,
+										 model,
+										 vert_loc);
 	vs_out.vert_loc = vert_loc;
 	vs_out.vert_nor = vert_nor;
 	vs_out.vert_col = vert_col;

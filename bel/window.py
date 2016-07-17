@@ -120,8 +120,10 @@ class Window:
         # TODO
         default = ShaderProgram()
         default.update(
+            VertexShader('shaders/library.glsl'),
             VertexShader('shaders/vert.glsl'),
             FragmentShader('shaders/frag.glsl'),
+            GeometryShader('shaders/library.glsl'),
             GeometryShader('shaders/geom.glsl'))
 
         flat = ShaderProgram()
