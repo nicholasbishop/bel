@@ -208,12 +208,12 @@ class Mesh:
             return 'DijkstraResult(dist={}, prev={})'.format(self.dist,
                                                              self.prev)
 
-    def dijkstra(self, vi0, distance):
+    def dijkstra(self, vi0, dist_func):
         """Calculate shortest path from |vi0| to all other verts.
 
-        distance: callable that takes two adjacent vertex indices and
-                  returns a number indicating the distance between
-                  them.
+        dist_func: callable that takes two adjacent vertex indices and
+                   returns a number indicating the distance between
+                   them.
 
         Returns a list of |DijkstraResult|.
 
@@ -234,7 +234,7 @@ class Mesh:
 
             for vi3 in self.adj_vert_vert(vi2):
                 if vi3 in queue:
-                    new_score = result[vi2].dist + distance(vi2, vi3)
+                    new_score = result[vi2].dist + dist_func(vi2, vi3)
                     if new_score < queue[vi3]:
                         # pqdict update is O(log n)
                         queue[vi3] = new_score
@@ -301,12 +301,13 @@ class Mesh:
 
     def ray_intersect(self, ray):
         # TODO, spatial data structure
-        best_t = float('inf')
+        nearest_hit = float('inf')
+
         for face in self._faces:
             for triangle in face.iter_triangle_fan():
                 verts = self.verts_from_indices(triangle)
                 locs = [vert.loc for vert in verts]
-                t = ray_triangle_intersect(ray, locs)
-                if t is not None and t < best_t:
-                    best_t = t
-        return best_t
+                hit = ray_triangle_intersect(ray, locs)
+                if hit is not None and hit < nearest_hit:
+                    nearest_hit = hit
+        return nearest_hit
