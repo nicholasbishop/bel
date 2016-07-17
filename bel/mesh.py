@@ -116,7 +116,7 @@ class Mesh:
         return self._verts[vert_index]
 
     def verts_from_indices(self, vert_indices):
-        """Vertex iterator for the given vertex indices.""" 
+        """Vertex iterator for the given vertex indices."""
         for vert_index in vert_indices:
             yield self._verts[vert_index]
 
@@ -136,7 +136,7 @@ class Mesh:
         vi0, vi1: vertex indices
 
         face_indices: adjacent face indices
-        
+
         Returns the index of the new edge.
         """
         edge_index = self.edge_index_between(vi0, vi1)

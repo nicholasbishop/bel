@@ -1,8 +1,9 @@
 run: venv
 	venv/bin/python -m demo
 
+# TODO(nicholasbishop): remove these disables when it makes sense to
 lint: venv
-	venv/bin/python -m pylint bel demo
+	venv/bin/python -m pylint -d fixme,missing-docstring bel demo
 
 test: venv
 	venv/bin/python -m unittest discover --verbose

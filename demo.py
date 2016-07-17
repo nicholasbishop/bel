@@ -130,7 +130,7 @@ class Demo:
             mesh = best_node.mesh
             vert_index, _ = mesh.nearest_vert(hit)
             self._selected_vert_index = vert_index
-            
+
             copy_xyz(self._mouse_node.transform.loc,
                      mesh.vert(vert_index).loc)
             self._mouse_node._triangle_draw.needs_update = True

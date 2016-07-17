@@ -1,5 +1,3 @@
-from numpy import dot
-
 from bel.camera_node import CameraNode
 from bel.scene_node import SceneNode
 
@@ -49,7 +47,7 @@ class Scene(object):
     def ray_from_screen_coord(self, screen_loc):
         # Adapted from http://antongerdelan.net/opengl/raycasting.html
         cam = self._camera
-        ray_clip = vec4_from_vec2(screen_loc, -1, 1);
+        ray_clip = vec4_from_vec2(screen_loc, -1, 1)
         ray_eye = inverse(cam.projection_matrix).dot(ray_clip)
         ray_eye = vec4_from_vec2(ray_eye, -1.0, 0.0)
         ray_wor = vec3_from_vec4(inverse(cam.view_matrix()).dot(ray_eye))

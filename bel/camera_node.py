@@ -3,8 +3,8 @@ import numpy
 from pyrr.matrix44 import create_perspective_projection_matrix
 
 from bel.scene_node import SceneNode
-from cgmath.matrix import new_mat4, mat4_look_at
-from cgmath.vector import cross, dot, normalized, vec3
+from cgmath.matrix import mat4_look_at
+from cgmath.vector import vec3
 
 class CameraNode(SceneNode):
     def __init__(self):
