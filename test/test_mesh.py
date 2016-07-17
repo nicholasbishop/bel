@@ -1,10 +1,12 @@
+# pylint: disable=missing-docstring
+
 from unittest import TestCase
 
 from bel.mesh import Edge, Face, Mesh, Vert
 from cgmath.vector import vec3
 
 def mesh_two_adj_triangles():
-    """
+    r"""
     v0______v3
      |\    /
      | \  /
