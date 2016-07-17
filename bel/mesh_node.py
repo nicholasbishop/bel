@@ -7,9 +7,9 @@ from bel.buffer_object import float_array_buffer_view
 from bel.draw_command import DrawCommand, DrawCommandHandle
 from bel.mesh import Mesh
 from bel.scene_node import SceneNode
-from bel.uniform import MatrixUniform, VectorUniform
+from bel.uniform import MatrixUniform
 from cgmath.normal import triangle_normal
-from cgmath.vector import copy_xyz, copy_xyzw, vec4
+from cgmath.vector import copy_xyz, copy_xyzw
 
 
 class VertBufHandle:

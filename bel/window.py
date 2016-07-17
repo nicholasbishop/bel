@@ -8,7 +8,6 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 GLFW_PRESS,
                                 GLFW_RELEASE,
                                 glfwCreateWindow,
-                                glfwDestroyWindow,
                                 glfwGetFramebufferSize,
                                 glfwGetWindowSize,
                                 glfwInit,
@@ -16,7 +15,6 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwSetCursorPosCallback,
                                 glfwSetErrorCallback,
                                 glfwSetKeyCallback,
-                                glfwSetInputMode,
                                 glfwSetMouseButtonCallback,
                                 glfwSetWindowShouldClose,
                                 glfwSwapBuffers,
@@ -25,15 +23,11 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwWindowShouldClose)
 from OpenGL.GL import GL_VERSION, glGetString
 
-from bel.buffer_object import ArrayBufferObject
 from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.gldraw import DrawState
-from bel.msg import BufferData
 from bel.shader import (FragmentShader, GeometryShader, ShaderProgram,
                         VertexShader)
-from bel.transform import Transform
-from bel.uniform import MatrixUniform
 from cgmath.vector import vec2
 
 LOG = getLogger(__name__)
@@ -140,15 +134,6 @@ class Window:
     def set_clear_color(self, color: Color):
         self._draw_state.clear_color = color
 
-    def update_buffer(self, data: BufferData):
-        glfwMakeContextCurrent(self._window)
-        if data.uid not in self._draw_state.buffer_objects:
-            self._draw_state.buffer_objects[data.uid] = ArrayBufferObject()
-        self._draw_state.buffer_objects[data.uid].set_data(data.array)
-
-    def update_draw_command(self, draw_command):
-        self._draw_state.draw_commands[draw_command['uid']] = draw_command
-
     def _draw(self):
         self._draw_state.fb_size = glfwGetFramebufferSize(self._window)
         self.on_draw()
@@ -165,16 +150,3 @@ class Window:
 
             if glfwWindowShouldClose(self._window):
                 running = False
-
-    def stop(self):
-        if self._window:
-            glfwDestroyWindow(self._window)
-            self._window = None
-
-        # TODO, move to fgroup
-        if self._poll_glfw_future is not None:
-            self._poll_glfw_future.cancel()
-
-        self._future_group.cancel_all()
-
-        super().stop()

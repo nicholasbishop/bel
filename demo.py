@@ -11,8 +11,8 @@ from bel.mesh_node import MeshNode
 from bel.scene import Scene
 from bel.solids import cube_mesh
 from bel.window import Window
-from cgmath.vector import (copy_xyz, cross, normalized,
-                           vec3_from_scalar, vec3, vec4)
+from cgmath.vector import (copy_xyz, cross, vec3_from_scalar, vec3,
+                           vec4)
 
 
 class RayNode(MeshNode):
