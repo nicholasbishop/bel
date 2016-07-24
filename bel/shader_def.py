@@ -1,3 +1,5 @@
+from collections import OrderedDict
+from contextlib import contextmanager
 from copy import deepcopy
 from enum import Enum, unique
 
@@ -26,7 +28,7 @@ class GlslVar(Expr):
         for arg in self._args:
             if isinstance(arg, Attribute):
                 yield arg.input_name
-            elif isinstance(arg, float):
+            elif isinstance(arg, (float, int)):
                 yield str(arg)
             else:
                 raise NotImplementedError(arg)
@@ -81,10 +83,22 @@ class Uniform(Expr):
 
 
 class Attribute(Expr):
-    def __init__(self, glsl_type, output_name=None):
+    def __init__(self, glsl_type, output_name=None,
+                 no_perspective=False):
         self.glsl_type = glsl_type
         self._input_name = None
         self._output_name = output_name
+        self._no_perspective = no_perspective
+
+    def __repr__(self):
+        return 'Attribute({}, in={}, out={})'.format(
+            self.glsl_type.keyword(),
+            self._input_name,
+            self._output_name)
+
+    def is_builtin(self):
+        name = self._output_name
+        return (name is not None) and name.startswith('gl_')
 
     @property
     def input_name(self):
@@ -107,19 +121,42 @@ class Attribute(Expr):
         self._output_name = name
 
     def decl(self, storage):
+        parts = []
+        if self._no_perspective is True:
+            parts.append('noperspective')
+
+        parts += [storage.value, self.glsl_type.keyword()]
+
         if storage == Storage.Input:
-            name = self.input_name
+            parts.append(self.input_name)
         elif storage == Storage.Output:
-            name = self.output_name
-        return '{} {} {};'.format(storage.value,
-                                  self.glsl_type.keyword(),
-                                  name)
+            parts.append(self.output_name)
+
+        return ' '.join(parts)
 
 
 class Material(object):
     def __init__(self):
-        # pylint: disable=invalid-name
-        self.gl_Position = None
+        self.gl_Position = None  # pylint: disable=invalid-name
+        self._capture = False
+        self._exprs = OrderedDict()
+
+    def __setattr__(self, key, val):
+        private = key.startswith('_')
+        capturing = getattr(self, '_capture', False)
+        if capturing and not private:
+            self._exprs[key] = val
+        else:
+            super().__setattr__(key, val)
+
+    def captured_expressions(self):
+        return self._exprs
+
+    @contextmanager
+    def capture(self):
+        self._capture = True
+        yield
+        self._capture = False
 
     def _members_of_type(self, target_type):
         for attr_name in sorted(dir(self)):
@@ -143,18 +180,15 @@ class Material(object):
         for _, attr in self._members_of_type(Attribute):
             yield attr
 
-    def exprs(self):
-        for name, attr in self._members_of_type(Expr):
-            if isinstance(attr, Attribute):
-                continue
-            if isinstance(attr, Uniform):
-                continue
-            yield name, attr
+    def find_attribute(self, name):
+        return dict(self._members_of_type(Attribute))[name]
 
     def generate_vert_shader(self):
         vert_shader = deepcopy(self)
         vert_shader.apply_names('', 'vs_')
-        vert_shader.vert()
+        vert_shader.gl_Position = Attribute(Vec4, output_name='gl_Position')
+        with vert_shader.capture():
+            vert_shader.vert()
 
         yield '#version 330 core'
         yield EMPTY_LINE
@@ -164,10 +198,12 @@ class Material(object):
 
         yield EMPTY_LINE
 
-        # TODO, dep-res
+        # TODO, dep-res needed for usage analysis and ordering of
+        # expressions
 
         for attr in vert_shader.attributes():
-            yield attr.decl(Storage.Input)
+            if not attr.is_builtin():
+                yield attr.decl(Storage.Input)
 
         yield EMPTY_LINE
 
@@ -176,10 +212,26 @@ class Material(object):
 
         yield EMPTY_LINE
 
+        exprs = vert_shader.captured_expressions()
+        finished_attrs = []
+
         yield 'void main() {'
-        for name, expr in vert_shader.exprs():
+        for name, expr in exprs.items():
+            # TODO, handle named local vars?
+            attr = vert_shader.find_attribute(name)
+            finished_attrs.append(attr)
             # TODO
-            yield '    {} = {};'.format(name, expr.expr_code())
+            yield '    {} = {};'.format(attr.output_name,
+                                        expr.expr_code())
+
+        # TODO, another case where dep-res is needed
+        for attr in vert_shader.attributes():
+            if attr not in finished_attrs:
+                # TODO, de-dup
+                print(attr)
+                yield '    {} = {};'.format(attr.output_name,
+                                            attr.input_name)
+
         yield '}'
 
 
@@ -202,6 +254,12 @@ class DefaultMaterial(Material):
                                                self.camera,
                                                self.model,
                                                Vec4(self.vert_loc, 1.0))
+        # TODO, just testing
+        self.vert_col = Vec4(0, 0, 0, 0)
+
+    def geom(self):
+        pass
+
 
 def main():
     default = DefaultMaterial()
