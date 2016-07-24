@@ -5,8 +5,8 @@ EMPTY_LINE = ''
 
 @unique
 class Storage(Enum):
-    In = 'in'
-    Out= 'out'
+    Input = 'in'
+    Output = 'out'
 
 class Expr(object):
     def __mul__(self, other):
@@ -18,8 +18,18 @@ class GlslVar(Expr):
     def keyword(cls):
         return cls.__name__.lower()
 
-    def __init__(self):
+    def __init__(self, *args):
+        self._args = args
         self.name = None
+
+    def constructor_args(self):
+        for arg in self._args:
+            if isinstance(arg, Attribute):
+                yield arg.input_name
+            elif isinstance(arg, float):
+                yield str(arg)
+            else:
+                raise NotImplementedError(arg)
 
     def expr_code(self):
         if self.name is None:
@@ -35,19 +45,7 @@ class Vec3(GlslVar):
 
 
 class Vec4(GlslVar):
-    def __init__(self, *args):
-        super().__init__()
-        self._args = args
-
-    def constructor_args(self):
-        for arg in self._args:
-            if isinstance(arg, Attribute):
-                yield arg.input_name
-            elif isinstance(arg, float):
-                yield str(arg)
-            else:
-                raise NotImplementedError(arg)
-
+    pass
 
 class Mat4(GlslVar):
     pass
@@ -109,9 +107,9 @@ class Attribute(Expr):
         self._output_name = name
 
     def decl(self, storage):
-        if storage == Storage.In:
+        if storage == Storage.Input:
             name = self.input_name
-        elif storage == Storage.Out:
+        elif storage == Storage.Output:
             name = self.output_name
         return '{} {} {};'.format(storage.value,
                                   self.glsl_type.keyword(),
@@ -120,7 +118,8 @@ class Attribute(Expr):
 
 class Material(object):
     def __init__(self):
-        self.gl_Position = Attribute(Vec4)
+        # pylint: disable=invalid-name
+        self.gl_Position = None
 
     def _members_of_type(self, target_type):
         for attr_name in sorted(dir(self)):
@@ -168,12 +167,12 @@ class Material(object):
         # TODO, dep-res
 
         for attr in vert_shader.attributes():
-            yield attr.decl(Storage.In)
+            yield attr.decl(Storage.Input)
 
         yield EMPTY_LINE
 
         for attr in vert_shader.attributes():
-            yield attr.decl(Storage.Out)
+            yield attr.decl(Storage.Output)
 
         yield EMPTY_LINE
 
@@ -190,6 +189,7 @@ def perspective_project(projection, camera, model, point):
 
 class DefaultMaterial(Material):
     def __init__(self):
+        super().__init__()
         self.projection = Uniform(Mat4)
         self.camera = Uniform(Mat4)
         self.model = Uniform(Mat4)
@@ -199,9 +199,9 @@ class DefaultMaterial(Material):
 
     def vert(self):
         self.gl_Position = perspective_project(self.projection,
-					       self.camera,
-					       self.model,
-					       Vec4(self.vert_loc, 1.0))
+                                               self.camera,
+                                               self.model,
+                                               Vec4(self.vert_loc, 1.0))
 
 def main():
     default = DefaultMaterial()
