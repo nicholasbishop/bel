@@ -1,5 +1,3 @@
-#version 330 core
-
 // Wireframe rendering adapted from:
 // - strattonbrazil.blogspot.com/2011/09/single-pass-wireframe-rendering_10.html
 // - developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf

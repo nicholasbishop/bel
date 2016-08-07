@@ -13,6 +13,8 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FRAGMENT_SHADER,
                        glGetShaderInfoLog, glGetShaderiv,
                        glLinkProgram, glShaderSource, glUseProgram)
 
+from pyglsl_parser.parser import parse as glsl_parse
+
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
 
@@ -65,6 +67,11 @@ class Shader:
         self._path = path
         with open(self._path) as rfile:
             self._source = rfile.read()
+
+        # TODO
+        if 'library' in self._path:
+            ast = glsl_parse(self._source, self._path)
+            print(ast.functions)
 
         self._alloc()
         self._compile()
