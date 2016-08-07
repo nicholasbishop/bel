@@ -15,6 +15,44 @@ class Expr(object):
         return MulOp(self, other)
 
 
+class StructAccess(Expr):
+    def __init__(self, struct, field):
+        self.struct = struct
+        self.field = field
+
+
+class Struct(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __getattr__(self, name):
+        return StructAccess(self, name)
+
+
+class GeomIn(Struct):
+    def __init__(self):
+        super().__init__('gl_PerVertex')
+        self.gl_Position = StructField('gl_Position')
+        # TODO(nicholasbishop):
+        # float gl_PointSize;
+        # float gl_ClipDistance[];
+
+
+
+class FunctionCall(Expr):
+    def __init__(self, function, args):
+        self.function = function
+        self.args = args
+
+
+class Function(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __call__(self, *args):
+        return FunctionCall(self, args)
+
+
 class GlslVar(Expr):
     @classmethod
     def keyword(cls):
@@ -42,14 +80,48 @@ class GlslVar(Expr):
             return self.name
 
 
-class Vec3(GlslVar):
+class ArrayGet(Expr):
+    def __init__(self, array, index):
+        self.array = array
+        self.index = index
+
+    def __getattr__(self, name):
+        return StructAccess(self.array.base_type, name)
+
+
+class ArraySet(Expr):
+    def __init__(self, array, index, value):
+        self.array = array
+        self.index = index
+        self.value = value
+
+
+class Array(GlslVar):
+    def __init__(self, base_type, *shape):
+        self.base_type = base_type
+        self.shape = shape
+
+    def __getitem__(self, index):
+        return ArrayGet(self, index)
+
+    def __setitem__(self, index, value):
+        return ArraySet(self, index, value)
+
+
+class BuiltinArray(Array):
     pass
 
 
-class Vec4(GlslVar):
+class Vec2(BuiltinArray):
     pass
 
-class Mat4(GlslVar):
+class Vec3(BuiltinArray):
+    pass
+
+class Vec4(BuiltinArray):
+    pass
+
+class Mat4(BuiltinArray):
     pass
 
 
@@ -71,30 +143,33 @@ class MulOp(BinaryOp):
 
 
 class Uniform(Expr):
-    def __init__(self, glsl_type):
-        self.glsl_type = glsl_type
+    def __init__(self, glsl_var):
+        self.glsl_var = glsl_var
         self.name = None
 
     def expr_code(self):
         return self.name
 
     def decl(self):
-        return 'uniform {} {};'.format(self.glsl_type.keyword(), self.name)
+        return 'uniform {} {};'.format(self.glsl_var.keyword(), self.name)
 
 
 class Attribute(Expr):
-    def __init__(self, glsl_type, output_name=None,
+    def __init__(self, glsl_var, input_name=None, output_name=None,
                  no_perspective=False):
-        self.glsl_type = glsl_type
-        self._input_name = None
+        self.glsl_var = glsl_var
+        self._input_name = input_name
         self._output_name = output_name
         self._no_perspective = no_perspective
 
     def __repr__(self):
         return 'Attribute({}, in={}, out={})'.format(
-            self.glsl_type.keyword(),
+            self.glsl_var.keyword(),
             self._input_name,
             self._output_name)
+
+    def __getitem__(self, index):
+        return self.glsl_var[index]
 
     def is_builtin(self):
         name = self._output_name
@@ -125,7 +200,7 @@ class Attribute(Expr):
         if self._no_perspective is True:
             parts.append('noperspective')
 
-        parts += [storage.value, self.glsl_type.keyword()]
+        parts += [storage.value, self.glsl_var.keyword()]
 
         if storage == Storage.Input:
             parts.append(self.input_name)
@@ -134,6 +209,27 @@ class Attribute(Expr):
 
         return ' '.join(parts)
 
+
+class Scope:
+    def __init__(self):
+        self._vars = []
+
+    def __setattr__(self, name, value):
+        if name.startswith('_'):
+            # Ignore private members
+            super().__setattr__(name, value)
+        else:
+            self._vars[name] = value
+
+
+class GeomScope(Scope):
+    def __init__(self):
+        super().__init__()
+
+    def emit_vertex(self, **kwargs):
+        # TODO
+        pass
+        
 
 class Material(object):
     def __init__(self):
@@ -234,9 +330,23 @@ class Material(object):
 
         yield '}'
 
+    # TODO, de-dup
+    def generate_geom_shader(self):
+        geom_shader = deepcopy(self)
+        geom_shader.apply_names('vs_', 'gs_')
+        geom_shader.gl_in = Attribute(Array(GeomIn), input_name='gl_in')
+        output = GeomScope()
+        with geom_shader.capture():
+            geom_shader.geom(output)
+        yield EMPTY_LINE
+
 
 def perspective_project(projection, camera, model, point):
     return projection * camera * model * point
+
+
+viewport_to_screen_space = Function('viewport_to_screen_space')
+triangle_2d_altitudes = Function('triangle_2d_altitudes')
 
 
 class DefaultMaterial(Material):
@@ -245,6 +355,7 @@ class DefaultMaterial(Material):
         self.projection = Uniform(Mat4)
         self.camera = Uniform(Mat4)
         self.model = Uniform(Mat4)
+        self.framebuffer_size = Uniform(Vec2)
         self.vert_loc = Attribute(Vec3)
         self.vert_nor = Attribute(Vec3)
         self.vert_col = Attribute(Vec4)
@@ -254,15 +365,24 @@ class DefaultMaterial(Material):
                                                self.camera,
                                                self.model,
                                                Vec4(self.vert_loc, 1.0))
-        # TODO, just testing
-        self.vert_col = Vec4(0, 0, 0, 0)
 
-    def geom(self):
-        pass
+    def geom(self, output):
+        triangle = Array(Vec2, 3)
+        for index in range(3):
+            triangle[index] = viewport_to_screen_space(
+                self.framebuffer_size,
+                self.gl_in[index].gl_Position)
+
+        altitudes = Vec3(triangle_2d_altitudes(triangle))
+
+        output.emit_vertex(
+            altitude=Vec3(altitudes[0], 0, 0)
+        )
 
 
 def main():
     default = DefaultMaterial()
     print('\n'.join(default.generate_vert_shader()))
+    print('\n'.join(default.generate_geom_shader()))
 
 main()
