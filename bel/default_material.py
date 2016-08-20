@@ -37,7 +37,7 @@ class GsOut(ShaderInterface):
 
 
 class FsOut(FragmentShaderOutputBlock):
-    color = vec4()
+    fs_color = vec4()
 
 
 def perspective_projection(projection: mat4, camera: mat4,
@@ -128,7 +128,7 @@ def frag_shader(gs_out: GsOut) -> FsOut:
         fac = float(1.0 / rep)
         color[0] = pow(mod(gs_out.color[0], rep) * fac, 4)
 
-    return FsOut(color=color)
+    return FsOut(fs_color=color)
 
 
 def default_material():
