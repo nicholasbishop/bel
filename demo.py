@@ -91,7 +91,7 @@ class Demo:
         self._ray_node = self._scene.root.add_child(RayNode())
         self._selected_vert_index = None
 
-        self._mesh = Mesh.load_obj('examples/xyz-text.obj')
+        self._mesh = Mesh.load_obj('examples/rounded-cube.obj')
         self._mesh_node = self._scene.root.add_child(MeshNode(self._mesh))
         self._mouse_node = self._scene.root.add_child(
             MeshNode(cube_mesh()))
