@@ -23,6 +23,7 @@ from cyglfw3.compatible import (GLFW_CONTEXT_VERSION_MAJOR,
                                 glfwWindowShouldClose)
 from OpenGL.GL import GL_VERSION, glGetString
 
+from bel.default_material import default_material
 from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.gldraw import DrawState
@@ -118,13 +119,7 @@ class Window:
 
     def _add_default_materials(self):
         # TODO
-        default = ShaderProgram()
-        default.update(
-            VertexShader('shaders/library.glsl'),
-            VertexShader('shaders/vert.glsl'),
-            FragmentShader('shaders/frag.glsl'),
-            GeometryShader('shaders/library.glsl'),
-            GeometryShader('shaders/geom.glsl'))
+        default = ShaderProgram.from_material(default_material())
 
         flat = ShaderProgram()
         flat.update(

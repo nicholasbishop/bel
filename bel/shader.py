@@ -13,8 +13,6 @@ from OpenGL.GL import (GL_COMPILE_STATUS, GL_FRAGMENT_SHADER,
                        glGetShaderInfoLog, glGetShaderiv,
                        glLinkProgram, glShaderSource, glUseProgram)
 
-from pyglsl_parser.parser import parse as glsl_parse
-
 KEYWORD_ATTRIBUTE = 'attribute'
 KEYWORD_UNIFORM = 'uniform'
 
@@ -57,21 +55,25 @@ def extract_links(source, keyword):
                 yield name, int(location)
 
 
+def print_source(source):
+    for index, line in enumerate(source.splitlines()):
+        print('{:4}| {}'.format(index + 1, line))
+
+
 class Shader:
-    def __init__(self, path, kind):
+    def __init__(self, path, kind, source=None):
         self._hnd = None
         self._attributes = set()
         self._uniforms = set()
 
         self._kind = kind
         self._path = path
-        with open(self._path) as rfile:
-            self._source = rfile.read()
 
-        # TODO
-        if 'library' in self._path:
-            ast = glsl_parse(self._source, self._path)
-            print(ast.functions)
+        if source is not None:
+            self._source = source
+        else:
+            with open(self._path) as rfile:
+                self._source = rfile.read()
 
         self._alloc()
         self._compile()
@@ -110,6 +112,9 @@ class Shader:
 
             glDeleteShader(self._hnd)
 
+            if self._path == '':
+                print_source(self._source)
+
             pretty_print_log(compile_log, self._path)
 
             raise RuntimeError('shader failed to compile', compile_log)
@@ -122,18 +127,18 @@ class Shader:
 
 
 class VertexShader(Shader):
-    def __init__(self, path):
-        super().__init__(path, GL_VERTEX_SHADER)
+    def __init__(self, path='', source=None):
+        super().__init__(path, GL_VERTEX_SHADER, source)
 
 
 class GeometryShader(Shader):
-    def __init__(self, path):
-        super().__init__(path, GL_GEOMETRY_SHADER)
+    def __init__(self, path='', source=None):
+        super().__init__(path, GL_GEOMETRY_SHADER, source)
 
 
 class FragmentShader(Shader):
-    def __init__(self, path):
-        super().__init__(path, GL_FRAGMENT_SHADER)
+    def __init__(self, path='', source=None):
+        super().__init__(path, GL_FRAGMENT_SHADER, source)
 
 
 class ShaderProgram:
@@ -143,6 +148,19 @@ class ShaderProgram:
         self._uniforms = {}
         self._attributes = {}
         self._alloc()
+
+    @classmethod
+    def from_material(cls, sdef):
+        prog = cls()
+        prog.update(VertexShader(source=sdef.vert_shader),
+                    GeometryShader(source=sdef.geom_shader),
+                    FragmentShader(source=sdef.frag_shader))
+        print_source(sdef.vert_shader)
+        print('---')
+        print_source(sdef.geom_shader)
+        print('---')
+        print_source(sdef.frag_shader)
+        return prog
 
     def _alloc(self):
         # pylint: disable=assignment-from-no-return
