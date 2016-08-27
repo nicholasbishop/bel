@@ -8,23 +8,6 @@ class Transform:
         self._rotation = Quaternion()
         # TODO
 
-    def serialize(self):
-        return dict(
-            translation=(
-                self._translation.x,
-                self._translation.y,
-                self._translation.z
-            ),
-            # TODO
-        )
-
-    @classmethod
-    def deserialize(cls, dct):
-        transform = cls()
-        transform.set_translation(Vector3(dct['translation']))
-        # TODO
-        return transform
-
     @property
     def translation(self):
         return self._translation

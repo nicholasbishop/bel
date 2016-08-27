@@ -1,27 +1,19 @@
 from random import random as randfloat
 
-class Color:
-    def __init__(self, red=0.0, green=0.0, blue=0.0, alpha=0.0):
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.alpha = alpha
+import attr
 
-    def __eq__(self, them):
-        return (self.red == them.red and
-                self.green == them.green and
-                self.blue == them.blue and
-                self.alpha == them.alpha)
+@attr.s
+class Color:
+    red = attr.ib(default=0.0)
+    green = attr.ib(default=0.0)
+    blue = attr.ib(default=0.0)
+    alpha = attr.ib(default=0.0)
 
     def as_tuple(self):
         return (self.red, self.green, self.blue, self.alpha)
 
     def serialize(self):
         return self.as_tuple()
-
-    @classmethod
-    def deserialize(cls, seq):
-        return cls(*seq)
 
     @classmethod
     def random(cls):
