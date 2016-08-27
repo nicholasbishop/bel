@@ -82,6 +82,7 @@ class Window:
         self.on_cursor_pos(loc)
 
     def _cb_key(self, window, key, scancode, action, mods):
+        # pylint: disable=too-many-arguments
         self.on_key(key, scancode, action, mods)
 
     def _cb_mouse_button(self, window, button, action, mods):

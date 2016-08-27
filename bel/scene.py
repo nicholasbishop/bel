@@ -31,18 +31,18 @@ class Scene(object):
     def ray_intersect(self, ray):
         # TODO, implement properly
         best_node = None
-        best_t = float('inf')
+        closest_hit = float('inf')
 
         for node in self.iter_nodes():
             if not node.pickable:
                 continue
 
-            t = node.ray_intersect(ray)
-            if t is not None and t < best_t:
+            hit = node.ray_intersect(ray)
+            if hit is not None and hit < closest_hit:
                 best_node = node
-                best_t = t
+                closest_hit = hit
 
-        return best_node, best_t
+        return best_node, closest_hit
 
     def ray_from_screen_coord(self, screen_loc):
         # Adapted from http://antongerdelan.net/opengl/raycasting.html
