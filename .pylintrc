@@ -3,6 +3,7 @@ disable=locally-disabled,too-few-public-methods
 
 [TYPECHECK]
 generated-members=numpy.float32
+ignored-classes=_CountingAttr
 ignored-modules=cyglfw3.compatible
 
 [REPORTS]

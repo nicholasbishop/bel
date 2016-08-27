@@ -21,21 +21,13 @@ LOG = getLogger(__name__)
 
 @attr.s
 class DrawState:
+    # pylint: disable=unsubscriptable-object,unsupported-membership-test
     fb_size = attr.ib(default=(0, 0))
     clear_color = attr.ib(default=Color(0.4, 0.4, 0.5, 1.0))
     _buffer_objects = attr.ib(default=OrderedDict())
     _draw_commands = attr.ib(default=OrderedDict())
     _materials = attr.ib(default=OrderedDict())
     _uniforms = attr.ib(default=OrderedDict())
-
-    @property
-    def fb_size(self):
-        return self._fb_size
-
-    @fb_size.setter
-    def fb_size(self, pair):
-        self._fb_size = pair
-        self.update_vector_uniform('fb_size', self._fb_size)
 
     def update_buffer(self, uid, array):
         buffer_object = self._buffer_objects.get(uid)
@@ -92,14 +84,16 @@ class DrawState:
             glDrawArrays(item.primitive, first, count)
 
     def aspect_ratio(self):
-        height = self._fb_size[1]
+        height = self.fb_size[1]
         if height == 0:
             return 0
         else:
-            return self._fb_size[0] / height
+            return self.fb_size[0] / height
 
     def draw_all(self):
-        glViewport(0, 0, *self._fb_size)
+        glViewport(0, 0, *self.fb_size)
+
+        self.update_vector_uniform('fb_size', self.fb_size)
 
         glClearColor(*self.clear_color.as_tuple())
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
