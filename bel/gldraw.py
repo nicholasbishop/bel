@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from logging import getLogger
 
+import attr
 from OpenGL.GL import (GL_COLOR_BUFFER_BIT,
                        GL_DEPTH_BUFFER_BIT,
                        GL_DEPTH_TEST,
@@ -18,15 +19,14 @@ from bel.uniform import MatrixUniform, VectorUniform
 
 LOG = getLogger(__name__)
 
-
+@attr.s
 class DrawState:
-    def __init__(self):
-        self._fb_size = (0, 0)
-        self._clear_color = Color(0.4, 0.4, 0.5, 1.0)
-        self._buffer_objects = OrderedDict()
-        self._draw_commands = OrderedDict()
-        self._materials = OrderedDict()
-        self._uniforms = OrderedDict()
+    fb_size = attr.ib(default=(0, 0))
+    clear_color = attr.ib(default=Color(0.4, 0.4, 0.5, 1.0))
+    _buffer_objects = attr.ib(default=OrderedDict())
+    _draw_commands = attr.ib(default=OrderedDict())
+    _materials = attr.ib(default=OrderedDict())
+    _uniforms = attr.ib(default=OrderedDict())
 
     @property
     def fb_size(self):
@@ -101,7 +101,7 @@ class DrawState:
     def draw_all(self):
         glViewport(0, 0, *self._fb_size)
 
-        glClearColor(*self._clear_color.as_tuple())
+        glClearColor(*self.clear_color.as_tuple())
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_DEPTH_TEST)
 
