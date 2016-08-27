@@ -16,9 +16,11 @@ from bel.draw_command import DrawCommand
 from bel.uniform import MatrixUniform, VectorUniform
 
 
+LOG = getLogger(__name__)
+
+
 class DrawState:
     def __init__(self):
-        self._log = getLogger(__name__)
         self._fb_size = (0, 0)
         self._clear_color = Color(0.4, 0.4, 0.5, 1.0)
         self._buffer_objects = OrderedDict()
@@ -74,7 +76,7 @@ class DrawState:
 
         material_uid = item.material_name
         if material_uid not in self._materials:
-            self._log.error('unknown material: %r', material_uid)
+            LOG.error('unknown material: %r', material_uid)
             return
 
         material = self._materials[material_uid]
