@@ -27,8 +27,7 @@ from bel.default_material import default_material
 from bel.color import Color
 from bel.event import Button, ButtonAction, MouseButtonEvent
 from bel.gldraw import DrawState
-from bel.shader import (FragmentShader, GeometryShader, ShaderProgram,
-                        VertexShader)
+from bel.shader import (FragmentShader, ShaderProgram, VertexShader)
 from cgmath.vector import vec2
 
 LOG = getLogger(__name__)
