@@ -10,7 +10,7 @@ test: venv
 
 venv:
 	virtualenv-3.5 venv
-	pip install --requirements requirements.txt
-	pip install --requirements requirements_dev.txt
+	venv/bin/pip install -r requirements.txt
+	venv/bin/pip install -r requirements_dev.txt
 
 .PHONY: lint run test
